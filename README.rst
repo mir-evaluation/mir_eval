@@ -1,14 +1,14 @@
-.. image:: https://github.com/craffel/mir_eval/actions/workflows/test.yml/badge.svg
-    :target: https://github.com/craffel/mir_eval/actions/workflows/test.yml
-.. image:: https://coveralls.io/repos/craffel/mir_eval/badge.svg?branch=master&service=github
-    :target: https://coveralls.io/github/craffel/mir_eval?branch=master
+.. image:: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml
+.. image:: https://coveralls.io/repos/mir-evaluation/mir_eval/badge.svg?branch=master&service=github
+    :target: https://coveralls.io/github/mir-evaluation/mir_eval?branch=master
 
 mir_eval
 ========
 
 Python library for computing common heuristic accuracy scores for various music/audio information retrieval/signal processing tasks.
 
-Documentation, including installation and usage information: http://craffel.github.io/mir_eval/
+Documentation, including installation and usage information: http://mir-evaluation.github.io/mir_eval/
 
 If you're looking for the mir_eval web service, which you can use to run mir_eval without installing anything or writing any code, it can be found here: http://labrosa.ee.columbia.edu/mir_eval/
 
