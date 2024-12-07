@@ -638,3 +638,9 @@ def test_validate():
     # Test that error is thrown on different-length labels
     with pytest.raises(ValueError):
         mir_eval.chord.validate([], ["C"])
+
+# @maximoskp
+# make testing for all chord types
+# quals = mir_eval.chord.QUALITIES
+# for q in quals.keys():
+#     c = mir_eval.chord.encode('C' + (len(q) > 0)*':' + q, reduce_extended_chords=True)
