@@ -1,7 +1,7 @@
-.. image:: https://github.com/craffel/mir_eval/actions/workflows/test.yml/badge.svg
-    :target: https://github.com/craffel/mir_eval/actions/workflows/test.yml
-.. image:: https://coveralls.io/repos/craffel/mir_eval/badge.svg?branch=master&service=github
-    :target: https://coveralls.io/github/craffel/mir_eval?branch=master
+.. image:: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml
+.. image:: https://coveralls.io/repos/mir-evaluation/mir_eval/badge.svg?branch=master&service=github
+    :target: https://coveralls.io/github/mir-evaluation/mir_eval?branch=master
 
 mir_eval
 ========

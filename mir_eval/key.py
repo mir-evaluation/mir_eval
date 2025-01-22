@@ -70,7 +70,7 @@ def validate_key(key):
             )
         if mode not in ["major", "minor", "other"]:
             raise ValueError(
-                "Mode '{}' is invalid; must be 'major', 'minor' or 'other'".format(mode)
+                f"Mode '{mode}' is invalid; must be 'major', 'minor' or 'other'"
             )
 
 

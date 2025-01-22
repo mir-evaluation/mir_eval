@@ -28,7 +28,7 @@ file_sets = list(zip(ref_files, est_files, sco_files))
 @pytest.fixture
 def melody_data(request):
     ref_f, est_f, sco_f = request.param
-    with open(sco_f, "r") as f:
+    with open(sco_f) as f:
         expected_scores = json.load(f)
     # Load in reference melody
     ref_time, ref_freq = mir_eval.io.load_time_series(ref_f)

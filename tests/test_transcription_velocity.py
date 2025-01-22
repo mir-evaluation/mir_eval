@@ -35,7 +35,7 @@ def _load_transcription_velocity(filename):
 @pytest.fixture
 def velocity_data(request):
     ref_f, est_f, sco_f = request.param
-    with open(sco_f, "r") as f:
+    with open(sco_f) as f:
         expected_scores = json.load(f)
     # Load in reference transcription
     ref_int, ref_pitch, ref_vel = _load_transcription_velocity(ref_f)

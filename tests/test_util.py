@@ -153,8 +153,8 @@ def test_bipartite_match():
     #
     G = collections.defaultdict(list)
 
-    u_set = ["u{:d}".format(_) for _ in range(10)]
-    v_set = ["v{:d}".format(_) for _ in range(len(u_set) + 1)]
+    u_set = [f"u{_:d}" for _ in range(10)]
+    v_set = [f"v{_:d}" for _ in range(len(u_set) + 1)]
     for i, u in enumerate(u_set):
         for v in v_set[: -i - 1]:
             G[v].append(u)
@@ -165,8 +165,8 @@ def test_bipartite_match():
     assert len(matching) == len(u_set)
 
     # Make sure that there are no duplicate keys
-    lhs = set([k for k in matching])
-    rhs = set([matching[k] for k in matching])
+    lhs = {k for k in matching}
+    rhs = {matching[k] for k in matching}
 
     assert len(matching) == len(lhs)
     assert len(matching) == len(rhs)

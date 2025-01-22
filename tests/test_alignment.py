@@ -66,7 +66,7 @@ def test_alignment_functions_fail(metric, est_alignment, pred_alignment):
 @pytest.fixture
 def alignment_data(request):
     ref_f, est_f, sco_f = request.param
-    with open(sco_f, "r") as f:
+    with open(sco_f) as f:
         expected_scores = json.load(f)
     reference_alignments = mir_eval.io.load_events(ref_f)
     estimated_alignments = mir_eval.io.load_events(est_f)

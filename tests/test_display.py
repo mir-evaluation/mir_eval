@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 """Unit tests for the display module"""
 
 # For testing purposes, clobber the rcfile

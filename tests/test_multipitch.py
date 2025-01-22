@@ -28,7 +28,7 @@ file_sets = list(zip(ref_files, est_files, sco_files))
 def multipitch_data(request):
     ref_f, est_f, sco_f = request.param
 
-    with open(sco_f, "r") as f_handle:
+    with open(sco_f) as f_handle:
         expected_score = json.load(f_handle)
 
     ref_times, ref_freqs = mir_eval.io.load_ragged_time_series(ref_f)

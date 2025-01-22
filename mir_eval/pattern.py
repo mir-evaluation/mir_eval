@@ -126,8 +126,8 @@ def _occurrence_intersection(occ_P, occ_Q):
         Set of the intersection between occ_P and occ_Q.
 
     """
-    set_P = set([tuple(onset_midi) for onset_midi in occ_P])
-    set_Q = set([tuple(onset_midi) for onset_midi in occ_Q])
+    set_P = {tuple(onset_midi) for onset_midi in occ_P}
+    set_Q = {tuple(onset_midi) for onset_midi in occ_Q}
     return set_P & set_Q  # Return the intersection
 
 

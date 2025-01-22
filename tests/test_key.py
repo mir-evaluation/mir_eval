@@ -43,7 +43,7 @@ def test_key_function_fail(good_key, bad_key):
 @pytest.fixture
 def key_data(request):
     ref_f, est_f, sco_f = request.param
-    with open(sco_f, "r") as f:
+    with open(sco_f) as f:
         expected_scores = json.load(f)
     reference_key = mir_eval.io.load_key(ref_f)
     estimated_key = mir_eval.io.load_key(est_f)

@@ -28,7 +28,7 @@ file_sets = list(zip(ref_files, est_files, sco_files))
 @pytest.fixture
 def tempo_data(request):
     ref_f, est_f, sco_f = request.param
-    with open(sco_f, "r") as f:
+    with open(sco_f) as f:
         expected_scores = json.load(f)
 
     def _load_tempi(filename):

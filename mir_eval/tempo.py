@@ -41,7 +41,7 @@ def validate_tempi(tempi, reference=True):
         raise ValueError("tempi must have exactly two values")
 
     if not np.all(np.isfinite(tempi)) or np.any(tempi < 0):
-        raise ValueError("tempi={} must be non-negative numbers".format(tempi))
+        raise ValueError(f"tempi={tempi} must be non-negative numbers")
 
     if reference and np.all(tempi == 0):
         raise ValueError(

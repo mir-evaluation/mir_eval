@@ -27,7 +27,7 @@ def _open(file_or_str, **kwargs):
         with open(file_or_str, **kwargs) as file_desc:
             yield file_desc
     else:
-        raise IOError("Invalid file-or-str object: {}".format(file_or_str))
+        raise IOError(f"Invalid file-or-str object: {file_or_str}")
 
 
 def load_delimited(filename, converters, delimiter=r"\s+", comment="#"):
@@ -77,7 +77,7 @@ def load_delimited(filename, converters, delimiter=r"\s+", comment="#"):
     if comment is None:
         commenter = None
     else:
-        commenter = re.compile("^{}".format(comment))
+        commenter = re.compile(f"^{comment}")
 
     # Note: we do io manually here for two reasons.
     #   1. The csv module has difficulties with unicode, which may lead
@@ -524,7 +524,7 @@ def load_key(filename, delimiter=r"\s+", comment="#"):
         raise ValueError("Key file should contain only one line.")
     scale, mode = scale[0], mode[0]
     # Join with a space
-    key_string = "{} {}".format(scale, mode)
+    key_string = f"{scale} {mode}"
     # Validate them, but throw a warning in place of an error
     try:
         key.validate_key(key_string)
@@ -581,7 +581,7 @@ def load_tempo(filename, delimiter=r"\s+", comment="#"):
         warnings.warn(error.args[0])
 
     if not 0 <= weight <= 1:
-        raise ValueError("Invalid weight: {}".format(weight))
+        raise ValueError(f"Invalid weight: {weight}")
 
     return tempi, weight
 
@@ -646,7 +646,7 @@ def load_ragged_time_series(
     if comment is None:
         commenter = None
     else:
-        commenter = re.compile("^{}".format(comment))
+        commenter = re.compile(f"^{comment}")
 
     if header:
         start_row = 1

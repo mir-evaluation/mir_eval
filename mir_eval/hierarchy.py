@@ -1,5 +1,4 @@
 # CREATED:2015-09-16 14:46:47 by Brian McFee <brian.mcfee@nyu.edu>
-# -*- encoding: utf-8 -*-
 """Evaluation criteria for hierarchical structure analysis.
 
 Hierarchical structure analysis seeks to annotate a track with a nested

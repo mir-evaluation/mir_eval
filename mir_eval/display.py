@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Display functions"""
 
 from collections import defaultdict
@@ -73,7 +72,7 @@ def segments(
     text_kw=None,
     ax=None,
     prop_cycle=None,
-    **kwargs
+    **kwargs,
 ):
     """Plot a segmentation as a set of disjoint rectangles.
 
@@ -189,7 +188,7 @@ def segments(
                 xycoords=transform,
                 xytext=(8, -10),
                 textcoords="offset points",
-                **text_kw
+                **text_kw,
             )
             ann.set_clip_path(rect)
 
@@ -206,7 +205,7 @@ def labeled_intervals(
     ax=None,
     tick=True,
     prop_cycle=None,
-    **kwargs
+    **kwargs,
 ):
     """Plot labeled intervals with each label on its own row.
 
@@ -435,7 +434,7 @@ def events(
     ax=None,
     text_kw=None,
     prop_cycle=None,
-    **kwargs
+    **kwargs,
 ):
     """Plot event times as a set of vertical lines
 
@@ -534,7 +533,7 @@ def events(
                 xycoords=transform,
                 xytext=(8, -10),
                 textcoords="offset points",
-                **text_kw
+                **text_kw,
             )
 
     if new_axes:
@@ -798,7 +797,7 @@ def piano_roll(intervals, pitches=None, midi=None, ax=None, **kwargs):
         label_set=scale,
         tick=False,
         ax=ax,
-        **kwargs
+        **kwargs,
     )
 
     # Minor tick at each semitone
@@ -817,7 +816,7 @@ def separation(
     edgecolors="None",
     shading="gouraud",
     prop_cycle=None,
-    **kwargs
+    **kwargs,
 ):
     """Source-separation visualization
 
@@ -860,7 +859,7 @@ def separation(
     sources = np.atleast_2d(sources)
 
     if labels is None:
-        labels = ["Source {:d}".format(_) for _ in range(len(sources))]
+        labels = [f"Source {_:d}" for _ in range(len(sources))]
 
     kwargs.setdefault("scaling", "spectrum")
 
@@ -948,8 +947,8 @@ def __ticker_midi_note(x, pos):
     octave = int(x / 12) - 1
 
     if cents == 0:
-        return "{:s}{:2d}".format(NOTES[idx], octave)
-    return "{:s}{:2d}{:+02d}".format(NOTES[idx], octave, int(cents * 100))
+        return f"{NOTES[idx]:s}{octave:2d}"
+    return f"{NOTES[idx]:s}{octave:2d}{int(cents * 100):+02d}"
 
 
 def __ticker_midi_hz(x, pos):
@@ -958,7 +957,7 @@ def __ticker_midi_hz(x, pos):
     Inputs x are interpreted as midi numbers, and converted
     to Hz.
     """
-    return "{:g}".format(midi_to_hz(x))
+    return f"{midi_to_hz(x):g}"
 
 
 def ticker_notes(ax=None):

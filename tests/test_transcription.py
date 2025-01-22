@@ -25,7 +25,7 @@ file_sets = list(zip(ref_files, est_files, sco_files))
 @pytest.fixture
 def transcription_data(request):
     ref_f, est_f, sco_f = request.param
-    with open(sco_f, "r") as f:
+    with open(sco_f) as f:
         expected_scores = json.load(f)
     # Load in an example segmentation annotation
     ref_int, ref_pitch = mir_eval.io.load_valued_intervals(ref_f)

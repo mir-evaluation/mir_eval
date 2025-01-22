@@ -27,7 +27,7 @@ file_sets = list(zip(ref_files, est_files, sco_files))
 @pytest.fixture
 def beat_data(request):
     ref_f, est_f, sco_f = request.param
-    with open(sco_f, "r") as f:
+    with open(sco_f) as f:
         expected_scores = json.load(f)
     reference_beats = mir_eval.io.load_events(ref_f)
     estimated_beats = mir_eval.io.load_events(est_f)

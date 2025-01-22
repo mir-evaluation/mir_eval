@@ -179,7 +179,7 @@ sco_files = sorted(glob.glob(SCORES_GLOB))
 def hierarchy_outcomes(request):
     sco_f = request.param
 
-    with open(sco_f, "r") as fdesc:
+    with open(sco_f) as fdesc:
         expected_scores = json.load(fdesc)
     window = float(re.match(r".*output_w=(\d+).json$", sco_f).groups()[0])
 

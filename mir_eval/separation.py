@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 .. warning::
     The mir_eval.separation module is deprecated in mir_eval version 0.8, and will be removed.
