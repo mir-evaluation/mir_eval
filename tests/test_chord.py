@@ -639,10 +639,9 @@ def test_validate():
     with pytest.raises(ValueError):
         mir_eval.chord.validate([], ["C"])
 
-def test_chord_qualities():
-    quals = mir_eval.chord.QUALITIES
-    for q in quals.keys():
-        try:
-            c = mir_eval.chord.encode('C' + (len(q) > 0)*':' + q, reduce_extended_chords=True)
-        except:
-            print('problem with quality: ', q)
+@pytest.mark.parametrize('quality', list(mir_eval.chord.QUALITIES.keys()))
+def test_chord_qualities(quality):
+    if len(quality) > 0:
+        mir_eval.chord.encode(f"C:{quality}", reduce_extended_chords=True)
+    else:
+        mir_eval.chord.encode("C", reduce_extended_chords=True)
