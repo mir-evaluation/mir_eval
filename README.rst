@@ -1,7 +1,7 @@
 .. image:: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml/badge.svg
     :target: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml
-.. image:: https://coveralls.io/repos/mir-evaluation/mir_eval/badge.svg?branch=master&service=github
-    :target: https://coveralls.io/github/mir-evaluation/mir_eval?branch=master
+.. image:: https://codecov.io/gh/mir-evaluation/mir_eval/graph/badge.svg?token=OzRL3aW7TX 
+    :target: https://codecov.io/gh/mir-evaluation/mir_eval
 
 mir_eval
 ========
