@@ -16,7 +16,7 @@ Installing ``mir_eval``
 The simplest way to install ``mir_eval`` is by using ``pip``, which will also install the required dependencies if needed.
 To install ``mir_eval`` using ``pip``, simply run
 
-``pip install mir_eval``
+``python -m pip install mir_eval``
 
 Alternatively, you can install ``mir_eval`` from source by first installing the dependencies and then running
 
@@ -24,7 +24,7 @@ Alternatively, you can install ``mir_eval`` from source by first installing the 
 
 from the source directory.
 
-If you don't use Python and want to get started as quickly as possible, you might consider using `Anaconda <https://store.continuum.io/cshop/anaconda/>`_ which makes it easy to install a Python environment which can run ``mir_eval``.
+If you don't use Python and want to get started as quickly as possible, you might consider using `Anaconda <https://www.anaconda.com/download>`_ which makes it easy to install a Python environment which can run ``mir_eval``.
 
 Using ``mir_eval``
 =============================================
