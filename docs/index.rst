@@ -65,10 +65,21 @@ These scripts are are available here:
 https://github.com/craffel/mir_evaluators
 
 
-
-
 API Reference
 =============
+
+The structure of the **mir_eval** Python module is as follows:
+Each MIR task for which evaluation metrics are included in **mir_eval** is given its own submodule, and each metric is defined as a separate function in each submodule.
+Every metric function includes detailed documentation, example usage, input validation, and references to the original paper which defined the metric (see the subsections below).
+The task submodules also all contain a function ``evaluate()``, which takes as input reference and estimated annotations and returns a dictionary of scores for all of the metrics implemented (for casual users, this is the place to start).
+Finally, each task submodule also includes functions for common data pre-processing steps.
+
+**mir_eval** also includes the following additional submodules:
+
+* :mod:`mir_eval.io` which contains convenience functions for loading in task-specific data from common file formats
+* :mod:`mir_eval.util` which includes miscellaneous functionality shared across the submodules
+* :mod:`mir_eval.sonify` which implements some simple methods for synthesizing annotations of various formats for "evaluation by ear".
+* :mod:`mir_eval.display` which provides functions for plotting annotations for various tasks.
 
 Detailed API documentation for each submodule is available in the API Reference section.
 See the :doc:`API Reference <api/index>` for full details.
