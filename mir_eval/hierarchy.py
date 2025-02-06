@@ -564,7 +564,7 @@ def lmeasure(
         be the most specific.
     reference_labels_hier : list of list of str
         ``reference_labels_hier[i]`` contains the segment labels for the
-        ``i``th layer of the annotations
+        ``i`` th layer of the annotations
     estimated_intervals_hier : list of ndarray
     estimated_labels_hier : list of ndarray
         Like ``reference_intervals_hier`` and ``reference_labels_hier``
