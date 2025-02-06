@@ -1,5 +1,4 @@
-""" Unit tests for utils
-"""
+"""Unit tests for utils"""
 
 import collections
 
