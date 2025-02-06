@@ -1,6 +1,53 @@
 Changes
 =======
 
+v0.8
+----
+
+- `#397`_: Removed invalid chord types from `chord.QUALITIES`
+- `#390`_: Migrate from personal to organization account
+- `#388`_: Update to packaging workflow
+- `#387`_: Various modernizations 
+- `#385`_: Fixed import error
+- `#384`_: Rename `testing` to `tests`
+- `#382`_: Deprecated the source separation module
+- `#380`_: Matplotlib support modernization
+- `#379`_: Support nans in pitch contour sonification
+- `#378`_: Improved efficiency in chord validation
+- `#374`_: Fixed length calculation error in `sonify.time_frequency`
+- `#370`_: Test and CI modernization
+- `#367`_: Added interpolation method to docs for `resample_multipitch`
+- `#361`_: Added PyPI package release workflow
+- `#360`_: Fixed broken link
+- `#359`_: Remove support for python 2
+- `#356`_, `#357`_, `#358`_: Migrate testing to github actions
+- `#355`_: Optimize and fix sonification
+- `#353`_: Set numerical precision, fix support for modern numpy
+
+.. _#397: https://github.com/mir-evaluation/mir_eval/pull/397
+.. _#390: https://github.com/mir-evaluation/mir_eval/pull/390
+.. _#388: https://github.com/mir-evaluation/mir_eval/pull/388
+.. _#387: https://github.com/mir-evaluation/mir_eval/pull/387
+.. _#385: https://github.com/mir-evaluation/mir_eval/pull/385
+.. _#384: https://github.com/mir-evaluation/mir_eval/pull/384
+.. _#382: https://github.com/mir-evaluation/mir_eval/pull/382
+.. _#380: https://github.com/mir-evaluation/mir_eval/pull/380
+.. _#379: https://github.com/mir-evaluation/mir_eval/pull/379
+.. _#378: https://github.com/mir-evaluation/mir_eval/pull/378
+.. _#374: https://github.com/mir-evaluation/mir_eval/pull/374
+.. _#370: https://github.com/mir-evaluation/mir_eval/pull/370
+.. _#367: https://github.com/mir-evaluation/mir_eval/pull/367
+.. _#361: https://github.com/mir-evaluation/mir_eval/pull/361
+.. _#360: https://github.com/mir-evaluation/mir_eval/pull/360
+.. _#359: https://github.com/mir-evaluation/mir_eval/pull/359
+.. _#356: https://github.com/mir-evaluation/mir_eval/pull/356
+.. _#357: https://github.com/mir-evaluation/mir_eval/pull/357
+.. _#358: https://github.com/mir-evaluation/mir_eval/pull/358
+.. _#355: https://github.com/mir-evaluation/mir_eval/pull/355
+.. _#353: https://github.com/mir-evaluation/mir_eval/pull/353
+
+
+
 v0.7
 ----
 

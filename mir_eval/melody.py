@@ -7,10 +7,13 @@ reference based on whether the voicing (melody present or not) and the pitch
 is correct (within some tolerance).
 
 For a detailed explanation of the measures please refer to:
+
     J. Salamon, E. Gomez, D. P. W. Ellis and G. Richard, "Melody Extraction
     from Polyphonic Music Signals: Approaches, Applications and Challenges",
     IEEE Signal Processing Magazine, 31(2):118-134, Mar. 2014.
+
 and:
+
     G. E. Poliner, D. P. W. Ellis, A. F. Ehmann, E. Gomez, S.
     Streich, and B. Ong. "Melody transcription from music audio:
     Approaches and evaluation", IEEE Transactions on Audio, Speech, and
@@ -18,6 +21,7 @@ and:
 
 For an explanation of the generalized measures (using non-binary voicings),
 please refer to:
+
     R. Bittner and J. Bosch, "Generalized Metrics for Single-F0 Estimation
     Evaluation", International Society for Music Information Retrieval
     Conference (ISMIR), 2019.
@@ -158,15 +162,19 @@ def freq_to_voicing(frequencies, voicing=None):
     ----------
     frequencies : np.ndarray
         Array of frequencies.  A frequency <= 0 indicates "unvoiced".
+
     voicing : np.ndarray
         Array of voicing values.
         (Default value = None)
         Default None, which means the voicing is inferred from `frequencies`:
-            frames with frequency <= 0.0 are considered "unvoiced"
-            frames with frequency > 0.0 are considered "voiced"
+
+           - frames with frequency <= 0.0 are considered "unvoiced"
+           - frames with frequency > 0.0 are considered "voiced"
+
         If specified, `voicing` is used as the voicing array, but
         frequencies with value 0 are forced to have 0 voicing.
-            Voicing inferred by negative frequency values is ignored.
+
+           - Voicing inferred by negative frequency values is ignored.
 
     Returns
     -------
@@ -323,34 +331,44 @@ def to_cent_voicing(
 
     If est_voicing is not provided, a negative frequency indicates:
         "Predicted as unvoiced, but if it's voiced,
-         this is the frequency estimate".
+        this is the frequency estimate".
+
     If it is provided, negative frequency values are ignored, and the voicing
-        from est_voicing is directly used.
+    from est_voicing is directly used.
 
     Parameters
     ----------
     ref_time : np.ndarray
         Time of each reference frequency value
+
     ref_freq : np.ndarray
         Array of reference frequency values
+
     est_time : np.ndarray
         Time of each estimated frequency value
+
     est_freq : np.ndarray
         Array of estimated frequency values
+
     est_voicing : np.ndarray
         Estimate voicing confidence.
         Default None, which means the voicing is inferred from est_freq:
-            frames with frequency <= 0.0 are considered "unvoiced"
-            frames with frequency > 0.0 are considered "voiced"
+
+          - frames with frequency <= 0.0 are considered "unvoiced"
+          - frames with frequency > 0.0 are considered "voiced"
+
     ref_reward : np.ndarray
         Reference voicing reward.
         Default None, which means all frames are weighted equally.
+
     base_frequency : float
         Base frequency in Hz for conversion to cents
         (Default value = 10.)
+
     hop : float
         Hop size, in seconds, to resample,
         default None which means use ref_time
+
     kind : str
         kind parameter to pass to scipy.interpolate.interp1d.
         (Default value = 'linear')
@@ -767,20 +785,27 @@ def evaluate(
     ----------
     ref_time : np.ndarray
         Time of each reference frequency value
+
     ref_freq : np.ndarray
         Array of reference frequency values
+
     est_time : np.ndarray
         Time of each estimated frequency value
+
     est_freq : np.ndarray
         Array of estimated frequency values
+
     est_voicing : np.ndarray
         Estimate voicing confidence.
         Default None, which means the voicing is inferred from est_freq:
-            frames with frequency <= 0.0 are considered "unvoiced"
-            frames with frequency > 0.0 are considered "voiced"
+
+          - frames with frequency <= 0.0 are considered "unvoiced"
+          - frames with frequency > 0.0 are considered "voiced"
+
     ref_reward : np.ndarray
         Reference pitch estimation reward.
         Default None, which means all frames are weighted equally.
+
     **kwargs
         Additional keyword arguments which will be passed to the
         appropriate metric or preprocessing functions.

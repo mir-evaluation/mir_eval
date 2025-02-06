@@ -1,4 +1,4 @@
-""" Unit tests for input/output functions """
+"""Unit tests for input/output functions"""
 
 import numpy as np
 import json

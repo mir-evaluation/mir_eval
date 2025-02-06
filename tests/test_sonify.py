@@ -1,4 +1,4 @@
-""" Unit tests for sonification methods """
+"""Unit tests for sonification methods"""
 
 import pytest
 import mir_eval

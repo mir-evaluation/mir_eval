@@ -3,7 +3,7 @@
     The mir_eval.separation module is deprecated in mir_eval version 0.8, and will be removed.
     We recommend that you migrate your code to use an alternative package such as sigsep-museval
     https://sigsep.github.io/sigsep-mus-eval/
-    
+
 
 Source separation algorithms attempt to extract recordings of individual
 sources from a recording of a mixture of sources.  Evaluation methods for
