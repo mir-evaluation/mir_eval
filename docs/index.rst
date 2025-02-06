@@ -27,7 +27,7 @@ from the source directory.
 If you don't use Python and want to get started as quickly as possible, you might consider using `Anaconda <https://www.anaconda.com/download>`_ which makes it easy to install a Python environment which can run ``mir_eval``.
 
 Using ``mir_eval``
-=============================================
+==================
 
 Once you've installed ``mir_eval`` (see :ref:`installation`), you can import it in your Python code as follows:
 
@@ -80,7 +80,7 @@ Finally, each task submodule also includes functions for common data pre-process
 The following subsections document each submodule.
 
 :mod:`mir_eval.alignment`
---------------------
+-------------------------
 .. automodule:: mir_eval.alignment
    :members:
    :undoc-members:
@@ -160,7 +160,7 @@ The following subsections document each submodule.
    :member-order: bysource
 
 :mod:`mir_eval.tempo`
---------------------------
+---------------------
 .. automodule:: mir_eval.tempo
    :members:
    :undoc-members:
@@ -184,7 +184,7 @@ The following subsections document each submodule.
    :member-order: bysource
 
 :mod:`mir_eval.key`
------------------------------
+-------------------
 .. automodule:: mir_eval.key
    :members:
    :undoc-members:
