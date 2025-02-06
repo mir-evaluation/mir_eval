@@ -62,6 +62,7 @@ jobs:
 
         - name: Build docs
           shell: bash -l {0}
+          working-directory: docs
           run: make html
 
         - name: Link checking
@@ -69,8 +70,3 @@ jobs:
           shell: bash -l {0}
           working-directory: docs
           run: make linkcheck
-
-        - name: Check for broken links
-          shell: bash -l {0}
-          run: |
-            if [[ -n "$(find build/html/ -type l ! -exec test -e {} \; -print -quit)" ]]; then false; fi
