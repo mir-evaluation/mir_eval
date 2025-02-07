@@ -18,15 +18,15 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.8", "3.10", "3.11"]
+        python-version: ["3.8", "3.10", "3.11", "3.12"]
         channel-priority: [strict]
         envfile: [".github/environment.yml"]
         include:
-          - python-version: "3.12"
+          - python-version: "3.13"
             os: macos-latest
-          - python-version: "3.12"
+          - python-version: "3.13"
             os: windows-latest
-          - python-version: "3.12"
+          - python-version: "3.13"
             os: ubuntu-latest
             channel-priority: flexible
           - os: ubuntu-latest
