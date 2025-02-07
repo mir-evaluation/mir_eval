@@ -1,8 +1,11 @@
-.. image:: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml/badge.svg
-    :target: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml
+.. image:: https://anaconda.org/conda-forge/mir_eval/badges/version.svg 
+    :target: https://anaconda.org/conda-forge/mir_eval
 
 .. image:: https://img.shields.io/pypi/v/mir_eval.svg
     :target: https://pypi.python.org/pypi/mir_eval
+
+.. image:: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml
 
 .. image:: https://codecov.io/gh/mir-evaluation/mir_eval/graph/badge.svg?token=OzRL3aW7TX 
     :target: https://codecov.io/gh/mir-evaluation/mir_eval
