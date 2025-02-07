@@ -1,7 +1,15 @@
 .. image:: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml/badge.svg
     :target: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml
+
+.. image:: https://img.shields.io/pypi/v/mir_eval.svg
+    :target: https://pypi.python.org/pypi/mir_eval
+
 .. image:: https://codecov.io/gh/mir-evaluation/mir_eval/graph/badge.svg?token=OzRL3aW7TX 
     :target: https://codecov.io/gh/mir-evaluation/mir_eval
+
+.. image:: https://img.shields.io/pypi/l/mir_eval.svg
+    :target: https://github.com/mir-evaluation/mir_eval/blob/main/LICENSE.txt
+
 
 mir_eval
 ========
@@ -13,6 +21,7 @@ Documentation, including installation and usage information: https://mir-evaluat
 Dependencies:
 
 * `Scipy/Numpy <http://www.scipy.org/>`_
+* `decorator <https://github.com/micheles/decorator>`_
 
 If you use mir_eval in a research project, please cite the following paper:
 
