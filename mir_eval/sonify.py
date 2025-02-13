@@ -114,6 +114,13 @@ def time_frequency(
         length = int(times[-1, 1] * fs)
 
     last_time_in_secs = float(length) / fs
+    if times.min() > 0:
+        # We need to pad a silence column on to gram at the beginning
+        gram = np.pad(gram, ((0, 0), (1, 0)), mode="constant")
+
+    if times.max() < last_time_in_secs:
+        # We need to pad a silence column onto gram at the end
+        gram = np.pad(gram, ((0, 0), (0, 1)), mode="constant")
     times, _ = util.adjust_intervals(times, t_max=last_time_in_secs)
 
     # Truncate times so that the shape matches gram. However if the time boundaries were converted
