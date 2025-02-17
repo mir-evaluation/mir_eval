@@ -4,6 +4,7 @@ All functions return a raw signal at the specified sampling rate.
 """
 
 import numpy as np
+import scipy.signal
 from numpy.lib.stride_tricks import as_strided
 from scipy.interpolate import interp1d
 
@@ -198,7 +199,7 @@ def time_frequency(
         # Use a two-cycle ramp to smooth over transients
         period = 2 * int(fs / frequency)
         filter = np.ones(period) / period
-        signal = np.convolve(signal, filter, mode="same")
+        signal = scipy.signal.convolve(signal, filter, mode="same")
 
         # Mix the signal into the output
         output[:] += wave[: len(signal)] * signal
