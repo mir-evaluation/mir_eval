@@ -166,6 +166,16 @@ def time_frequency(
 
     time_centers = np.mean(times, axis=1) * float(fs)
 
+    # Interpolate the values in gram over the time grid.
+    gram_interpolator = interp1d(
+        times[:, 0] * fs,
+        gram[:, :n_times],
+        kind="previous",
+        bounds_error=False,
+        fill_value=(gram[:, 0], gram[:, -1]),
+    )
+    signal = gram_interpolator(np.arange(length))
+
     # Check if there is at least one element on each frequency that has a value above the threshold
     # to justify processing, for optimisation.
     spectral_max_magnitudes = np.max(gram, axis=1)
@@ -176,26 +186,13 @@ def time_frequency(
         # Get a waveform of length samples at this frequency
         wave = _fast_synthesize(frequency, n_dec, fs, function, length)
 
-        # Interpolate the values in gram over the time grid.
-        gram_interpolator = interp1d(
-            times[:, 0] * fs,
-            gram[n, :n_times],
-            kind="previous",
-            bounds_error=False,
-            fill_value=(gram[n, 0], gram[n, -1]),
-        )
-
-        # Create the time-varying scaling for the entire time interval by the piano roll
-        # magnitude and add to the accumulating waveform.
-        signal = gram_interpolator(np.arange(0, length))
-
         # Use a two-cycle ramp to smooth over transients
         period = 2 * int(fs / frequency)
         filter = np.ones(period) / period
-        signal = scipy.signal.convolve(signal, filter, mode="same")
+        signal_n = scipy.signal.convolve(signal[n], filter, mode="same")
 
         # Mix the signal into the output
-        output[:] += wave[: len(signal)] * signal
+        output[:] += wave[:len(signal_n)] * signal_n
 
     # Normalize, but only if there's non-zero values
     norm = np.abs(output).max()
