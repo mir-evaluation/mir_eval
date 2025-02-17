@@ -167,14 +167,23 @@ def time_frequency(
     time_centers = np.mean(times, axis=1) * float(fs)
 
     # Interpolate the values in gram over the time grid.
-    gram_interpolator = interp1d(
-        times[:, 0] * fs,
-        gram[:, :n_times],
-        kind="previous",
-        bounds_error=False,
-        fill_value=(gram[:, 0], gram[:, -1]),
-    )
-    signal = gram_interpolator(np.arange(length))
+    if n_times > 1:
+        interpolator = interp1d(
+            times[:, 0] * fs,
+            gram[:, :n_times],
+            kind="previous",
+            bounds_error=False,
+            fill_value=(gram[:, 0], gram[:, -1]),
+        )
+    else:
+        # NOTE: This is a special case where there is only one time interval.
+        # scipy 1.10 and above handle this case directly with the interp1d above,
+        # but older scipy's do not. This is a workaround for that.
+        #
+        # In the 0.9 release, we can bump the minimum scipy to 1.10 and remove this
+        interpolator = _const_interpolator(gram[:, 0])
+
+    signal = interpolator(np.arange(length))
 
     # Check if there is at least one element on each frequency that has a value above the threshold
     # to justify processing, for optimisation.
@@ -200,6 +209,17 @@ def time_frequency(
         output /= norm
 
     return output
+
+
+def _const_interpolator(value):
+    """Return a function that returns `value`
+    no matter the input.
+    """
+
+    def __interpolator(x):
+        return value
+
+    return __interpolator
 
 
 def _fast_synthesize(frequency, n_dec, fs, function, length):
