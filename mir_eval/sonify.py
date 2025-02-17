@@ -123,10 +123,14 @@ def time_frequency(
         times = np.vstack((times, [times[-1, 1], last_time_in_secs]))
 
     if times.shape[0] != gram.shape[1]:
-        raise ValueError(f"times.shape={times.shape} is incompatible with gram.shape={gram.shape}")
+        raise ValueError(
+            f"times.shape={times.shape} is incompatible with gram.shape={gram.shape}"
+        )
 
     if frequencies.shape[0] != gram.shape[0]:
-        raise ValueError(f"frequencies.shape={frequencies.shape} is incompatible with gram.shape={gram.shape}")
+        raise ValueError(
+            f"frequencies.shape={frequencies.shape} is incompatible with gram.shape={gram.shape}"
+        )
 
     if times.min() > 0:
         # We need to pad a silence column on to gram at the beginning
