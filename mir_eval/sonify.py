@@ -105,23 +105,43 @@ def time_frequency(
         synthesized version of the piano roll
 
     """
-    # Default value for length
+    # Convert times to intervals if necessary
+    time_converted = False
     if times.ndim == 1:
         # Convert to intervals
-        times = util.boundaries_to_intervals(times)
+        times = np.hstack((times[:-1, np.newaxis], times[1:, np.newaxis]))
+        # We'll need this to keep track of whether we should pad an interval on
+        time_converted = True
 
+    # Default value for length
     if length is None:
         length = int(times[-1, 1] * fs)
 
     last_time_in_secs = float(length) / fs
+
+    if time_converted and times.shape[0] != gram.shape[1]:
+        times = np.vstack((times, [times[-1, 1], last_time_in_secs]))
+
+    if times.shape[0] != gram.shape[1]:
+        raise ValueError(f"times.shape={times.shape} is incompatible with gram.shape={gram.shape}")
+
+    if frequencies.shape[0] != gram.shape[0]:
+        raise ValueError(f"frequencies.shape={frequencies.shape} is incompatible with gram.shape={gram.shape}")
+
     if times.min() > 0:
         # We need to pad a silence column on to gram at the beginning
         gram = np.pad(gram, ((0, 0), (1, 0)), mode="constant")
+        times = np.vstack(([0, times.min()], times))
 
     if times.max() < last_time_in_secs:
         # We need to pad a silence column onto gram at the end
         gram = np.pad(gram, ((0, 0), (0, 1)), mode="constant")
-    times, _ = util.adjust_intervals(times, t_max=last_time_in_secs)
+        times = np.vstack((times, [times.max(), last_time_in_secs]))
+
+    # Identify the time intervals that have some overlap with the duration
+    idx = np.logical_and(times[:, 1] >= 0, times[:, 0] <= last_time_in_secs)
+    gram = gram[:, idx]
+    times = np.clip(times[idx], 0, last_time_in_secs)
 
     # Truncate times so that the shape matches gram. However if the time boundaries were converted
     # to intervals, then the number of times will be reduced by one, so we only truncate
@@ -132,52 +152,16 @@ def time_frequency(
     # due to a loss of precision and truncation to ints.
     sample_intervals = np.round(times * fs).astype(int)
 
-    def _fast_synthesize(frequency):
-        """Efficiently synthesize a signal.
-        Generate one cycle, and simulate arbitrary repetitions
-        using array indexing tricks.
-        """
-        # hack so that we can ensure an integer number of periods and samples
-        # rounds frequency to 1st decimal, s.t. 10 * frequency will be an int
-        frequency = np.round(frequency, n_dec)
-
-        # Generate 10*frequency periods at this frequency
-        # Equivalent to n_samples = int(n_periods * fs / frequency)
-        # n_periods = 10*frequency is the smallest integer that guarantees
-        # that n_samples will be an integer, since assuming 10*frequency
-        # is an integer
-        n_samples = int(10.0**n_dec * fs)
-
-        short_signal = function(2.0 * np.pi * np.arange(n_samples) * frequency / fs)
-
-        # Calculate the number of loops we need to fill the duration
-        n_repeats = int(np.ceil(length / float(short_signal.shape[0])))
-
-        # Simulate tiling the short buffer by using stride tricks
-        long_signal = as_strided(
-            short_signal,
-            shape=(n_repeats, len(short_signal)),
-            strides=(0, short_signal.itemsize),
-        )
-
-        # Use a flatiter to simulate a long 1D buffer
-        return long_signal.flat
-
-    def _const_interpolator(value):
-        """Return a function that returns `value`
-        no matter the input.
-        """
-
-        def __interpolator(x):
-            return value
-
-        return __interpolator
-
-    # Threshold the tfgram to remove non-positive values
+    # Threshold the tfgram to remove negatives values
     gram = np.maximum(gram, 0)
 
     # Pre-allocate output signal
     output = np.zeros(length)
+    if gram.shape[1] == 0:
+        # There are no time intervals to process, so return
+        # the empty signal.
+        return output
+
     time_centers = np.mean(times, axis=1) * float(fs)
 
     # Check if there is at least one element on each frequency that has a value above the threshold
@@ -186,8 +170,9 @@ def time_frequency(
     for n, frequency in enumerate(frequencies):
         if spectral_max_magnitudes[n] < threshold:
             continue
+
         # Get a waveform of length samples at this frequency
-        wave = _fast_synthesize(frequency)
+        wave = _fast_synthesize(frequency, n_dec, fs, function, length)
 
         # Interpolate the values in gram over the time grid.
         if len(time_centers) > 1:
@@ -218,6 +203,49 @@ def time_frequency(
         output /= norm
 
     return output
+
+
+def _const_interpolator(value):
+    """Return a function that returns `value`
+    no matter the input.
+    """
+
+    def __interpolator(x):
+        return value
+
+    return __interpolator
+
+
+def _fast_synthesize(frequency, n_dec, fs, function, length):
+    """Efficiently synthesize a signal.
+    Generate one cycle, and simulate arbitrary repetitions
+    using array indexing tricks.
+    """
+    # hack so that we can ensure an integer number of periods and samples
+    # rounds frequency to 1st decimal, s.t. 10 * frequency will be an int
+    frequency = np.round(frequency, n_dec)
+
+    # Generate 10*frequency periods at this frequency
+    # Equivalent to n_samples = int(n_periods * fs / frequency)
+    # n_periods = 10*frequency is the smallest integer that guarantees
+    # that n_samples will be an integer, since assuming 10*frequency
+    # is an integer
+    n_samples = int(10.0**n_dec * fs)
+
+    short_signal = function(2.0 * np.pi * np.arange(n_samples) * frequency / fs)
+
+    # Calculate the number of loops we need to fill the duration
+    n_repeats = int(np.ceil(length / float(short_signal.shape[0])))
+
+    # Simulate tiling the short buffer by using stride tricks
+    long_signal = as_strided(
+        short_signal,
+        shape=(n_repeats, len(short_signal)),
+        strides=(0, short_signal.itemsize),
+    )
+
+    # Use a flatiter to simulate a long 1D buffer
+    return long_signal.flat
 
 
 def pitch_contour(
