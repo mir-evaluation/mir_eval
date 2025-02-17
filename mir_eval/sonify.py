@@ -192,7 +192,7 @@ def time_frequency(
         signal_n = scipy.signal.convolve(signal[n], filter, mode="same")
 
         # Mix the signal into the output
-        output[:] += wave[:len(signal_n)] * signal_n
+        output[:] += wave[: len(signal_n)] * signal_n
 
     # Normalize, but only if there's non-zero values
     norm = np.abs(output).max()
