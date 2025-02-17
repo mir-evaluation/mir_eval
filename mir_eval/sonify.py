@@ -177,20 +177,13 @@ def time_frequency(
         wave = _fast_synthesize(frequency, n_dec, fs, function, length)
 
         # Interpolate the values in gram over the time grid.
-        if len(time_centers) > 1:
-            # If times was converted from boundaries to intervals, it will change shape from
-            # (len, 1) to (len-1, 2), and hence differ from the length of gram (i.e one less),
-            # so we ensure gram is reduced appropriately.
-            gram_interpolator = interp1d(
-                time_centers,
-                gram[n, :n_times],
-                kind="nearest",
-                bounds_error=False,
-                fill_value=(gram[n, 0], gram[n, -1]),
-            )
-        # If only one time point, create constant interpolator
-        else:
-            gram_interpolator = _const_interpolator(gram[n, 0])
+        gram_interpolator = interp1d(
+            times[:, 0] * fs,
+            gram[n, :n_times],
+            kind="previous",
+            bounds_error=False,
+            fill_value=(gram[n, 0], gram[n, -1]),
+        )
 
         # Create the time-varying scaling for the entire time interval by the piano roll
         # magnitude and add to the accumulating waveform.
@@ -210,17 +203,6 @@ def time_frequency(
         output /= norm
 
     return output
-
-
-def _const_interpolator(value):
-    """Return a function that returns `value`
-    no matter the input.
-    """
-
-    def __interpolator(x):
-        return value
-
-    return __interpolator
 
 
 def _fast_synthesize(frequency, n_dec, fs, function, length):
