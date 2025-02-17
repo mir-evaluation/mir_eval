@@ -147,16 +147,13 @@ def time_frequency(
     gram = gram[:, idx]
     times = np.clip(times[idx], 0, last_time_in_secs)
 
-    # Truncate times so that the shape matches gram. However if the time boundaries were converted
-    # to intervals, then the number of times will be reduced by one, so we only truncate
-    # if the gram is smaller.
-    n_times = min(gram.shape[1], times.shape[0])
-    times = times[:n_times]
+    n_times = times.shape[0]
+
     # Round up to ensure that the adjusted interval last time does not diverge from length
     # due to a loss of precision and truncation to ints.
     sample_intervals = np.round(times * fs).astype(int)
 
-    # Threshold the tfgram to remove negatives values
+    # Threshold the tfgram to remove negative values
     gram = np.maximum(gram, 0)
 
     # Pre-allocate output signal
@@ -186,7 +183,7 @@ def time_frequency(
             gram_interpolator = interp1d(
                 time_centers,
                 gram[n, :n_times],
-                kind="linear",
+                kind="nearest",
                 bounds_error=False,
                 fill_value=(gram[n, 0], gram[n, -1]),
             )
@@ -196,10 +193,15 @@ def time_frequency(
 
         # Create the time-varying scaling for the entire time interval by the piano roll
         # magnitude and add to the accumulating waveform.
-        t_in = max(sample_intervals[0][0], 0)
-        t_out = min(sample_intervals[-1][-1], length)
-        signal = gram_interpolator(np.arange(t_in, t_out))
-        output[t_in:t_out] += wave[: len(signal)] * signal
+        signal = gram_interpolator(np.arange(0, length))
+
+        # Use a two-cycle ramp to smooth over transients
+        period = 2 * int(fs / frequency)
+        filter = np.ones(period) / period
+        signal = np.convolve(signal, filter, mode="same")
+
+        # Mix the signal into the output
+        output[:] += wave[: len(signal)] * signal
 
     # Normalize, but only if there's non-zero values
     norm = np.abs(output).max()
