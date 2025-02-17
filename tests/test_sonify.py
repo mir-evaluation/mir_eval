@@ -73,6 +73,7 @@ def test_time_frequency_badtime():
 
     mir_eval.sonify.time_frequency(gram, np.arange(1, 11), times, fs)
 
+
 @pytest.mark.xfail(raises=ValueError)
 def test_time_frequency_badintervals():
     fs = 8000
