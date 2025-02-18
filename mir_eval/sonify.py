@@ -133,15 +133,23 @@ def time_frequency(
             f"frequencies.shape={frequencies.shape} is incompatible with gram.shape={gram.shape}"
         )
 
+    padding = [0, 0]
+    stacking = []
+
     if times.min() > 0:
         # We need to pad a silence column on to gram at the beginning
-        gram = np.pad(gram, ((0, 0), (1, 0)), mode="constant")
-        times = np.vstack(([0, times.min()], times))
+        padding[0] = 1
+        stacking.append([0, times.min()])
+
+    stacking.append(times)
 
     if times.max() < last_time_in_secs:
         # We need to pad a silence column onto gram at the end
-        gram = np.pad(gram, ((0, 0), (0, 1)), mode="constant")
-        times = np.vstack((times, [times.max(), last_time_in_secs]))
+        padding[1] = 1
+        stacking.append([times.max(), last_time_in_secs])
+
+    gram = np.pad(gram, ((0, 0), padding), mode="constant")
+    times = np.vstack(stacking)
 
     # Identify the time intervals that have some overlap with the duration
     idx = np.logical_and(times[:, 1] >= 0, times[:, 0] <= last_time_in_secs)
@@ -149,10 +157,6 @@ def time_frequency(
     times = np.clip(times[idx], 0, last_time_in_secs)
 
     n_times = times.shape[0]
-
-    # Round up to ensure that the adjusted interval last time does not diverge from length
-    # due to a loss of precision and truncation to ints.
-    sample_intervals = np.round(times * fs).astype(int)
 
     # Threshold the tfgram to remove negative values
     gram = np.maximum(gram, 0)
@@ -164,7 +168,11 @@ def time_frequency(
         # the empty signal.
         return output
 
-    time_centers = np.mean(times, axis=1) * float(fs)
+    # Discard frequencies below threshold
+    freq_keep = np.max(gram, axis=1) >= threshold
+
+    gram = gram[freq_keep, :]
+    frequencies = frequencies[freq_keep]
 
     # Interpolate the values in gram over the time grid.
     if n_times > 1:
@@ -185,13 +193,7 @@ def time_frequency(
 
     signal = interpolator(np.arange(length))
 
-    # Check if there is at least one element on each frequency that has a value above the threshold
-    # to justify processing, for optimisation.
-    spectral_max_magnitudes = np.max(gram, axis=1)
     for n, frequency in enumerate(frequencies):
-        if spectral_max_magnitudes[n] < threshold:
-            continue
-
         # Get a waveform of length samples at this frequency
         wave = _fast_synthesize(frequency, n_dec, fs, function, length)
 
