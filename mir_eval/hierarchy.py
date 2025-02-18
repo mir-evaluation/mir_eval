@@ -132,7 +132,7 @@ def _align_intervals(int_hier, lab_hier, t_min=0.0, t_max=None):
     ]
 
 
-def _lca(intervals_hier, frame_size):
+def _lca(intervals_hier, frame_size, strict_mono=False):
     """Compute the (sparse) least-common-ancestor (LCA) matrix for a
     hierarchical segmentation.
 
@@ -147,6 +147,10 @@ def _lca(intervals_hier, frame_size):
         The list is assumed to be ordered by increasing specificity (depth).
     frame_size : number
         The length of the sample frames (in seconds)
+    strict_mono : bool, optional
+        If True, enforce monotonic updates for the LCA matrix. Only positions that were set to
+        the previous level (i.e., equal to level - 1) will be updated to the current level.
+        If False, the current level is applied unconditionally. Default is False.
 
     Returns
     -------
@@ -170,18 +174,25 @@ def _lca(intervals_hier, frame_size):
             int
         ):
             idx = slice(ival[0], ival[1])
-            lca_matrix[idx, idx] = level
+            if level == 1 or not strict_mono:
+                lca_matrix[idx, idx] = level
+            else:
+                # Check if the segments' parents have matching labeling
+                current_meet = lca_matrix[idx, idx].toarray()
+                matching_parents_mask = current_meet == level - 1
+                # Update only at positions where the previous level also matches
+                current_meet[matching_parents_mask] = level
+                lca_matrix[idx, idx] = current_meet
 
     return lca_matrix.tocsr()
 
 
-def _meet(intervals_hier, labels_hier, frame_size):
-    """Compute the (sparse) least-common-ancestor (LCA) matrix for a
+def _meet(intervals_hier, labels_hier, frame_size, strict_mono=False):
+    """Compute the (sparse) annotation meet matrix for a
     hierarchical segmentation.
 
-    For any pair of frames ``(s, t)``, the LCA is the deepest level in
-    the hierarchy such that ``(s, t)`` are contained within a single
-    segment at that level.
+    For any pair of frames ``(s, t)``, the annotation meet matrix is the deepest level
+    in the hierarchy such that ``(s, t)`` receive the same segment label, i.e. they meet.
 
     Parameters
     ----------
@@ -193,6 +204,10 @@ def _meet(intervals_hier, labels_hier, frame_size):
         ``i``th layer of the annotations
     frame_size : number
         The length of the sample frames (in seconds)
+    strict_mono : bool, optional
+        If True, enforce monotonic updates for the LCA matrix. Only positions that were set to
+        the previous level (i.e., equal to level - 1) will be updated to the current level.
+        If False, the current level is applied unconditionally. Default is False.
 
     Returns
     -------
@@ -225,9 +240,21 @@ def _meet(intervals_hier, labels_hier, frame_size):
         for seg_i, seg_j in zip(*np.where(int_agree)):
             idx_i = slice(*list(int_frames[seg_i]))
             idx_j = slice(*list(int_frames[seg_j]))
-            meet_matrix[idx_i, idx_j] = level
-            if seg_i != seg_j:
-                meet_matrix[idx_j, idx_i] = level
+
+            if level == 1 or not strict_mono:
+                meet_matrix[idx_i, idx_j] = level
+                if seg_i != seg_j:
+                    meet_matrix[idx_j, idx_i] = level
+
+            else:
+                # Extract current submatrix and update elementwise
+                current_meet = meet_matrix[idx_i, idx_j].toarray()
+                mask = current_meet == (level - 1)
+                current_meet[mask] = level
+                meet_matrix[idx_i, idx_j] = current_meet
+
+                if seg_i != seg_j:
+                    meet_matrix[idx_j, idx_i] = current_meet
 
     return scipy.sparse.csr_matrix(meet_matrix)
 
@@ -446,13 +473,30 @@ def validate_hier_intervals(intervals_hier):
     # Synthesize a label array for the top layer.
     label_top = util.generate_labels(intervals_hier[0])
 
-    boundaries = set(util.intervals_to_boundaries(intervals_hier[0]))
-
-    for level, intervals in enumerate(intervals_hier[1:], 1):
+    for intervals in intervals_hier[1:]:
         # Make sure this level is consistent with the root
         label_current = util.generate_labels(intervals)
         validate_structure(intervals_hier[0], label_top, intervals, label_current)
 
+    check_monotonic_boundaries(intervals_hier)
+
+
+def check_monotonic_boundaries(intervals_hier):
+    """Check that a hierarchical annotation has monotnoic boundaries.
+
+    Parameters
+    ----------
+    intervals_hier : ordered list of segmentations
+
+    Returns
+    -------
+    bool
+        True if the annotation has monotnoic boundaries, False otherwise
+    """
+    result = True
+    boundaries = set(util.intervals_to_boundaries(intervals_hier[0]))
+
+    for level, intervals in enumerate(intervals_hier[1:], 1):
         # Make sure all previous boundaries are accounted for
         new_bounds = set(util.intervals_to_boundaries(intervals))
 
@@ -460,7 +504,25 @@ def validate_hier_intervals(intervals_hier):
             warnings.warn(
                 "Segment hierarchy is inconsistent " "at level {:d}".format(level)
             )
+            result = False
         boundaries |= new_bounds
+    return result
+
+
+def check_monotonic_labels(intervals_hier):
+    """Check that a hierarchical annotation has monotnoic labels.
+
+    Parameters
+    ----------
+    intervals_hier : ordered list of segmentations
+
+    Returns
+    -------
+    bool
+        True if the annotation has monotnoic labels, False otherwise
+    """
+    ## TODO Check if the monotonic anno meet mat and the max depth meet mat is the same.
+    return True
 
 
 def tmeasure(
@@ -470,6 +532,7 @@ def tmeasure(
     window=15.0,
     frame_size=0.1,
     beta=1.0,
+    strict_mono=False,
 ):
     """Compute the tree measures for hierarchical segment annotations.
 
@@ -533,8 +596,8 @@ def tmeasure(
     validate_hier_intervals(estimated_intervals_hier)
 
     # Build the least common ancestor matrices
-    ref_lca = _lca(reference_intervals_hier, frame_size)
-    est_lca = _lca(estimated_intervals_hier, frame_size)
+    ref_lca = _lca(reference_intervals_hier, frame_size, strict_mono=strict_mono)
+    est_lca = _lca(estimated_intervals_hier, frame_size, strict_mono=strict_mono)
 
     # Compute precision and recall
     t_recall = _gauc(ref_lca, est_lca, transitive, window_frames)
@@ -552,6 +615,7 @@ def lmeasure(
     estimated_labels_hier,
     frame_size=0.1,
     beta=1.0,
+    strict_mono=False,
 ):
     """Compute the tree measures for hierarchical segment annotations.
 
@@ -604,8 +668,18 @@ def lmeasure(
     validate_hier_intervals(estimated_intervals_hier)
 
     # Build the least common ancestor matrices
-    ref_meet = _meet(reference_intervals_hier, reference_labels_hier, frame_size)
-    est_meet = _meet(estimated_intervals_hier, estimated_labels_hier, frame_size)
+    ref_meet = _meet(
+        reference_intervals_hier,
+        reference_labels_hier,
+        frame_size,
+        strict_mono=strict_mono,
+    )
+    est_meet = _meet(
+        estimated_intervals_hier,
+        estimated_labels_hier,
+        frame_size,
+        strict_mono=strict_mono,
+    )
 
     # Compute precision and recall
     l_recall = _gauc(ref_meet, est_meet, True, None)

@@ -18,7 +18,8 @@ A_TOL = 1e-12
 
 @pytest.mark.parametrize("window", [5, 10, 15, 30, 90, None])
 @pytest.mark.parametrize("frame_size", [0.1, 0.5, 1.0])
-def test_tmeasure_pass(window, frame_size):
+@pytest.mark.parametrize("strict_mono", [True, False])
+def test_tmeasure_pass(window, frame_size, strict_mono):
     # The estimate here gets none of the structure correct.
     ref = [[[0, 30]], [[0, 15], [15, 30]]]
     # convert to arrays
@@ -27,13 +28,17 @@ def test_tmeasure_pass(window, frame_size):
     est = ref[:1]
 
     # The estimate should get 0 score here
-    scores = mir_eval.hierarchy.tmeasure(ref, est, window=window, frame_size=frame_size)
+    scores = mir_eval.hierarchy.tmeasure(
+        ref, est, window=window, frame_size=frame_size, strict_mono=strict_mono
+    )
 
     for k in scores:
         assert k == 0.0
 
     # The reference should get a perfect score here
-    scores = mir_eval.hierarchy.tmeasure(ref, ref, window=window, frame_size=frame_size)
+    scores = mir_eval.hierarchy.tmeasure(
+        ref, ref, window=window, frame_size=frame_size, strict_mono=strict_mono
+    )
 
     for k in scores:
         assert k == 1.0
@@ -91,7 +96,8 @@ def test_tmeasure_fail_frame_size(window, frame_size):
 
 
 @pytest.mark.parametrize("frame_size", [0.1, 0.5, 1.0])
-def test_lmeasure_pass(frame_size):
+@pytest.mark.parametrize("strict_mono", [True, False])
+def test_lmeasure_pass(frame_size, strict_mono):
     # The estimate here gets none of the structure correct.
     ref = [[[0, 30]], [[0, 15], [15, 30]]]
     ref_lab = [["A"], ["a", "b"]]
@@ -104,7 +110,7 @@ def test_lmeasure_pass(frame_size):
 
     # The estimate should get 0 score here
     scores = mir_eval.hierarchy.lmeasure(
-        ref, ref_lab, est, est_lab, frame_size=frame_size
+        ref, ref_lab, est, est_lab, frame_size=frame_size, strict_mono=strict_mono
     )
 
     for k in scores:
@@ -112,7 +118,7 @@ def test_lmeasure_pass(frame_size):
 
     # The reference should get a perfect score here
     scores = mir_eval.hierarchy.lmeasure(
-        ref, ref_lab, ref, ref_lab, frame_size=frame_size
+        ref, ref_lab, ref, ref_lab, frame_size=frame_size, strict_mono=strict_mono
     )
 
     for k in scores:
@@ -284,6 +290,101 @@ def test_meet():
 
     # Does it have the right value?
     assert np.all(meet == meet_truth)
+
+
+def test_strict_mono():
+    frame_size = 1
+    int_hier = [
+        np.array([[0, 10]]),
+        np.array([[0, 6], [6, 10]]),
+        np.array([[0, 2], [2, 4], [4, 8], [8, 10]]),
+    ]
+
+    lab_hier = [["X"], ["A", "B"], ["a", "b", "c", "b"]]
+
+    # Target output
+    meet_truth = np.asarray(
+        [
+            [3, 3, 2, 2, 2, 2, 1, 1, 1, 1],  # (XAa)
+            [3, 3, 2, 2, 2, 2, 1, 1, 1, 1],  # (XAa)
+            [2, 2, 3, 3, 2, 2, 1, 1, 3, 3],  # (XAb)
+            [2, 2, 3, 3, 2, 2, 1, 1, 3, 3],  # (XAb)
+            [2, 2, 2, 2, 3, 3, 3, 3, 1, 1],  # (XAc)
+            [2, 2, 2, 2, 3, 3, 3, 3, 1, 1],  # (XAc)
+            [1, 1, 1, 1, 3, 3, 3, 3, 2, 2],  # (XBc)
+            [1, 1, 1, 1, 3, 3, 3, 3, 2, 2],  # (XBc)
+            [1, 1, 3, 3, 1, 1, 2, 2, 3, 3],  # (XBb)
+            [1, 1, 3, 3, 1, 1, 2, 2, 3, 3],  # (XBb)
+        ]
+    )
+    meet_truth_strict_mono = np.asarray(
+        [
+            [3, 3, 2, 2, 2, 2, 1, 1, 1, 1],  # (XAa)
+            [3, 3, 2, 2, 2, 2, 1, 1, 1, 1],  # (XAa)
+            [2, 2, 3, 3, 2, 2, 1, 1, 1, 1],  # (XAb)
+            [2, 2, 3, 3, 2, 2, 1, 1, 1, 1],  # (XAb)
+            [2, 2, 2, 2, 3, 3, 1, 1, 1, 1],  # (XAc)
+            [2, 2, 2, 2, 3, 3, 1, 1, 1, 1],  # (XAc)
+            [1, 1, 1, 1, 1, 1, 3, 3, 2, 2],  # (XBc)
+            [1, 1, 1, 1, 1, 1, 3, 3, 2, 2],  # (XBc)
+            [1, 1, 1, 1, 1, 1, 2, 2, 3, 3],  # (XBb)
+            [1, 1, 1, 1, 1, 1, 2, 2, 3, 3],  # (XBb)
+        ]
+    )
+    lca_truth = np.asarray(
+        [
+            [3, 3, 2, 2, 2, 2, 1, 1, 1, 1],  # (XAa)
+            [3, 3, 2, 2, 2, 2, 1, 1, 1, 1],  # (XAa)
+            [2, 2, 3, 3, 2, 2, 1, 1, 1, 1],  # (XAb)
+            [2, 2, 3, 3, 2, 2, 1, 1, 1, 1],  # (XAb)
+            [2, 2, 2, 2, 3, 3, 3, 3, 1, 1],  # (XAc)
+            [2, 2, 2, 2, 3, 3, 3, 3, 1, 1],  # (XAc)
+            [1, 1, 1, 1, 3, 3, 3, 3, 2, 2],  # (XBc)
+            [1, 1, 1, 1, 3, 3, 3, 3, 2, 2],  # (XBc)
+            [1, 1, 1, 1, 1, 1, 2, 2, 3, 3],  # (XBd)
+            [1, 1, 1, 1, 1, 1, 2, 2, 3, 3],  # (XBd)
+        ]
+    )
+    lca_truth_strict_mono = np.asarray(
+        [
+            [3, 3, 2, 2, 2, 2, 1, 1, 1, 1],  # (XAa)
+            [3, 3, 2, 2, 2, 2, 1, 1, 1, 1],  # (XAa)
+            [2, 2, 3, 3, 2, 2, 1, 1, 1, 1],  # (XAb)
+            [2, 2, 3, 3, 2, 2, 1, 1, 1, 1],  # (XAb)
+            [2, 2, 2, 2, 3, 3, 1, 1, 1, 1],  # (XAc)
+            [2, 2, 2, 2, 3, 3, 1, 1, 1, 1],  # (XAc)
+            [1, 1, 1, 1, 1, 1, 3, 3, 2, 2],  # (XBc)
+            [1, 1, 1, 1, 1, 1, 3, 3, 2, 2],  # (XBc)
+            [1, 1, 1, 1, 1, 1, 2, 2, 3, 3],  # (XBd)
+            [1, 1, 1, 1, 1, 1, 2, 2, 3, 3],  # (XBd)
+        ]
+    )
+
+    meet = mir_eval.hierarchy._meet(int_hier, lab_hier, frame_size, strict_mono=False)
+    meet_strict_mono = mir_eval.hierarchy._meet(
+        int_hier, lab_hier, frame_size, strict_mono=True
+    )
+    lca = mir_eval.hierarchy._lca(int_hier, frame_size, strict_mono=False)
+    lca_strict_mono = mir_eval.hierarchy._lca(int_hier, frame_size, strict_mono=True)
+    # Is it the right type?
+    assert isinstance(meet, scipy.sparse.csr_matrix)
+    meet = meet.toarray()
+    meet_strict_mono = meet_strict_mono.toarray()
+    assert isinstance(lca_strict_mono, scipy.sparse.csr_matrix)
+    lca = lca.toarray()
+    lca_strict_mono = lca_strict_mono.toarray()
+
+    # Does it have the right shape?
+    assert meet.shape == (10, 10)
+    assert meet_strict_mono.shape == (10, 10)
+    assert lca.shape == (10, 10)
+    assert lca_strict_mono.shape == (10, 10)
+
+    # Does it have the right value?
+    assert np.all(meet == meet_truth)
+    assert np.all(meet_strict_mono == meet_truth_strict_mono)
+    assert np.all(lca == lca_truth)
+    assert np.all(lca_strict_mono == lca_truth_strict_mono)
 
 
 def test_compare_frame_rankings():
