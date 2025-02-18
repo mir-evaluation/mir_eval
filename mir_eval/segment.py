@@ -78,7 +78,6 @@ import warnings
 import numpy as np
 import scipy.stats
 import scipy.sparse
-import scipy.misc
 import scipy.special
 
 from . import util
