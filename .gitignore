@@ -41,7 +41,6 @@ Thumbs.db
 # IDEs
 .idea/*
 .vscode/*
-.vscode/*
 
 # docs
 docs/_build/*

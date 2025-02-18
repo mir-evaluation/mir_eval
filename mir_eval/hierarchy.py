@@ -509,22 +509,6 @@ def check_monotonic_boundaries(intervals_hier):
     return result
 
 
-def check_monotonic_labels(intervals_hier):
-    """Check that a hierarchical annotation has monotnoic labels.
-
-    Parameters
-    ----------
-    intervals_hier : ordered list of segmentations
-
-    Returns
-    -------
-    bool
-        True if the annotation has monotnoic labels, False otherwise
-    """
-    ## TODO Check if the monotonic anno meet mat and the max depth meet mat is the same.
-    return True
-
-
 def tmeasure(
     reference_intervals_hier,
     estimated_intervals_hier,
