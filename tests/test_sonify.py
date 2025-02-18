@@ -50,6 +50,48 @@ def test_time_frequency(fs):
     assert len(signal) == 5 * fs
 
 
+def test_time_frequency_offset():
+    fs = 8000
+    # Length is 3 seconds, first interval starts at 5.
+    # Should produce an empty signal.
+    signal = mir_eval.sonify.time_frequency(
+        np.random.standard_normal((100, 100)),
+        np.arange(1, 101),
+        np.linspace(5, 10, 100),
+        fs,
+        length=fs * 3,
+    )
+    assert len(signal) == 3 * fs
+    assert np.allclose(signal, 0)
+
+
+@pytest.mark.xfail(raises=ValueError)
+def test_time_frequency_badtime():
+    fs = 8000
+    gram = np.ones((10, 20))
+    times = np.arange(10)
+
+    mir_eval.sonify.time_frequency(gram, np.arange(1, 11), times, fs)
+
+
+@pytest.mark.xfail(raises=ValueError)
+def test_time_frequency_badintervals():
+    fs = 8000
+    gram = np.ones((10, 20))
+    times = np.ones((11, 2))
+
+    mir_eval.sonify.time_frequency(gram, np.arange(1, 11), times, fs)
+
+
+@pytest.mark.xfail(raises=ValueError)
+def test_time_frequency_frequency():
+    fs = 8000
+    gram = np.ones((10, 20))
+    times = np.arange(20)
+
+    mir_eval.sonify.time_frequency(gram, np.arange(1, 8), times, fs)
+
+
 @pytest.mark.parametrize("fs", [8000, 44100])
 def test_chroma(fs):
     signal = mir_eval.sonify.chroma(
