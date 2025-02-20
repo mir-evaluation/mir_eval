@@ -254,7 +254,7 @@ def _meet(intervals_hier, labels_hier, frame_size, strict_mono=False):
                 meet_matrix[idx_i, idx_j] = current_meet
 
                 if seg_i != seg_j:
-                    meet_matrix[idx_j, idx_i] = current_meet
+                    meet_matrix[idx_j, idx_i] = current_meet.T
 
     return scipy.sparse.csr_matrix(meet_matrix)
 
