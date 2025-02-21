@@ -4,6 +4,7 @@ import numpy as np
 import json
 import mir_eval
 import warnings
+import pathlib
 import tempfile
 import pytest
 
@@ -66,6 +67,16 @@ def test_load_delimited_nocomment():
         col1, col2 = mir_eval.io.load_delimited(f, [int, int], comment=None)
         assert np.allclose(col1, [10, 30])
         assert np.allclose(col2, [20, 50])
+
+
+@pytest.mark.parametrize(
+    "file_or_path", ["data/beat/ref01.txt", pathlib.Path("data/beat/ref01.txt")]
+)
+def test_load_delimited_file_or_path(file_or_path):
+    # Tests the load_delimited routine with either a string or a
+    # pathlib.Path object as the first argument
+    data = mir_eval.io.load_delimited(file_or_path, [float])
+    assert len(data) == 635
 
 
 def test_load_events():
