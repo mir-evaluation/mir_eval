@@ -5,6 +5,7 @@ import numpy as np
 import re
 import warnings
 import scipy.io.wavfile
+from pathlib import Path
 
 from . import util
 from . import key
@@ -12,22 +13,22 @@ from . import tempo
 
 
 @contextlib.contextmanager
-def _open(file_or_str, **kwargs):
+def _open(file_or_path, **kwargs):
     """Either open a file handle, or use an existing file-like object.
 
-    This will behave as the `open` function if `file_or_str` is a string.
+    This will behave as the `open` function if `file_or_path` is a string or `pathlib.Path`.
 
-    If `file_or_str` has the `read` attribute, it will return `file_or_str`.
+    If `file_or_path` has the `read` attribute, it will return `file_or_path`.
 
     Otherwise, an `IOError` is raised.
     """
-    if hasattr(file_or_str, "read"):
-        yield file_or_str
-    elif isinstance(file_or_str, str):
-        with open(file_or_str, **kwargs) as file_desc:
+    if hasattr(file_or_path, "read"):
+        yield file_or_path
+    elif isinstance(file_or_path, (str, Path)):
+        with open(file_or_path, **kwargs) as file_desc:
             yield file_desc
     else:
-        raise IOError(f"Invalid file-or-str object: {file_or_str}")
+        raise IOError(f"Invalid file-or-path object: {file_or_path}")
 
 
 def load_delimited(filename, converters, delimiter=r"\s+", comment="#"):
@@ -43,7 +44,7 @@ def load_delimited(filename, converters, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str
+    filename : str or `pathlib.Path`
         Path to the annotation file
 
     converters : list of functions
@@ -129,7 +130,7 @@ def load_events(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str
+    filename : str or `pathlib.Path`
         Path to the annotation file
 
     delimiter : str
@@ -169,7 +170,7 @@ def load_labeled_events(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str
+    filename : str or `pathlib.Path`
         Path to the annotation file
 
     delimiter : str
@@ -212,7 +213,7 @@ def load_intervals(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str
+    filename : str or `pathlib.Path`
         Path to the annotation file
 
     delimiter : str
@@ -255,7 +256,7 @@ def load_labeled_intervals(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str
+    filename : str or `pathlib.Path`
         Path to the annotation file
 
     delimiter : str
@@ -298,7 +299,7 @@ def load_time_series(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str
+    filename : str or `pathlib.Path`
         Path to the annotation file
 
     delimiter : str
@@ -339,7 +340,7 @@ def load_patterns(filename):
 
     Parameters
     ----------
-    filename : str
+    filename : str or `pathlib.Path`
         The input file path containing the patterns of a given piece using the
         MIREX 2013 format.
 
@@ -406,12 +407,18 @@ def load_patterns(filename):
     return pattern_list
 
 
+@util.deprecated(version="0.8.1", version_removed="0.9.0")
 def load_wav(path, mono=True):
     """Load a .wav file as a numpy array using ``scipy.io.wavfile``.
 
+    .. warning:: This function is deprecatred in mir_eval 0.8.1
+        and will be removed in 0.9.0.
+        We recommend using a dedicated audio IO library such as
+        `soundfile` instead.
+
     Parameters
     ----------
-    path : str
+    path : str or `pathlib.Path`
         Path to a .wav file
     mono : bool
         If the provided .wav has more than one channel, it will be
@@ -450,7 +457,7 @@ def load_valued_intervals(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str
+    filename : str or `pathlib.Path`
         Path to the annotation file
 
     delimiter : str
@@ -497,7 +504,7 @@ def load_key(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str
+    filename : str or `pathlib.Path`
         Path to the annotation file
 
     delimiter : str
@@ -543,7 +550,7 @@ def load_tempo(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str
+    filename : str or `pathlib.Path`
         Path to the annotation file
 
     delimiter : str
@@ -607,7 +614,7 @@ def load_ragged_time_series(
 
     Parameters
     ----------
-    filename : str
+    filename : str or `pathlib.Path`
         Path to the annotation file
 
     dtype : function
