@@ -5,7 +5,6 @@ import numpy as np
 import re
 import warnings
 import scipy.io.wavfile
-from pathlib import Path
 
 from . import util
 from . import key
@@ -16,19 +15,18 @@ from . import tempo
 def _open(file_or_path, **kwargs):
     """Either open a file handle, or use an existing file-like object.
 
-    This will behave as the `open` function if `file_or_path` is a string or `pathlib.Path`.
-
     If `file_or_path` has the `read` attribute, it will return `file_or_path`.
 
-    Otherwise, an `IOError` is raised.
+    Otherwise, it will attempt to open the file at the specified location.
     """
     if hasattr(file_or_path, "read"):
         yield file_or_path
-    elif isinstance(file_or_path, (str, Path)):
-        with open(file_or_path, **kwargs) as file_desc:
-            yield file_desc
     else:
-        raise IOError(f"Invalid file-or-path object: {file_or_path}")
+        try:
+            with open(file_or_path, **kwargs) as file_desc:
+                yield file_desc
+        except TypeError as exc:
+            raise IOError(f"Invalid file-or-path object: {file_or_path}") from exc
 
 
 def load_delimited(filename, converters, delimiter=r"\s+", comment="#"):
@@ -44,7 +42,7 @@ def load_delimited(filename, converters, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str or `pathlib.Path`
+    filename : str or `os.Pathlike`
         Path to the annotation file
 
     converters : list of functions
@@ -130,7 +128,7 @@ def load_events(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str or `pathlib.Path`
+    filename : str or `os.Pathlike`
         Path to the annotation file
 
     delimiter : str
@@ -170,7 +168,7 @@ def load_labeled_events(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str or `pathlib.Path`
+    filename : str or `os.Pathlike`
         Path to the annotation file
 
     delimiter : str
@@ -213,7 +211,7 @@ def load_intervals(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str or `pathlib.Path`
+    filename : str or `os.Pathlike`
         Path to the annotation file
 
     delimiter : str
@@ -256,7 +254,7 @@ def load_labeled_intervals(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str or `pathlib.Path`
+    filename : str or `os.Pathlike`
         Path to the annotation file
 
     delimiter : str
@@ -299,7 +297,7 @@ def load_time_series(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str or `pathlib.Path`
+    filename : str or `os.Pathlike`
         Path to the annotation file
 
     delimiter : str
@@ -340,7 +338,7 @@ def load_patterns(filename):
 
     Parameters
     ----------
-    filename : str or `pathlib.Path`
+    filename : str or `os.Pathlike`
         The input file path containing the patterns of a given piece using the
         MIREX 2013 format.
 
@@ -418,7 +416,7 @@ def load_wav(path, mono=True):
 
     Parameters
     ----------
-    path : str or `pathlib.Path`
+    path : str or `os.Pathlike`
         Path to a .wav file
     mono : bool
         If the provided .wav has more than one channel, it will be
@@ -457,7 +455,7 @@ def load_valued_intervals(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str or `pathlib.Path`
+    filename : str or `os.Pathlike`
         Path to the annotation file
 
     delimiter : str
@@ -504,7 +502,7 @@ def load_key(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str or `pathlib.Path`
+    filename : str or `os.Pathlike`
         Path to the annotation file
 
     delimiter : str
@@ -550,7 +548,7 @@ def load_tempo(filename, delimiter=r"\s+", comment="#"):
 
     Parameters
     ----------
-    filename : str or `pathlib.Path`
+    filename : str or `os.Pathlike`
         Path to the annotation file
 
     delimiter : str
@@ -614,7 +612,7 @@ def load_ragged_time_series(
 
     Parameters
     ----------
-    filename : str or `pathlib.Path`
+    filename : str or `os.Pathlike`
         Path to the annotation file
 
     dtype : function
