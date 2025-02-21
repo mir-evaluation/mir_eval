@@ -1,6 +1,19 @@
 Changes
 =======
 
+v0.8.1
+------
+
+- `#410`_: Fixed several errors with time-frequency sonification
+- `#412`_: Removed unused import of deprecated scipy submodule
+- `#416`_: `mir_eval.io` routines now support `pathlib.Path` (and generally `os.Pathlike`) inputs as well as strings or open file descriptors.
+- `#416`_: `mir_eval.io.load_wav` is deprecated and will be removed in v0.9.'
+
+.. _#410: https://github.com/mir-evaluation/mir_eval/pull/410
+.. _#412: https://github.com/mir-evaluation/mir_eval/pull/412
+.. _#416: https://github.com/mir-evaluation/mir_eval/pull/416
+
+
 v0.8
 ----
 

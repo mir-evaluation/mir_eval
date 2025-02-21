@@ -18,6 +18,12 @@ The simplest way to install **mir_eval** is via ``pip``:
 
    python -m pip install mir_eval
 
+If you use `conda` packages, **mir_eval** is available on conda-forge:
+
+.. code-block:: console
+
+   conda install -c conda-forge mir_eval
+
 Alternatively, you can install from source:
 
 .. code-block:: console
