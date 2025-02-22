@@ -38,8 +38,9 @@ Thumbs.db
 # Vim
 *.swp
 
-# pycharm
+# IDEs
 .idea/*
+.vscode/*
 
 # docs
 docs/_build/*
