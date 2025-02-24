@@ -116,12 +116,12 @@ def time_frequency(
 
     # Default value for length
     if length is None:
-        length = int(times[-1, 1] * fs)
+        length = int(np.max(times) * fs)
 
     last_time_in_secs = float(length) / fs
 
     if time_converted and times.shape[0] != gram.shape[1]:
-        times = np.vstack((times, [times[-1, 1], last_time_in_secs]))
+        times = np.vstack((times, [np.max(times), last_time_in_secs]))
 
     if times.shape[0] != gram.shape[1]:
         raise ValueError(
