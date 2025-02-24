@@ -116,12 +116,12 @@ def time_frequency(
 
     # Default value for length
     if length is None:
-        length = int(times[-1, 1] * fs)
+        length = int(np.max(times) * fs)
 
     last_time_in_secs = float(length) / fs
 
     if time_converted and times.shape[0] != gram.shape[1]:
-        times = np.vstack((times, [times[-1, 1], last_time_in_secs]))
+        times = np.vstack((times, [np.max(times), last_time_in_secs]))
 
     if times.shape[0] != gram.shape[1]:
         raise ValueError(
@@ -183,15 +183,14 @@ def time_frequency(
             bounds_error=False,
             fill_value=(gram[:, 0], gram[:, -1]),
         )
+        signal = interpolator(np.arange(length))
     else:
         # NOTE: This is a special case where there is only one time interval.
         # scipy 1.10 and above handle this case directly with the interp1d above,
         # but older scipy's do not. This is a workaround for that.
         #
         # In the 0.9 release, we can bump the minimum scipy to 1.10 and remove this
-        interpolator = _const_interpolator(gram[:, 0])
-
-    signal = interpolator(np.arange(length))
+        signal = np.tile(gram[:, 0], (1, length))
 
     for n, frequency in enumerate(frequencies):
         # Get a waveform of length samples at this frequency
@@ -211,17 +210,6 @@ def time_frequency(
         output /= norm
 
     return output
-
-
-def _const_interpolator(value):
-    """Return a function that returns `value`
-    no matter the input.
-    """
-
-    def __interpolator(x):
-        return value
-
-    return __interpolator
 
 
 def _fast_synthesize(frequency, n_dec, fs, function, length):

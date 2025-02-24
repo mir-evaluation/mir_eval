@@ -50,6 +50,28 @@ def test_time_frequency(fs):
     assert len(signal) == 5 * fs
 
 
+def test_time_frequency_const():
+
+    # Sonify with a single interval to hit the const interpolator
+    s1 = mir_eval.sonify.time_frequency(
+        np.ones((1, 1)),
+        np.array([60]),
+        np.array([[0, 1]]),
+        8000,
+    )
+    # Sonify with two tiem intervals to hit the regular interpolator
+    # but the second frequency will have no energy, so it doesn't
+    # change the resulting signal
+    s2 = mir_eval.sonify.time_frequency(
+        np.array([[1, 1], [0, 0]]),
+        np.array([60, 90]),
+        np.array([[0, 1], [0, 1]]),
+        8000,
+    )
+
+    assert np.allclose(s1, s2)
+
+
 def test_time_frequency_offset():
     fs = 8000
     # Length is 3 seconds, first interval starts at 5.
