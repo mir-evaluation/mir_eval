@@ -1,6 +1,13 @@
 Changes
 =======
 
+v0.8.2
+------
+
+- `#418`_: Fixed a bug in time-frequency sonification with single-interval inputs.
+
+.. _#418: https://github.com/mir-evaluation/mir_eval/pull/418
+   
 v0.8.1
 ------
 
