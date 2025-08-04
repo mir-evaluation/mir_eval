@@ -10,12 +10,115 @@ import matplotlib as mpl
 from matplotlib.patches import Rectangle
 from matplotlib.ticker import FuncFormatter, MultipleLocator
 from matplotlib.ticker import Formatter
-from matplotlib.colors import LinearSegmentedColormap, LogNorm, ColorConverter
+from matplotlib.colors import (
+    LinearSegmentedColormap,
+    ListedColormap,
+    LogNorm,
+    ColorConverter,
+)
 from matplotlib.transforms import Bbox, TransformedBbox
 
 from .melody import freq_to_voicing
 from .util import midi_to_hz, hz_to_midi
+from .chord import split as split_chord
 
+
+# Colormaps for segment visualizations
+# First, the chromatic pitch maps
+__COLORMAPS__ = {
+    "pitch": [
+        "#f2695a",
+        "#f2aa5a",
+        "#f2eb5a",
+        "#5af27f",
+        "#5af2c0",
+        "#5ae2f2",
+        "#5aa1f2",
+        "#5a60f2",
+        "#945af2",
+        "#d55af2",
+        "#f25acd",
+        "#f25a8c",
+    ],
+    "pitch_light": [
+        "#ffbab3",
+        "#ffdbb3",
+        "#fffbb3",
+        "#b3ffc5",
+        "#b3ffe6",
+        "#b3f7ff",
+        "#b3d7ff",
+        "#b3b6ff",
+        "#d0b3ff",
+        "#f1b3ff",
+        "#ffb3ec",
+        "#ffb3cc",
+    ],
+    "pitch_dark": [
+        "#ad2d1f",
+        "#ad6a1f",
+        "#ada71f",
+        "#1fad41",
+        "#1fad7e",
+        "#1f9fad",
+        "#1f62ad",
+        "#1f25ad",
+        "#561fad",
+        "#931fad",
+        "#ad1f8b",
+        "#ad1f4e",
+    ],
+    "fifths": [
+        "#f2695a",
+        "#5a60f2",
+        "#f2eb5a",
+        "#d55af2",
+        "#5af2c0",
+        "#f25a8c",
+        "#5aa1f2",
+        "#f2aa5a",
+        "#945af2",
+        "#5af27f",
+        "#f25acd",
+        "#5ae2f2",
+    ],
+    "fifths_light": [
+        "#ffbab3",
+        "#b3b6ff",
+        "#fffbb3",
+        "#f1b3ff",
+        "#b3ffe6",
+        "#ffb3cc",
+        "#b3d7ff",
+        "#ffdbb3",
+        "#d0b3ff",
+        "#b3ffc5",
+        "#ffb3ec",
+        "#b3f7ff",
+    ],
+    "fifths_dark": [
+        "#ad2d1f",
+        "#1f25ad",
+        "#ada71f",
+        "#931fad",
+        "#1fad7e",
+        "#ad1f4e",
+        "#1f62ad",
+        "#ad6a1f",
+        "#561fad",
+        "#1fad41",
+        "#ad1f8b",
+        "#1f9fad",
+    ],
+}
+
+# Register the colormaps with matplotlib
+for name in __COLORMAPS__:
+    _cmap = ListedColormap(__COLORMAPS__[name], name=name)
+    _cmap.set_extremes(under=(0.75, 0.75, 0.75), over=(0.75, 0.75, 0.75))
+    mpl.colormaps.register(name=name, cmap=_cmap)
+
+del name, _cmap
 
 # This dictionary is used to track mir_eval-specific attributes
 # attached to matplotlib axes
@@ -995,3 +1098,242 @@ def ticker_pitch(ax=None):
 # Instantiate ticker objects; we don't need more than one of each
 FMT_MIDI_NOTE = FuncFormatter(__ticker_midi_note)
 FMT_MIDI_HZ = FuncFormatter(__ticker_midi_hz)
+
+
+# Hatch patterns for chord displays
+__CHORD_HATCHES__ = {
+    "maj": "",
+    "min": "",
+    "sus4": "|",
+    "sus2": "-",
+    "aug": "+",
+    "dim": ".",
+    "maj7": "//",
+    "minmaj7": "//",
+    "7": r"\\",
+    "min7": r"\\",
+    "hdim7": ".//",
+    "dim7": r".\\",
+    "maj6": "xx",
+    "min6": "xx",
+}
+
+
+def _quality_to_majminoth(q):
+
+    if q[3] and not q[4]:
+        # a b3 and no natural 3
+        return "min"
+
+    elif q[4] and not q[3]:
+        # a natural 3 and no flat 3
+        return "maj"
+    else:
+        # Anything else is 'other'
+        return "other"
+
+
+def __chord_to_color(chord, major, minor, other):
+
+    root, quality, bass = mir_eval.chord.encode(chord, reduce_extended_chords=True)
+    ctype = _quality_to_majminoth(quality)
+
+    # print(f"{chord:10s} → {ctype}")
+
+    if ctype == "maj":
+        return major(root)
+    elif ctype == "min":
+        return minor(root)
+    else:
+        return other(root)
+
+
+def chord_display(
+    intervals,
+    labels,
+    base=None,
+    height=None,
+    text=False,
+    text_kw=None,
+    ax=None,
+    prop_cycle=None,
+    cmap="fifths",
+    pattern=True,
+    **kwargs,
+):
+    """Plot a chord annotation as a set of disjoint rectangles with semantically meaningful colors.
+
+    Parameters
+    ----------
+    intervals : np.ndarray, shape=(n, 2)
+        segment intervals, in the format returned by
+        :func:`mir_eval.io.load_intervals` or
+        :func:`mir_eval.io.load_labeled_intervals`.
+    labels : list, shape=(n,)
+        reference segment labels, in the format returned by
+        :func:`mir_eval.io.load_labeled_intervals`.
+    base : number
+        The vertical position of the base of the rectangles.
+        By default, this will be the bottom of the plot.
+    height : number
+        The height of the rectangles.
+        By default, this will be the top of the plot (minus ``base``).
+        .. note:: If either `base` or `height` are provided, both must be provided.
+    text : bool
+        If true, each segment's label is displayed in its
+        upper-left corner
+    text_kw : dict
+        If ``text == True``, the properties of the text
+        object can be specified here.
+        See ``matplotlib.pyplot.Text`` for valid parameters
+    ax : matplotlib.pyplot.axes
+        An axis handle on which to draw the segmentation.
+        If none is provided, a new set of axes is created.
+    prop_cycle : cycle.Cycler
+        An optional property cycle object to specify style properties.
+        If not provided, the default property cycler will be retrieved from matplotlib.
+    cmap : {'pitch', 'fifths'}
+        The color map to use for the chord display.
+        If 'pitch', the colors will cycle chromatically (C, C#, D, ...)
+        If 'fifths', the colors will cycle through the circle of fifths (C, G, D, ...).
+        In both cases, major qualities (identified by a natural third) will receive a bright color,
+        and minor qualities (identified by a flat third) will receive a darker color.
+        Qualities which are neither major nor minor will receive a light color.
+        No-chord ('N') or out-of-gamut ('X') symbols will be colored gray.
+    pattern : bool
+        If `True`, segments will be filled with a hatch pattern
+        corresponding to the chord quality as described below:
+        - Major: no hatch
+        - Minor: no hatch
+        - Suspended 2nd: horizontal hatch
+        - Suspended 4th: vertical hatch
+        - Augmented: cross hatch
+        - Diminished: dot hatch
+        - Major 7th: forward slash hatch
+        - Minor Major 7th: forward slash hatch
+        - Dominant 7th: backward slash hatch
+        - Minor 7th: backward slash hatch
+        - Half-diminished 7th: dot and forward slash hatch
+        - Diminished 7th: dot and backward slash hatch
+        - Major 6th: cross hatch
+        - Minor 6th: cross hatch
+    **kwargs
+        Additional keyword arguments to pass to
+        ``matplotlib.patches.Rectangle``.
+
+    Returns
+    -------
+    ax : matplotlib.pyplot.axes._subplots.AxesSubplot
+        A handle to the (possibly constructed) plot axes
+    """
+
+    if cmap == "fifths":
+        cmap_major = "fifths"
+        cmap_minor = "fifths_dark"
+        cmap_other = "fifths_light"
+    elif cmap == "pitch":
+        cmap_major = "pitch"
+        cmap_minor = "pitch_dark"
+        cmap_other = "pitch_light"
+    else:
+        raise ValueError(f"Unknown colormap '{cmap}' for chord display.")
+
+    if text_kw is None:
+        text_kw = dict()
+    text_kw.setdefault("va", "top")
+    text_kw.setdefault("clip_on", True)
+    text_kw.setdefault("bbox", dict(boxstyle="round", facecolor="white"))
+
+    # Make sure we have a numpy array
+    intervals = np.atleast_2d(intervals)
+
+    seg_def_style = dict(linewidth=1)
+
+    ax, new_axes = __get_axes(ax=ax)
+
+    if prop_cycle is None:
+        __AXMAP[ax].setdefault("prop_cycle", mpl.rcParams["axes.prop_cycle"])
+        __AXMAP[ax].setdefault("prop_iter", iter(mpl.rcParams["axes.prop_cycle"]))
+    elif "prop_iter" not in __AXMAP[ax]:
+        __AXMAP[ax]["prop_cycle"] = prop_cycle
+        __AXMAP[ax]["prop_iter"] = iter(prop_cycle)
+
+    prop_cycle = __AXMAP[ax]["prop_cycle"]
+    prop_iter = __AXMAP[ax]["prop_iter"]
+
+    if new_axes:
+        ax.set_yticks([])
+
+    if base is None and height is None:
+        # If neither are provided, we'll use axes coordinates to span the figure
+        base, height = 0, 1
+        transform = ax.get_xaxis_transform()
+
+    elif base is not None and height is not None:
+        # If both are provided, we'll use data coordinates
+        transform = None
+    else:
+        raise ValueError("When specifying base or height, both must be provided.")
+
+    seg_map = dict()
+
+    for lab in labels:
+
+        if lab in seg_map:
+            continue
+
+        try:
+            properties = next(prop_iter)
+        except StopIteration:
+            prop_iter = iter(prop_cycle)
+            __AXMAP[ax]["prop_iter"] = prop_iter
+            properties = next(prop_iter)
+
+        style = dict()
+        # Get the color for this segment label
+        style["color"] = __chord_to_color(lab, cmap_major, cmap_minor, cmap_other)
+
+        # Get the fill pattern from the reduced quality
+        if pattern:
+            _, quality, _, _ = split_chord(lab, reduce_extended_chords=True)
+
+            style["hatch"] = __CHORD_HATCHES__.get(quality, "")
+            # Use a hatch color to complement the major/minor quality for this root
+            style["edgecolor"] = __chord_to_color(
+                lab, cmap_other, cmap_other, cmap_other
+            )
+            style.setdefault("hatch_linewidth", 3)
+        style["fill"] = True
+
+        # Swap color -> facecolor here so we preserve edgecolor on rects
+        style.setdefault("facecolor", style["color"])
+        style.pop("color", None)
+
+        seg_map[lab] = seg_def_style.copy()
+        seg_map[lab].update(style)
+        seg_map[lab].update(kwargs)
+        seg_map[lab]["label"] = lab
+
+    for ival, lab in zip(intervals, labels):
+        rect = ax.axvspan(
+            ival[0],
+            ival[1],
+            ymin=base,
+            ymax=height,
+            **seg_map[lab],
+            transform=transform,
+        )
+        seg_map[lab].pop("label", None)
+
+        if text:
+            ann = ax.annotate(
+                lab,
+                xy=(ival[0], height),
+                xycoords=transform,
+                xytext=(8, -10),
+                textcoords="offset points",
+                **text_kw,
+            )
+            ann.set_clip_path(rect)
+
+    return ax
