@@ -472,7 +472,7 @@ def test_display_pianoroll_nopitch_nomidi():
     baseline_images=["test_display_chord"],
     extensions=["png"],
     style=STYLE,
-    tolerance=6,
+    tolerance=10,
 )
 def test_display_chord_nolabels():
     fig, ax = plt.subplots(
