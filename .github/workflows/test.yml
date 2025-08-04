@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.8", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
         channel-priority: [strict]
         envfile: [".github/environment.yml"]
         include:
@@ -30,7 +30,7 @@ jobs:
             os: ubuntu-latest
             channel-priority: flexible
           - os: ubuntu-latest
-            python-version: "3.7"
+            python-version: "3.8"
             envfile: ".github/environment-minimal.yml"
             channel-priority: "flexible"
             name: "Minimal dependencies"
@@ -80,7 +80,7 @@ jobs:
         working-directory: tests
 
       - name: Upload image comparison failures if any
-        if: failure() && hashFiles('mpl_image_results/**') != ''
+        if: failure() && hashFiles('tests/mpl_image_results/**') != ''
         uses: actions/upload-artifact@v4
         with:
           name: mpl-test-results-${{ runner.os }}--${{ runner.arch }}--${{ matrix.python-version }}
