@@ -20,7 +20,7 @@ from matplotlib.transforms import Bbox, TransformedBbox
 
 from .melody import freq_to_voicing
 from .util import midi_to_hz, hz_to_midi
-from .chord import split as split_chord
+from .chord import split as split_chord, encode as encode_chord
 
 
 # Colormaps for segment visualizations
@@ -1135,12 +1135,10 @@ def _quality_to_majminoth(q):
 
 def __chord_to_color(chord, major, minor, other):
 
-    root, quality, bass = mir_eval.chord.encode(chord, reduce_extended_chords=True)
+    root, quality, bass = encode_chord(chord, reduce_extended_chords=True)
     ctype = _quality_to_majminoth(quality)
 
-    # print(f"{chord:10s} → {ctype}")
-
-    if ctype == "maj":
+    if ctype == "maj" or "sus" in chord:
         return major(root)
     elif ctype == "min":
         return minor(root)
@@ -1148,7 +1146,7 @@ def __chord_to_color(chord, major, minor, other):
         return other(root)
 
 
-def chord_display(
+def chords(
     intervals,
     labels,
     base=None,
@@ -1196,9 +1194,10 @@ def chord_display(
         The color map to use for the chord display.
         If 'pitch', the colors will cycle chromatically (C, C#, D, ...)
         If 'fifths', the colors will cycle through the circle of fifths (C, G, D, ...).
-        In both cases, major qualities (identified by a natural third) will receive a bright color,
-        and minor qualities (identified by a flat third) will receive a darker color.
-        Qualities which are neither major nor minor will receive a light color.
+        In both cases, major qualities (identified by a natural third) and suspended chords (sus2, sus4)
+        will receive a bright color, and minor qualities (identified by a flat third) will receive a
+        darker color.
+        Other Qualities which are neither major nor minor will receive a light color.
         No-chord ('N') or out-of-gamut ('X') symbols will be colored gray.
     pattern : bool
         If `True`, segments will be filled with a hatch pattern
@@ -1228,13 +1227,13 @@ def chord_display(
     """
 
     if cmap == "fifths":
-        cmap_major = "fifths"
-        cmap_minor = "fifths_dark"
-        cmap_other = "fifths_light"
+        cmap_major = mpl.colormaps.get("fifths")
+        cmap_minor = mpl.colormaps.get("fifths_dark")
+        cmap_other = mpl.colormaps.get("fifths_light")
     elif cmap == "pitch":
-        cmap_major = "pitch"
-        cmap_minor = "pitch_dark"
-        cmap_other = "pitch_light"
+        cmap_major = mpl.colormaps.get("pitch")
+        cmap_minor = mpl.colormaps.get("pitch_dark")
+        cmap_other = mpl.colormaps.get("pitch_light")
     else:
         raise ValueError(f"Unknown colormap '{cmap}' for chord display.")
 
