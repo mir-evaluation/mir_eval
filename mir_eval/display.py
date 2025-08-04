@@ -1168,7 +1168,7 @@ def chords(
         :func:`mir_eval.io.load_intervals` or
         :func:`mir_eval.io.load_labeled_intervals`.
     labels : list, shape=(n,)
-        reference segment labels, in the format returned by
+        reference chord labels, in the format returned by
         :func:`mir_eval.io.load_labeled_intervals`.
     base : number
         The vertical position of the base of the rectangles.
@@ -1225,7 +1225,6 @@ def chords(
     ax : matplotlib.pyplot.axes._subplots.AxesSubplot
         A handle to the (possibly constructed) plot axes
     """
-
     if cmap == "fifths":
         cmap_major = mpl.colormaps.get("fifths")
         cmap_minor = mpl.colormaps.get("fifths_dark")
