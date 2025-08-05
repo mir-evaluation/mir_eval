@@ -1116,10 +1116,10 @@ FMT_MIDI_HZ = FuncFormatter(__ticker_midi_hz)
 __CHORD_HATCHES__ = {
     "maj": "",
     "min": "",
-    "sus4": "|",
-    "sus2": "-",
-    "aug": "+",
-    "dim": ".",
+    "sus4": "||",
+    "sus2": "--",
+    "aug": "++",
+    "dim": "..",
     "maj7": "//",
     "minmaj7": "//",
     "7": r"\\",
@@ -1312,7 +1312,7 @@ def chords(
             style["edgecolor"] = __chord_to_color(
                 lab, cmap_other, cmap_other, cmap_other
             )
-            style.setdefault("hatch_linewidth", 3)
+#            style.setdefault("hatch_linewidth", 3)
         style["fill"] = True
 
         # Swap color -> facecolor here so we preserve edgecolor on rects
