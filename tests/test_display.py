@@ -476,7 +476,11 @@ def test_display_pianoroll_nopitch_nomidi():
 )
 def test_display_chord_nolabels():
     fig, ax = plt.subplots(
-        nrows=12, ncols=2, sharex=True, sharey=True, gridspec_kw={"hspace": 0, "wspace": 0.1}
+        nrows=12,
+        ncols=2,
+        sharex=True,
+        sharey=True,
+        gridspec_kw={"hspace": 0, "wspace": 0.1},
     )
 
     # Cover all qualities for each pitch class
