@@ -10,3 +10,4 @@ dependencies:
   - pytest
   - pytest-cov
   - pytest-mpl
+  - pillow==9.0.0  # needed for test compatibilty and numpy 1.20.3
