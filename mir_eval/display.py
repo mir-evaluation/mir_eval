@@ -112,11 +112,23 @@ __COLORMAPS__ = {
     ],
 }
 
+
+# Borrowed from seaborn 0.13.2
+# https://github.com/mwaskom/seaborn/blob/v0.13.2/seaborn/_compat.py#L67
+def register_colormap(name, cmap):
+    """Handle changes to matplotlib colormap interface in 3.6."""
+    try:
+        if name not in mpl.colormaps:
+            mpl.colormaps.register(cmap, name=name)
+    except AttributeError:
+        mpl.cm.register_cmap(name, cmap)
+
+
 # Register the colormaps with matplotlib
 for name in __COLORMAPS__:
     _cmap = ListedColormap(__COLORMAPS__[name], name=name)
     _cmap.set_extremes(under=(0.75, 0.75, 0.75), over=(0.75, 0.75, 0.75))
-    mpl.colormaps.register(name=name, cmap=_cmap)
+    register_colormap(name=name, cmap=_cmap)
 
 del name, _cmap
 
