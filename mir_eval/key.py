@@ -197,9 +197,9 @@ def evaluate(reference_key, estimated_key, allow_descending_fifths=False,
 
     Parameters
     ----------
-    ref_key : str
+    reference_key : str
         Reference key string.
-    ref_key : str
+    estimated_key : str
         Estimated key string.
     allow_descending_fifths : bool
         Specifies whether to score descending fifth errors or not.
@@ -216,7 +216,7 @@ def evaluate(reference_key, estimated_key, allow_descending_fifths=False,
     # Compute all metrics
     scores = collections.OrderedDict()
 
-    scores['Weighted Score'] = util.filter_kwargs(
+    scores["Weighted Score"] = util.filter_kwargs(
         weighted_score, reference_key, estimated_key, allow_descending_fifths)
 
     return scores
