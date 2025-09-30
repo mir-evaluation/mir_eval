@@ -7,14 +7,34 @@ import json
 import mir_eval
 import glob
 import warnings
-import nose.tools
+import pytest
 
 A_TOL = 1e-12
 
 # Path to the fixture files
-REF_GLOB = 'data/multipitch/ref*.txt'
-EST_GLOB = 'data/multipitch/est*.txt'
-SCORES_GLOB = 'data/multipitch/output*.json'
+REF_GLOB = "data/multipitch/ref*.txt"
+EST_GLOB = "data/multipitch/est*.txt"
+SCORES_GLOB = "data/multipitch/output*.json"
+
+ref_files = sorted(glob.glob(REF_GLOB))
+est_files = sorted(glob.glob(EST_GLOB))
+sco_files = sorted(glob.glob(SCORES_GLOB))
+
+assert len(ref_files) == len(est_files) == len(sco_files) > 0
+file_sets = list(zip(ref_files, est_files, sco_files))
+
+
+@pytest.fixture
+def multipitch_data(request):
+    ref_f, est_f, sco_f = request.param
+
+    with open(sco_f) as f_handle:
+        expected_score = json.load(f_handle)
+
+    ref_times, ref_freqs = mir_eval.io.load_ragged_time_series(ref_f)
+    est_times, est_freqs = mir_eval.io.load_ragged_time_series(est_f)
+
+    return ref_times, ref_freqs, est_times, est_freqs, expected_score
 
 
 def __frequencies_equal(freqs_a, freqs_b):
@@ -47,10 +67,10 @@ def test_resample_multif0():
     times = np.array([0.00, 0.01, 0.02, 0.03])
     empty_times = np.array([])
     freqs = [
-        np.array([200.]),
+        np.array([200.0]),
         np.array([]),
-        np.array([300., 400., 500.]),
-        np.array([300., 500.])
+        np.array([300.0, 400.0, 500.0]),
+        np.array([300.0, 500.0]),
     ]
     empty_freqs = []
     target_times1 = times
@@ -59,23 +79,21 @@ def test_resample_multif0():
 
     expected_freqs1 = freqs
     expected_freqs2 = [
-        np.array([200.]),
-        np.array([200.]),
+        np.array([200.0]),
+        np.array([200.0]),
         np.array([]),
-        np.array([300., 500.]),
-        np.array([])
+        np.array([300.0, 500.0]),
+        np.array([]),
     ]
     expected_freqs3 = empty_freqs
-    expected_freqs4 = [np.array([])]*4
+    expected_freqs4 = [np.array([])] * 4
 
-    actual_freqs1 = mir_eval.multipitch.resample_multipitch(
-        times, freqs, target_times1)
-    actual_freqs2 = mir_eval.multipitch.resample_multipitch(
-        times, freqs, target_times2)
-    actual_freqs3 = mir_eval.multipitch.resample_multipitch(
-        times, freqs, target_times3)
+    actual_freqs1 = mir_eval.multipitch.resample_multipitch(times, freqs, target_times1)
+    actual_freqs2 = mir_eval.multipitch.resample_multipitch(times, freqs, target_times2)
+    actual_freqs3 = mir_eval.multipitch.resample_multipitch(times, freqs, target_times3)
     actual_freqs4 = mir_eval.multipitch.resample_multipitch(
-        empty_times, empty_freqs, target_times1)
+        empty_times, empty_freqs, target_times1
+    )
 
     assert __frequencies_equal(actual_freqs1, expected_freqs1)
     assert __frequencies_equal(actual_freqs2, expected_freqs2)
@@ -85,16 +103,16 @@ def test_resample_multif0():
 
 def test_frequencies_to_midi():
     frequencies = [
-        np.array([440.]),
+        np.array([440.0]),
         np.array([]),
-        np.array([220., 660., 512.]),
-        np.array([300., 512.])
+        np.array([220.0, 660.0, 512.0]),
+        np.array([300.0, 512.0]),
     ]
     expected = [
-        np.array([69.]),
+        np.array([69.0]),
         np.array([]),
-        np.array([57., 76.01955000865388, 71.623683437704088]),
-        np.array([62.369507723654657, 71.623683437704088])
+        np.array([57.0, 76.01955000865388, 71.623683437704088]),
+        np.array([62.369507723654657, 71.623683437704088]),
     ]
     actual = mir_eval.multipitch.frequencies_to_midi(frequencies)
     assert __frequencies_equal(actual, expected)
@@ -102,16 +120,16 @@ def test_frequencies_to_midi():
 
 def test_midi_to_chroma():
     midi_frequencies = [
-        np.array([69.]),
+        np.array([69.0]),
         np.array([]),
-        np.array([57., 76.01955000865388, 71.623683437704088]),
-        np.array([62.369507723654657, 71.623683437704088])
+        np.array([57.0, 76.01955000865388, 71.623683437704088]),
+        np.array([62.369507723654657, 71.623683437704088]),
     ]
     expected = [
-        np.array([9.]),
+        np.array([9.0]),
         np.array([]),
-        np.array([9., 4.01955000865388, 11.623683437704088]),
-        np.array([2.3695077236546567, 11.623683437704088])
+        np.array([9.0, 4.01955000865388, 11.623683437704088]),
+        np.array([2.3695077236546567, 11.623683437704088]),
     ]
     actual = mir_eval.multipitch.midi_to_chroma(midi_frequencies)
     assert __frequencies_equal(actual, expected)
@@ -119,10 +137,10 @@ def test_midi_to_chroma():
 
 def test_compute_num_freqs():
     frequencies = [
-        np.array([256.]),
+        np.array([256.0]),
         np.array([]),
-        np.array([362.03867196751236, 128., 512.]),
-        np.array([300., 512.])
+        np.array([362.03867196751236, 128.0, 512.0]),
+        np.array([300.0, 512.0]),
     ]
     expected = np.array([1, 0, 3, 2])
     actual = mir_eval.multipitch.compute_num_freqs(frequencies)
@@ -131,41 +149,41 @@ def test_compute_num_freqs():
 
 def test_compute_num_true_positives():
     ref_freqs = [
-        np.array([96., 100.]),
+        np.array([96.0, 100.0]),
         np.array([]),
-        np.array([81.]),
-        np.array([102., 84., 108.]),
-        np.array([98.745824285950576, 108.])
+        np.array([81.0]),
+        np.array([102.0, 84.0, 108.0]),
+        np.array([98.745824285950576, 108.0]),
     ]
     est_freqs = [
-        np.array([96.]),
+        np.array([96.0]),
         np.array([]),
-        np.array([200., 82.]),
-        np.array([102., 84., 108.]),
-        np.array([99., 108.])
+        np.array([200.0, 82.0]),
+        np.array([102.0, 84.0, 108.0]),
+        np.array([99.0, 108.0]),
     ]
     expected = np.array([1, 0, 0, 3, 2])
-    actual = mir_eval.multipitch.compute_num_true_positives(
-        ref_freqs, est_freqs)
+    actual = mir_eval.multipitch.compute_num_true_positives(ref_freqs, est_freqs)
     assert np.allclose(actual, expected, atol=A_TOL)
 
     ref_freqs_chroma = [
-        np.array([0., 1.5]),
+        np.array([0.0, 1.5]),
         np.array([]),
-        np.array([2.]),
-        np.array([5.1, 6., 11.]),
-        np.array([11.9, 11.9])
+        np.array([2.0]),
+        np.array([5.1, 6.0, 11.0]),
+        np.array([11.9, 11.9]),
     ]
     est_freqs_chroma = [
-        np.array([0.]),
+        np.array([0.0]),
         np.array([]),
-        np.array([5., 2.6]),
-        np.array([5.1, 6., 11.]),
-        np.array([0.2, 11.5])
+        np.array([5.0, 2.6]),
+        np.array([5.1, 6.0, 11.0]),
+        np.array([0.2, 11.5]),
     ]
     expected = np.array([1, 0, 0, 3, 2])
     actual = mir_eval.multipitch.compute_num_true_positives(
-        ref_freqs_chroma, est_freqs_chroma, chroma=True)
+        ref_freqs_chroma, est_freqs_chroma, chroma=True
+    )
     assert np.allclose(actual, expected, atol=A_TOL)
 
 
@@ -178,10 +196,11 @@ def test_accuracy_metrics():
     expected_recall = 0.75
     expected_accuracy = 0.6
 
-    (actual_precision,
-     actual_recall,
-     actual_accuarcy) = mir_eval.multipitch.compute_accuracy(
-         true_positives, n_ref, n_est)
+    (
+        actual_precision,
+        actual_recall,
+        actual_accuarcy,
+    ) = mir_eval.multipitch.compute_accuracy(true_positives, n_ref, n_est)
 
     assert np.allclose(actual_precision, expected_precision, atol=A_TOL)
     assert np.allclose(actual_recall, expected_recall, atol=A_TOL)
@@ -198,11 +217,12 @@ def test_error_score_metrics():
     expected_efa = 0.125
     expected_etot = 0.375
 
-    (actual_esub,
-     actual_emiss,
-     actual_efa,
-     actual_etot) = mir_eval.multipitch.compute_err_score(
-         true_positives, n_ref, n_est)
+    (
+        actual_esub,
+        actual_emiss,
+        actual_efa,
+        actual_etot,
+    ) = mir_eval.multipitch.compute_err_score(true_positives, n_ref, n_est)
 
     assert np.allclose(actual_esub, expected_esub, atol=A_TOL)
     assert np.allclose(actual_emiss, expected_emiss, atol=A_TOL)
@@ -213,32 +233,30 @@ def test_error_score_metrics():
 def unit_test_metrics():
     empty_array = np.array([])
     ref_time = np.array([0.0, 0.1])
-    ref_freqs = [np.array([201.]), np.array([])]
+    ref_freqs = [np.array([201.0]), np.array([])]
     est_time = np.array([0.0, 0.1])
-    est_freqs = [np.array([200.]), np.array([])]
+    est_freqs = [np.array([200.0]), np.array([])]
 
     # ref sizes unequal
-    nose.tools.assert_raises(
-        ValueError, mir_eval.multipitch.metrics,
-        np.array([0.0]), ref_freqs, est_time, est_freqs)
+    with pytest.raises(ValueError):
+        mir_eval.multipitch.metrics(np.array([0.0]), ref_freqs, est_time, est_freqs)
 
     # est sizes unequal
-    nose.tools.assert_raises(
-        ValueError, mir_eval.multipitch.metrics,
-        ref_time, ref_freqs, np.array([0.0]), est_freqs)
+    with pytest.raises(ValueError):
+        mir_eval.multipitch.metrics(ref_time, ref_freqs, np.array([0.0]), est_freqs)
 
     with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter('always')
+        warnings.simplefilter("always")
         # Test for warnings on empty values
         actual_score = mir_eval.multipitch.metrics(
-            ref_time, [empty_array, empty_array],
-            est_time, [empty_array, empty_array])
+            ref_time, [empty_array, empty_array], est_time, [empty_array, empty_array]
+        )
         assert len(w) == 6
         assert issubclass(w[-1].category, UserWarning)
         assert str(w[-1].message) == "Reference frequencies are all empty."
 
     with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter('always')
+        warnings.simplefilter("always")
         # Test for warnings on empty values
         # test all inputs empty
         mir_eval.multipitch.metrics(empty_array, [], empty_array, [])
@@ -247,7 +265,7 @@ def unit_test_metrics():
         assert str(w[-1].message) == "Reference frequencies are all empty."
 
     with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter('always')
+        warnings.simplefilter("always")
         # reference empty
         mir_eval.multipitch.metrics(empty_array, [], est_time, est_freqs)
         assert len(w) == 9
@@ -255,43 +273,61 @@ def unit_test_metrics():
         assert str(w[-1].message) == "Reference frequencies are all empty."
 
     with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter('always')
+        warnings.simplefilter("always")
         # estimate empty
         mir_eval.multipitch.metrics(ref_time, ref_freqs, empty_array, [])
         assert len(w) == 5
         assert issubclass(w[-1].category, UserWarning)
         assert str(w[-1].message) == "Estimate frequencies are all empty."
 
-        expected_score = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        expected_score = (
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        )
         assert np.allclose(actual_score, expected_score)
 
     # test perfect estimate
     ref_time = np.array([0.0, 0.1, 0.2])
-    ref_freqs = [np.array([201.]), np.array([]), np.array([300.5, 87.1])]
-    actual_score = mir_eval.multipitch.metrics(
-        ref_time, ref_freqs, ref_time, ref_freqs)
+    ref_freqs = [np.array([201.0]), np.array([]), np.array([300.5, 87.1])]
+    actual_score = mir_eval.multipitch.metrics(ref_time, ref_freqs, ref_time, ref_freqs)
 
-    expected_score = (1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
-                      1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0)
+    expected_score = (
+        1.0,
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+    )
     assert np.allclose(actual_score, expected_score)
 
 
-def regression_test_evaluate():
-    ref_files = sorted(glob.glob(REF_GLOB))
-    est_files = sorted(glob.glob(EST_GLOB))
-    score_files = sorted(glob.glob(SCORES_GLOB))
+@pytest.mark.parametrize("multipitch_data", file_sets, indirect=True)
+def test_evaluate_regression(multipitch_data):
+    ref_times, ref_freqs, est_times, est_freqs, expected_score = multipitch_data
 
-    assert len(ref_files) == len(est_files) == len(score_files) > 0
+    actual_score = mir_eval.multipitch.evaluate(
+        ref_times, ref_freqs, est_times, est_freqs
+    )
 
-    for ref_f, est_f, score_f in zip(ref_files, est_files, score_files):
-        with open(score_f, 'r') as f_handle:
-            expected_score = json.load(f_handle)
-
-        ref_times, ref_freqs = mir_eval.io.load_ragged_time_series(ref_f)
-        est_times, est_freqs = mir_eval.io.load_ragged_time_series(est_f)
-
-        actual_score = mir_eval.multipitch.evaluate(
-            ref_times, ref_freqs, est_times, est_freqs)
-
-        assert __scores_equal(actual_score, expected_score)
+    assert __scores_equal(actual_score, expected_score)

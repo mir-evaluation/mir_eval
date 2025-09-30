@@ -1,22 +1,30 @@
-.. image:: https://travis-ci.org/craffel/mir_eval.svg?branch=master
-    :target: https://travis-ci.org/craffel/mir_eval
-.. image:: https://coveralls.io/repos/craffel/mir_eval/badge.svg?branch=master&service=github
-    :target: https://coveralls.io/github/craffel/mir_eval?branch=master
+.. image:: https://anaconda.org/conda-forge/mir_eval/badges/version.svg 
+    :target: https://anaconda.org/conda-forge/mir_eval
+
+.. image:: https://img.shields.io/pypi/v/mir_eval.svg
+    :target: https://pypi.python.org/pypi/mir_eval
+
+.. image:: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml
+
+.. image:: https://codecov.io/gh/mir-evaluation/mir_eval/graph/badge.svg?token=OzRL3aW7TX 
+    :target: https://codecov.io/gh/mir-evaluation/mir_eval
+
+.. image:: https://img.shields.io/pypi/l/mir_eval.svg
+    :target: https://github.com/mir-evaluation/mir_eval/blob/main/LICENSE.txt
+
 
 mir_eval
 ========
 
 Python library for computing common heuristic accuracy scores for various music/audio information retrieval/signal processing tasks.
 
-Documentation, including installation and usage information: http://craffel.github.io/mir_eval/
-
-If you're looking for the mir_eval web service, which you can use to run mir_eval without installing anything or writing any code, it can be found here: http://labrosa.ee.columbia.edu/mir_eval/
+Documentation, including installation and usage information: https://mir-evaluation.github.io/mir_eval/
 
 Dependencies:
 
 * `Scipy/Numpy <http://www.scipy.org/>`_
-* future
-* six
+* `decorator <https://github.com/micheles/decorator>`_
 
 If you use mir_eval in a research project, please cite the following paper:
 

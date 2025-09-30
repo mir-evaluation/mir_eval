@@ -44,5 +44,9 @@ Thumbs.db
 # docs
 docs/_build/*
 
-# matplotlib tsets
+# matplotlib tests
 tests/result_images/*
+
+# coverage
+coverage.xml
+

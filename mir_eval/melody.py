@@ -1,5 +1,5 @@
 # CREATED:2014-03-07 by Justin Salamon <justin.salamon@nyu.edu>
-'''
+"""
 Melody extraction algorithms aim to produce a sequence of frequency values
 corresponding to the pitch of the dominant melody from a musical
 recording.  For evaluation, an estimated pitch series is evaluated against a
@@ -7,10 +7,13 @@ reference based on whether the voicing (melody present or not) and the pitch
 is correct (within some tolerance).
 
 For a detailed explanation of the measures please refer to:
+
     J. Salamon, E. Gomez, D. P. W. Ellis and G. Richard, "Melody Extraction
     from Polyphonic Music Signals: Approaches, Applications and Challenges",
     IEEE Signal Processing Magazine, 31(2):118-134, Mar. 2014.
+
 and:
+
     G. E. Poliner, D. P. W. Ellis, A. F. Ehmann, E. Gomez, S.
     Streich, and B. Ong. "Melody transcription from music audio:
     Approaches and evaluation", IEEE Transactions on Audio, Speech, and
@@ -18,6 +21,7 @@ and:
 
 For an explanation of the generalized measures (using non-binary voicings),
 please refer to:
+
     R. Bittner and J. Bosch, "Generalized Metrics for Single-F0 Estimation
     Evaluation", International Society for Music Information Retrieval
     Conference (ISMIR), 2019.
@@ -61,7 +65,7 @@ Metrics
   the proportion of all frames correctly estimated by the algorithm, including
   whether non-melody frames where labeled by the algorithm as non-melody
 
-'''
+"""
 
 import numpy as np
 import scipy.interpolate
@@ -71,7 +75,7 @@ from . import util
 
 
 def validate_voicing(ref_voicing, est_voicing):
-    """Checks that voicing inputs to a metric are in the correct format.
+    """Check that voicing inputs to a metric are in the correct format.
 
     Parameters
     ----------
@@ -91,16 +95,17 @@ def validate_voicing(ref_voicing, est_voicing):
         warnings.warn("Estimated melody has no voiced frames.")
     # Make sure they're the same length
     if ref_voicing.shape[0] != est_voicing.shape[0]:
-        raise ValueError('Reference and estimated voicing arrays should '
-                         'be the same length.')
+        raise ValueError(
+            "Reference and estimated voicing arrays should " "be the same length."
+        )
     for voicing in [ref_voicing, est_voicing]:
         # Make sure voicing is between 0 and 1
         if np.logical_or(voicing < 0, voicing > 1).any():
-            raise ValueError('Voicing arrays must be between 0 and 1.')
+            raise ValueError("Voicing arrays must be between 0 and 1.")
 
 
 def validate(ref_voicing, ref_cent, est_voicing, est_cent):
-    """Checks that voicing and frequency arrays are well-formed.  To be used in
+    """Check that voicing and frequency arrays are well-formed.  To be used in
     conjunction with :func:`mir_eval.melody.validate_voicing`
 
     Parameters
@@ -120,11 +125,14 @@ def validate(ref_voicing, ref_cent, est_voicing, est_cent):
     if est_cent.size == 0:
         warnings.warn("Estimated frequency array is empty.")
     # Make sure they're the same length
-    if ref_voicing.shape[0] != ref_cent.shape[0] or \
-       est_voicing.shape[0] != est_cent.shape[0] or \
-       ref_cent.shape[0] != est_cent.shape[0]:
-        raise ValueError('All voicing and frequency arrays must have the '
-                         'same length.')
+    if (
+        ref_voicing.shape[0] != ref_cent.shape[0]
+        or est_voicing.shape[0] != est_cent.shape[0]
+        or ref_cent.shape[0] != est_cent.shape[0]
+    ):
+        raise ValueError(
+            "All voicing and frequency arrays must have the " "same length."
+        )
 
 
 def hz2cents(freq_hz, base_frequency=10.0):
@@ -138,10 +146,6 @@ def hz2cents(freq_hz, base_frequency=10.0):
     base_frequency : float
         Base frequency for conversion.
         (Default value = 10.0)
-    Returns
-    -------
-    freq_cent : np.ndarray
-        Array of frequencies in cents, relative to base_frequency
     """
     freq_cent = np.zeros(freq_hz.shape[0])
     freq_nonz_ind = np.flatnonzero(freq_hz)
@@ -158,15 +162,19 @@ def freq_to_voicing(frequencies, voicing=None):
     ----------
     frequencies : np.ndarray
         Array of frequencies.  A frequency <= 0 indicates "unvoiced".
+
     voicing : np.ndarray
         Array of voicing values.
         (Default value = None)
         Default None, which means the voicing is inferred from `frequencies`:
-            frames with frequency <= 0.0 are considered "unvoiced"
-            frames with frequency > 0.0 are considered "voiced"
+
+           - frames with frequency <= 0.0 are considered "unvoiced"
+           - frames with frequency > 0.0 are considered "voiced"
+
         If specified, `voicing` is used as the voicing array, but
         frequencies with value 0 are forced to have 0 voicing.
-            Voicing inferred by negative frequency values is ignored.
+
+           - Voicing inferred by negative frequency values is ignored.
 
     Returns
     -------
@@ -185,8 +193,7 @@ def freq_to_voicing(frequencies, voicing=None):
 
 
 def constant_hop_timebase(hop, end_time):
-    """Generates a time series from 0 to ``end_time`` with times spaced ``hop``
-    apart
+    """Generate a time series from 0 to ``end_time`` with times spaced ``hop`` apart
 
     Parameters
     ----------
@@ -203,14 +210,14 @@ def constant_hop_timebase(hop, end_time):
     """
     # Compute new timebase.  Rounding/linspace is to avoid float problems.
     end_time = np.round(end_time, 10)
-    times = np.linspace(0, hop * int(np.floor(end_time / hop)),
-                        int(np.floor(end_time / hop)) + 1)
+    times = np.linspace(
+        0, hop * int(np.floor(end_time / hop)), int(np.floor(end_time / hop)) + 1
+    )
     times = np.round(times, 10)
     return times
 
 
-def resample_melody_series(times, frequencies, voicing,
-                           times_new, kind='linear'):
+def resample_melody_series(times, frequencies, voicing, times_new, kind="linear"):
     """Resamples frequency and voicing time series to a new timescale. Maintains
     any zero ("unvoiced") values in frequencies.
 
@@ -247,14 +254,19 @@ def resample_melody_series(times, frequencies, voicing,
     # Warn when the delta between the original times is not constant,
     # unless times[0] == 0. and frequencies[0] == frequencies[1] (see logic at
     # the beginning of to_cent_voicing)
-    if not (np.allclose(np.diff(times), np.diff(times).mean()) or
-            (np.allclose(np.diff(times[1:]), np.diff(times[1:]).mean()) and
-             frequencies[0] == frequencies[1])):
+    if not (
+        np.allclose(np.diff(times), np.diff(times).mean())
+        or (
+            np.allclose(np.diff(times[1:]), np.diff(times[1:]).mean())
+            and frequencies[0] == frequencies[1]
+        )
+    ):
         warnings.warn(
             "Non-uniform timescale passed to resample_melody_series.  Pitch "
             "will be linearly interpolated, which will result in undesirable "
             "behavior if silences are indicated by missing values.  Silences "
-            "should be indicated by nonpositive frequency values.")
+            "should be indicated by nonpositive frequency values."
+        )
     # Round to avoid floating point problems
     times = np.round(times, 10)
     times_new = np.round(times_new, 10)
@@ -264,7 +276,7 @@ def resample_melody_series(times, frequencies, voicing,
         frequencies = np.append(frequencies, 0)
         voicing = np.append(voicing, 0)
     # We need to fix zero transitions if interpolation is not zero or nearest
-    if kind != 'zero' and kind != 'nearest':
+    if kind != "zero" and kind != "nearest":
         # Fill in zero values with the last reported frequency
         # to avoid erroneous values when resampling
         frequencies_held = np.array(frequencies)
@@ -272,74 +284,91 @@ def resample_melody_series(times, frequencies, voicing,
             if frequency == 0:
                 frequencies_held[n + 1] = frequencies_held[n]
         # Linearly interpolate frequencies
-        frequencies_resampled = scipy.interpolate.interp1d(times,
-                                                           frequencies_held,
-                                                           kind)(times_new)
+        frequencies_resampled = scipy.interpolate.interp1d(
+            times, frequencies_held, kind
+        )(times_new)
         # Retain zeros
-        frequency_mask = scipy.interpolate.interp1d(times,
-                                                    frequencies,
-                                                    'zero')(times_new)
-        frequencies_resampled *= (frequency_mask != 0)
+        frequency_mask = scipy.interpolate.interp1d(times, frequencies, "zero")(
+            times_new
+        )
+        frequencies_resampled *= frequency_mask != 0
     else:
-        frequencies_resampled = scipy.interpolate.interp1d(times,
-                                                           frequencies,
-                                                           kind)(times_new)
+        frequencies_resampled = scipy.interpolate.interp1d(times, frequencies, kind)(
+            times_new
+        )
 
     # Use nearest-neighbor for voicing if it was used for frequencies
     # if voicing is not binary, use linear interpolation
     is_binary_voicing = np.all(
-        np.logical_or(np.equal(voicing, 0), np.equal(voicing, 1)))
-    if kind == 'nearest' or (kind == 'linear' and not is_binary_voicing):
-        voicing_resampled = scipy.interpolate.interp1d(times,
-                                                       voicing,
-                                                       kind)(times_new)
+        np.logical_or(np.equal(voicing, 0), np.equal(voicing, 1))
+    )
+    if kind == "nearest" or (kind == "linear" and not is_binary_voicing):
+        voicing_resampled = scipy.interpolate.interp1d(times, voicing, kind)(times_new)
     # otherwise, always use zeroth order
     else:
-        voicing_resampled = scipy.interpolate.interp1d(times,
-                                                       voicing,
-                                                       'zero')(times_new)
+        voicing_resampled = scipy.interpolate.interp1d(times, voicing, "zero")(
+            times_new
+        )
 
     return frequencies_resampled, voicing_resampled
 
 
-def to_cent_voicing(ref_time, ref_freq, est_time, est_freq,
-                    est_voicing=None, ref_reward=None, base_frequency=10.,
-                    hop=None, kind='linear'):
-    """Converts reference and estimated time/frequency (Hz) annotations to sampled
+def to_cent_voicing(
+    ref_time,
+    ref_freq,
+    est_time,
+    est_freq,
+    est_voicing=None,
+    ref_reward=None,
+    base_frequency=10.0,
+    hop=None,
+    kind="linear",
+):
+    """Convert reference and estimated time/frequency (Hz) annotations to sampled
     frequency (cent)/voicing arrays.
 
     A zero frequency indicates "unvoiced".
 
     If est_voicing is not provided, a negative frequency indicates:
         "Predicted as unvoiced, but if it's voiced,
-         this is the frequency estimate".
+        this is the frequency estimate".
+
     If it is provided, negative frequency values are ignored, and the voicing
-        from est_voicing is directly used.
+    from est_voicing is directly used.
 
     Parameters
     ----------
     ref_time : np.ndarray
         Time of each reference frequency value
+
     ref_freq : np.ndarray
         Array of reference frequency values
+
     est_time : np.ndarray
         Time of each estimated frequency value
+
     est_freq : np.ndarray
         Array of estimated frequency values
+
     est_voicing : np.ndarray
         Estimate voicing confidence.
         Default None, which means the voicing is inferred from est_freq:
-            frames with frequency <= 0.0 are considered "unvoiced"
-            frames with frequency > 0.0 are considered "voiced"
+
+          - frames with frequency <= 0.0 are considered "unvoiced"
+          - frames with frequency > 0.0 are considered "voiced"
+
     ref_reward : np.ndarray
         Reference voicing reward.
         Default None, which means all frames are weighted equally.
+
     base_frequency : float
         Base frequency in Hz for conversion to cents
         (Default value = 10.)
+
     hop : float
         Hop size, in seconds, to resample,
         default None which means use ref_time
+
     kind : str
         kind parameter to pass to scipy.interpolate.interp1d.
         (Default value = 'linear')
@@ -379,23 +408,32 @@ def to_cent_voicing(ref_time, ref_freq, est_time, est_freq,
     if hop is not None:
         # Resample to common time base
         ref_cent, ref_voicing = resample_melody_series(
-            ref_time, ref_cent, ref_voicing,
-            constant_hop_timebase(hop, ref_time.max()), kind)
+            ref_time,
+            ref_cent,
+            ref_voicing,
+            constant_hop_timebase(hop, ref_time.max()),
+            kind,
+        )
         est_cent, est_voicing = resample_melody_series(
-            est_time, est_cent, est_voicing,
-            constant_hop_timebase(hop, est_time.max()), kind)
+            est_time,
+            est_cent,
+            est_voicing,
+            constant_hop_timebase(hop, est_time.max()),
+            kind,
+        )
     # Otherwise, only resample estimated to the reference time base
     else:
         est_cent, est_voicing = resample_melody_series(
-            est_time, est_cent, est_voicing, ref_time, kind)
+            est_time, est_cent, est_voicing, ref_time, kind
+        )
     # ensure the estimated sequence is the same length as the reference
     len_diff = ref_cent.shape[0] - est_cent.shape[0]
     if len_diff >= 0:
         est_cent = np.append(est_cent, np.zeros(len_diff))
         est_voicing = np.append(est_voicing, np.zeros(len_diff))
     else:
-        est_cent = est_cent[:ref_cent.shape[0]]
-        est_voicing = est_voicing[:ref_voicing.shape[0]]
+        est_cent = est_cent[: ref_cent.shape[0]]
+        est_voicing = est_voicing[: ref_voicing.shape[0]]
 
     return (ref_voicing, ref_cent, est_voicing, est_cent)
 
@@ -404,6 +442,7 @@ def voicing_recall(ref_voicing, est_voicing):
     """Compute the voicing recall given two voicing
     indicator sequences, one as reference (truth) and the other as the estimate
     (prediction).  The sequences must be of the same length.
+
     Examples
     --------
     >>> ref_time, ref_freq = mir_eval.io.load_time_series('ref.txt')
@@ -414,12 +453,14 @@ def voicing_recall(ref_voicing, est_voicing):
     ...                                                  est_time,
     ...                                                  est_freq)
     >>> recall = mir_eval.melody.voicing_recall(ref_v, est_v)
+
     Parameters
     ----------
     ref_voicing : np.ndarray
         Reference boolean voicing array
     est_voicing : np.ndarray
         Estimated boolean voicing array
+
     Returns
     -------
     vx_recall : float
@@ -427,7 +468,7 @@ def voicing_recall(ref_voicing, est_voicing):
         indicated as voiced in est
     """
     if ref_voicing.size == 0 or est_voicing.size == 0:
-        return 0.
+        return 0.0
     ref_indicator = (ref_voicing > 0).astype(float)
     if np.sum(ref_indicator) == 0:
         return 1
@@ -438,6 +479,7 @@ def voicing_false_alarm(ref_voicing, est_voicing):
     """Compute the voicing false alarm rates given two voicing
     indicator sequences, one as reference (truth) and the other as the estimate
     (prediction).  The sequences must be of the same length.
+
     Examples
     --------
     >>> ref_time, ref_freq = mir_eval.io.load_time_series('ref.txt')
@@ -448,12 +490,14 @@ def voicing_false_alarm(ref_voicing, est_voicing):
     ...                                                  est_time,
     ...                                                  est_freq)
     >>> false_alarm = mir_eval.melody.voicing_false_alarm(ref_v, est_v)
+
     Parameters
     ----------
     ref_voicing : np.ndarray
         Reference boolean voicing array
     est_voicing : np.ndarray
         Estimated boolean voicing array
+
     Returns
     -------
     vx_false_alarm : float
@@ -461,7 +505,7 @@ def voicing_false_alarm(ref_voicing, est_voicing):
         indicated as voiced in est
     """
     if ref_voicing.size == 0 or est_voicing.size == 0:
-        return 0.
+        return 0.0
     ref_indicator = (ref_voicing == 0).astype(float)
     if np.sum(ref_indicator) == 0:
         return 0
@@ -472,6 +516,7 @@ def voicing_measures(ref_voicing, est_voicing):
     """Compute the voicing recall and false alarm rates given two voicing
     indicator sequences, one as reference (truth) and the other as the estimate
     (prediction).  The sequences must be of the same length.
+
     Examples
     --------
     >>> ref_time, ref_freq = mir_eval.io.load_time_series('ref.txt')
@@ -483,12 +528,14 @@ def voicing_measures(ref_voicing, est_voicing):
     ...                                                  est_freq)
     >>> recall, false_alarm = mir_eval.melody.voicing_measures(ref_v,
     ...                                                        est_v)
+
     Parameters
     ----------
     ref_voicing : np.ndarray
         Reference boolean voicing array
     est_voicing : np.ndarray
         Estimated boolean voicing array
+
     Returns
     -------
     vx_recall : float
@@ -504,8 +551,7 @@ def voicing_measures(ref_voicing, est_voicing):
     return vx_recall, vx_false_alm
 
 
-def raw_pitch_accuracy(ref_voicing, ref_cent, est_voicing, est_cent,
-                       cent_tolerance=50):
+def raw_pitch_accuracy(ref_voicing, ref_cent, est_voicing, est_cent, cent_tolerance=50):
     """Compute the raw pitch accuracy given two pitch (frequency) sequences in
     cents and matching voicing indicator sequences. The first pitch and voicing
     arrays are treated as the reference (truth), and the second two as the
@@ -545,16 +591,18 @@ def raw_pitch_accuracy(ref_voicing, ref_cent, est_voicing, est_cent,
         Raw pitch accuracy, the fraction of voiced frames in ref_cent for
         which est_cent provides a correct frequency values
         (within cent_tolerance cents).
-
     """
-
     validate_voicing(ref_voicing, est_voicing)
     validate(ref_voicing, ref_cent, est_voicing, est_cent)
     # When input arrays are empty, return 0 by special case
     # If there are no voiced frames in reference, metric is 0
-    if ref_voicing.size == 0 or ref_voicing.sum() == 0 \
-       or ref_cent.size == 0 or est_cent.size == 0:
-        return 0.
+    if (
+        ref_voicing.size == 0
+        or ref_voicing.sum() == 0
+        or ref_cent.size == 0
+        or est_cent.size == 0
+    ):
+        return 0.0
 
     # Raw pitch = the number of voiced frames in the reference for which the
     # estimate provides a correct frequency value (within cent_tolerance cents)
@@ -563,19 +611,17 @@ def raw_pitch_accuracy(ref_voicing, ref_cent, est_voicing, est_cent,
     nonzero_freqs = np.logical_and(est_cent != 0, ref_cent != 0)
 
     if sum(nonzero_freqs) == 0:
-        return 0.
+        return 0.0
 
     freq_diff_cents = np.abs(ref_cent - est_cent)[nonzero_freqs]
     correct_frequencies = freq_diff_cents < cent_tolerance
-    rpa = (
-        np.sum(ref_voicing[nonzero_freqs] * correct_frequencies) /
-        np.sum(ref_voicing)
-    )
+    rpa = np.sum(ref_voicing[nonzero_freqs] * correct_frequencies) / np.sum(ref_voicing)
     return rpa
 
 
-def raw_chroma_accuracy(ref_voicing, ref_cent, est_voicing, est_cent,
-                        cent_tolerance=50):
+def raw_chroma_accuracy(
+    ref_voicing, ref_cent, est_voicing, est_cent, cent_tolerance=50
+):
     """Compute the raw chroma accuracy given two pitch (frequency) sequences
     in cents and matching voicing indicator sequences. The first pitch and
     voicing arrays are treated as the reference (truth), and the second two as
@@ -592,7 +638,6 @@ def raw_chroma_accuracy(ref_voicing, ref_cent, est_voicing, est_cent,
     ...                                                  est_freq)
     >>> raw_chroma = mir_eval.melody.raw_chroma_accuracy(ref_v, ref_c,
     ...                                                  est_v, est_c)
-
 
     Parameters
     ----------
@@ -622,28 +667,28 @@ def raw_chroma_accuracy(ref_voicing, ref_cent, est_voicing, est_cent,
     validate(ref_voicing, ref_cent, est_voicing, est_cent)
     # When input arrays are empty, return 0 by special case
     # If there are no voiced frames in reference, metric is 0
-    if ref_voicing.size == 0 or ref_voicing.sum() == 0 \
-       or ref_cent.size == 0 or est_cent.size == 0:
-        return 0.
+    if (
+        ref_voicing.size == 0
+        or ref_voicing.sum() == 0
+        or ref_cent.size == 0
+        or est_cent.size == 0
+    ):
+        return 0.0
 
     # # Raw chroma = same as raw pitch except that octave errors are ignored.
     nonzero_freqs = np.logical_and(est_cent != 0, ref_cent != 0)
 
     if sum(nonzero_freqs) == 0:
-        return 0.
+        return 0.0
 
     freq_diff_cents = np.abs(ref_cent - est_cent)[nonzero_freqs]
     octave = 1200.0 * np.floor(freq_diff_cents / 1200 + 0.5)
     correct_chroma = np.abs(freq_diff_cents - octave) < cent_tolerance
-    rca = (
-        np.sum(ref_voicing[nonzero_freqs] * correct_chroma) /
-        np.sum(ref_voicing)
-    )
+    rca = np.sum(ref_voicing[nonzero_freqs] * correct_chroma) / np.sum(ref_voicing)
     return rca
 
 
-def overall_accuracy(ref_voicing, ref_cent, est_voicing, est_cent,
-                     cent_tolerance=50):
+def overall_accuracy(ref_voicing, ref_cent, est_voicing, est_cent, cent_tolerance=50):
     """Compute the overall accuracy given two pitch (frequency) sequences
     in cents and matching voicing indicator sequences. The first pitch and
     voicing arrays are treated as the reference (truth), and the second two
@@ -688,9 +733,13 @@ def overall_accuracy(ref_voicing, ref_cent, est_voicing, est_cent,
     validate(ref_voicing, ref_cent, est_voicing, est_cent)
 
     # When input arrays are empty, return 0 by special case
-    if ref_voicing.size == 0 or est_voicing.size == 0 \
-       or ref_cent.size == 0 or est_cent.size == 0:
-        return 0.
+    if (
+        ref_voicing.size == 0
+        or est_voicing.size == 0
+        or ref_cent.size == 0
+        or est_cent.size == 0
+    ):
+        return 0.0
 
     nonzero_freqs = np.logical_and(est_cent != 0, ref_cent != 0)
     freq_diff_cents = np.abs(ref_cent - est_cent)[nonzero_freqs]
@@ -701,22 +750,26 @@ def overall_accuracy(ref_voicing, ref_cent, est_voicing, est_cent,
     if np.sum(ref_voicing) == 0:
         ratio = 0.0
     else:
-        ratio = (np.sum(ref_binary) / np.sum(ref_voicing))
+        ratio = np.sum(ref_binary) / np.sum(ref_voicing)
 
     accuracy = (
         (
-            ratio * np.sum(ref_voicing[nonzero_freqs] *
-                           est_voicing[nonzero_freqs] *
-                           correct_frequencies)
-        ) +
-        np.sum((1.0 - ref_binary) * (1.0 - est_voicing))
+            ratio
+            * np.sum(
+                ref_voicing[nonzero_freqs]
+                * est_voicing[nonzero_freqs]
+                * correct_frequencies
+            )
+        )
+        + np.sum((1.0 - ref_binary) * (1.0 - est_voicing))
     ) / n_frames
 
     return accuracy
 
 
-def evaluate(ref_time, ref_freq, est_time, est_freq,
-             est_voicing=None, ref_reward=None, **kwargs):
+def evaluate(
+    ref_time, ref_freq, est_time, est_freq, est_voicing=None, ref_reward=None, **kwargs
+):
     """Evaluate two melody (predominant f0) transcriptions, where the first is
     treated as the reference (ground truth) and the second as the estimate to
     be evaluated (prediction).
@@ -732,21 +785,28 @@ def evaluate(ref_time, ref_freq, est_time, est_freq,
     ----------
     ref_time : np.ndarray
         Time of each reference frequency value
+
     ref_freq : np.ndarray
         Array of reference frequency values
+
     est_time : np.ndarray
         Time of each estimated frequency value
+
     est_freq : np.ndarray
         Array of estimated frequency values
+
     est_voicing : np.ndarray
         Estimate voicing confidence.
         Default None, which means the voicing is inferred from est_freq:
-            frames with frequency <= 0.0 are considered "unvoiced"
-            frames with frequency > 0.0 are considered "voiced"
+
+          - frames with frequency <= 0.0 are considered "unvoiced"
+          - frames with frequency > 0.0 are considered "voiced"
+
     ref_reward : np.ndarray
         Reference pitch estimation reward.
         Default None, which means all frames are weighted equally.
-    kwargs
+
+    **kwargs
         Additional keyword arguments which will be passed to the
         appropriate metric or preprocessing functions.
 
@@ -756,14 +816,12 @@ def evaluate(ref_time, ref_freq, est_time, est_freq,
         Dictionary of scores, where the key is the metric name (str) and
         the value is the (float) score achieved.
 
-
     References
     ----------
     .. [#] J. Salamon, E. Gomez, D. P. W. Ellis and G. Richard, "Melody
         Extraction from Polyphonic Music Signals: Approaches, Applications
         and Challenges", IEEE Signal Processing Magazine, 31(2):118-134,
         Mar. 2014.
-
 
     .. [#] G. E. Poliner, D. P. W. Ellis, A. F. Ehmann, E. Gomez, S.
         Streich, and B. Ong. "Melody transcription from music audio:
@@ -776,34 +834,37 @@ def evaluate(ref_time, ref_freq, est_time, est_freq,
 
     """
     # Convert to reference/estimated voicing/frequency (cent) arrays
-    (ref_voicing, ref_cent,
-     est_voicing, est_cent) = util.filter_kwargs(
-         to_cent_voicing, ref_time, ref_freq, est_time, est_freq,
-         est_voicing, ref_reward, **kwargs)
+    (ref_voicing, ref_cent, est_voicing, est_cent) = util.filter_kwargs(
+        to_cent_voicing,
+        ref_time,
+        ref_freq,
+        est_time,
+        est_freq,
+        est_voicing,
+        ref_reward,
+        **kwargs
+    )
 
     # Compute metrics
     scores = collections.OrderedDict()
 
-    scores['Voicing Recall'] = util.filter_kwargs(voicing_recall,
-                                                  ref_voicing,
-                                                  est_voicing, **kwargs)
+    scores["Voicing Recall"] = util.filter_kwargs(
+        voicing_recall, ref_voicing, est_voicing, **kwargs
+    )
 
-    scores['Voicing False Alarm'] = util.filter_kwargs(voicing_false_alarm,
-                                                       ref_voicing,
-                                                       est_voicing, **kwargs)
+    scores["Voicing False Alarm"] = util.filter_kwargs(
+        voicing_false_alarm, ref_voicing, est_voicing, **kwargs
+    )
 
-    scores['Raw Pitch Accuracy'] = util.filter_kwargs(raw_pitch_accuracy,
-                                                      ref_voicing, ref_cent,
-                                                      est_voicing, est_cent,
-                                                      **kwargs)
+    scores["Raw Pitch Accuracy"] = util.filter_kwargs(
+        raw_pitch_accuracy, ref_voicing, ref_cent, est_voicing, est_cent, **kwargs
+    )
 
-    scores['Raw Chroma Accuracy'] = util.filter_kwargs(raw_chroma_accuracy,
-                                                       ref_voicing, ref_cent,
-                                                       est_voicing, est_cent,
-                                                       **kwargs)
+    scores["Raw Chroma Accuracy"] = util.filter_kwargs(
+        raw_chroma_accuracy, ref_voicing, ref_cent, est_voicing, est_cent, **kwargs
+    )
 
-    scores['Overall Accuracy'] = util.filter_kwargs(overall_accuracy,
-                                                    ref_voicing, ref_cent,
-                                                    est_voicing, est_cent,
-                                                    **kwargs)
+    scores["Overall Accuracy"] = util.filter_kwargs(
+        overall_accuracy, ref_voicing, ref_cent, est_voicing, est_cent, **kwargs
+    )
     return scores

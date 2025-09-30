@@ -1,95 +1,118 @@
-'''
+"""
 Unit tests for mir_eval.beat
-'''
+"""
 
 import numpy as np
 import json
 import mir_eval
 import glob
-import warnings
-import nose.tools
+import pytest
 
 A_TOL = 1e-12
 
 # Path to the fixture files
-REF_GLOB = 'data/beat/ref*.txt'
-EST_GLOB = 'data/beat/est*.txt'
-SCORES_GLOB = 'data/beat/output*.json'
+REF_GLOB = "data/beat/ref*.txt"
+EST_GLOB = "data/beat/est*.txt"
+SCORES_GLOB = "data/beat/output*.json"
+
+ref_files = sorted(glob.glob(REF_GLOB))
+est_files = sorted(glob.glob(EST_GLOB))
+sco_files = sorted(glob.glob(SCORES_GLOB))
+
+assert len(ref_files) == len(est_files) == len(sco_files) > 0
+
+file_sets = list(zip(ref_files, est_files, sco_files))
+
+
+@pytest.fixture
+def beat_data(request):
+    ref_f, est_f, sco_f = request.param
+    with open(sco_f) as f:
+        expected_scores = json.load(f)
+    reference_beats = mir_eval.io.load_events(ref_f)
+    estimated_beats = mir_eval.io.load_events(est_f)
+
+    return reference_beats, estimated_beats, expected_scores
 
 
 def test_trim_beats():
     # Construct dummy beat times [0., 1., ...]
-    dummy_beats = np.arange(10, dtype=np.float)
+    dummy_beats = np.arange(10, dtype=np.float64)
     # We expect trim_beats to remove all beats < 5s
-    expected_beats = np.arange(5, 10, dtype=np.float)
+    expected_beats = np.arange(5, 10, dtype=np.float64)
     assert np.allclose(mir_eval.beat.trim_beats(dummy_beats), expected_beats)
 
 
-def __unit_test_beat_function(metric):
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter('always')
-        # First, test for a warning on empty beats
+@pytest.mark.parametrize(
+    "metric",
+    [
+        mir_eval.beat.f_measure,
+        mir_eval.beat.cemgil,
+        mir_eval.beat.goto,
+        mir_eval.beat.p_score,
+        mir_eval.beat.continuity,
+        mir_eval.beat.information_gain,
+    ],
+)
+def test_beat_empty_warnings(metric):
+    with pytest.warns(UserWarning, match="Reference beats are empty."):
         metric(np.array([]), np.arange(10))
-        assert len(w) == 1
-        assert issubclass(w[-1].category, UserWarning)
-        assert str(w[-1].message) == "Reference beats are empty."
+    with pytest.warns(UserWarning, match="Estimated beats are empty."):
         metric(np.arange(10), np.array([]))
-        assert len(w) == 2
-        assert issubclass(w[-1].category, UserWarning)
-        assert str(w[-1].message) == "Estimated beats are empty."
-        # And that the metric is 0
+    with pytest.warns(UserWarning, match="beats are empty."):
         assert np.allclose(metric(np.array([]), np.array([])), 0)
 
-    # Now test validation function - beats must be 1d ndarray
-    beats = np.array([[1., 2.]])
-    nose.tools.assert_raises(ValueError, metric, beats, beats)
-    # Beats must be in seconds (so not huge)
-    beats = np.array([1e10, 1e11])
-    nose.tools.assert_raises(ValueError, metric, beats, beats)
-    # Beats must be sorted
-    beats = np.array([2., 1.])
-    nose.tools.assert_raises(ValueError, metric, beats, beats)
 
-    # Valid beats which are the same produce a score of 1 for all metrics
-    beats = np.arange(10, dtype=np.float)
+@pytest.mark.parametrize(
+    "metric",
+    [
+        mir_eval.beat.f_measure,
+        mir_eval.beat.cemgil,
+        mir_eval.beat.goto,
+        mir_eval.beat.p_score,
+        mir_eval.beat.continuity,
+        mir_eval.beat.information_gain,
+    ],
+)
+@pytest.mark.parametrize(
+    "beats",
+    [
+        np.array([[1.0, 2.0]]),  # beats must be a 1d array
+        np.array([1e10, 1e11]),  # beats must be not huge
+        np.array([2.0, 1.0]),  # must be sorted
+    ],
+)
+@pytest.mark.xfail(raises=ValueError)
+def test_beat_fail(metric, beats):
+    metric(beats, beats)
+
+
+@pytest.mark.parametrize(
+    "metric",
+    [
+        mir_eval.beat.f_measure,
+        mir_eval.beat.cemgil,
+        mir_eval.beat.goto,
+        mir_eval.beat.p_score,
+        mir_eval.beat.continuity,
+        mir_eval.beat.information_gain,
+    ],
+)
+def test_beat_perfect(metric):
+    beats = np.arange(10, dtype=np.float64)
     assert np.allclose(metric(beats, beats), 1)
 
 
-def __check_score(sco_f, metric, score, expected_score):
-    assert np.allclose(score, expected_score, atol=A_TOL)
+@pytest.mark.parametrize("beat_data", file_sets, indirect=True)
+def test_beat_functions(beat_data):
+    reference_beats, estimated_beats, expected_scores = beat_data
 
-
-def test_beat_functions():
-    # Load in all files in the same order
-    ref_files = sorted(glob.glob(REF_GLOB))
-    est_files = sorted(glob.glob(EST_GLOB))
-    sco_files = sorted(glob.glob(SCORES_GLOB))
-
-    assert len(ref_files) == len(est_files) == len(sco_files) > 0
-
-    # Unit tests
-    for metric in [mir_eval.beat.f_measure,
-                   mir_eval.beat.cemgil,
-                   mir_eval.beat.goto,
-                   mir_eval.beat.p_score,
-                   mir_eval.beat.continuity,
-                   mir_eval.beat.information_gain]:
-        yield (__unit_test_beat_function, metric)
-    # Regression tests
-    for ref_f, est_f, sco_f in zip(ref_files, est_files, sco_files):
-        with open(sco_f, 'r') as f:
-            expected_scores = json.load(f)
-        # Load in an example beat annotation
-        reference_beats = mir_eval.io.load_events(ref_f)
-        # Load in an example beat tracker output
-        estimated_beats = mir_eval.io.load_events(est_f)
-        # Compute scores
-        scores = mir_eval.beat.evaluate(reference_beats, estimated_beats)
-        # Compare them
-        for metric in scores:
-            # This is a simple hack to make nosetest's messages more useful
-            yield (__check_score, sco_f, metric, scores[metric],
-                   expected_scores[metric])
+    # Compute scores
+    scores = mir_eval.beat.evaluate(reference_beats, estimated_beats)
+    # Compare them
+    assert scores.keys() == expected_scores.keys()
+    for metric in scores:
+        assert np.allclose(scores[metric], expected_scores[metric], atol=A_TOL)
 
 
 # Unit tests for specific behavior not covered by the above
@@ -97,36 +120,29 @@ def test_goto_proportion_correct():
     # This covers the case when over 75% of the beat tracking is correct, and
     # more than 3 beats are incorrect
     assert mir_eval.beat.goto(
-        np.arange(100), np.append(np.arange(80), np.arange(80, 100) + .2))
+        np.arange(100), np.append(np.arange(80), np.arange(80, 100) + 0.2)
+    )
 
 
-def test_warning_on_one_beat():
+@pytest.mark.parametrize(
+    "metric",
+    [mir_eval.beat.p_score, mir_eval.beat.continuity, mir_eval.beat.information_gain],
+)
+def test_warning_on_one_beat(metric):
     # This tests the metrics where passing only a single beat raises a warning
     # and returns 0
-    for metric in [mir_eval.beat.p_score, mir_eval.beat.continuity,
-                   mir_eval.beat.information_gain]:
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
-            # First, test for a warning on empty beats
-            metric(np.array([10]), np.arange(10))
-            assert len(w) == 1
-            assert issubclass(w[-1].category, UserWarning)
-            assert str(w[-1].message) == (
-                "Only one reference beat was provided, so beat intervals "
-                "cannot be computed.")
-            metric(np.arange(10), np.array([10.]))
-            assert len(w) == 2
-            assert issubclass(w[-1].category, UserWarning)
-            assert str(w[-1].message) == (
-                "Only one estimated beat was provided, so beat intervals "
-                "cannot be computed.")
-            # And that the metric is 0
-            assert np.allclose(metric(np.array([]), np.array([])), 0)
+
+    with pytest.warns(UserWarning, match="Only one reference beat"):
+        metric(np.array([10]), np.arange(10))
+    with pytest.warns(UserWarning, match="Only one estimated beat"):
+        metric(np.arange(10), np.array([10]))
 
 
 def test_continuity_edge_cases():
     # There is some special-case logic for when there are few beats
-    assert np.allclose(mir_eval.beat.continuity(
-        np.array([6., 6.]), np.array([6., 7.])), 0.)
-    assert np.allclose(mir_eval.beat.continuity(
-        np.array([6., 6.]), np.array([6.5, 7.])), 0.)
+    assert np.allclose(
+        mir_eval.beat.continuity(np.array([6.0, 6.0]), np.array([6.0, 7.0])), 0.0
+    )
+    assert np.allclose(
+        mir_eval.beat.continuity(np.array([6.0, 6.0]), np.array([6.5, 7.0])), 0.0
+    )

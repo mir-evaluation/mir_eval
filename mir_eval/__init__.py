@@ -2,6 +2,7 @@
 """Top-level module for mir_eval"""
 
 # Import all submodules (for each task)
+from . import alignment
 from . import beat
 from . import chord
 from . import io
@@ -19,4 +20,4 @@ from . import transcription
 from . import transcription_velocity
 from . import key
 
-__version__ = '0.6'
+__version__ = "0.8.2"

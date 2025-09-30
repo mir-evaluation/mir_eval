@@ -1,24 +1,24 @@
-'''
+"""
 Unit tests for mir_eval.hierarchy
-'''
+"""
 
-from glob import glob
+import glob
 import re
 
-import warnings
 import json
 
 import numpy as np
 import scipy.sparse
 import mir_eval
-
-from nose.tools import raises
+import pytest
 
 
 A_TOL = 1e-12
 
 
-def test_tmeasure_pass():
+@pytest.mark.parametrize("window", [5, 10, 15, 30, 90, None])
+@pytest.mark.parametrize("frame_size", [0.1, 0.5, 1.0])
+def test_tmeasure_pass(window, frame_size):
     # The estimate here gets none of the structure correct.
     ref = [[[0, 30]], [[0, 15], [15, 30]]]
     # convert to arrays
@@ -26,105 +26,75 @@ def test_tmeasure_pass():
 
     est = ref[:1]
 
-    def __test(window, frame_size):
-        # The estimate should get 0 score here
-        scores = mir_eval.hierarchy.tmeasure(ref, est,
-                                             window=window,
-                                             frame_size=frame_size)
+    # The estimate should get 0 score here
+    scores = mir_eval.hierarchy.tmeasure(ref, est, window=window, frame_size=frame_size)
 
-        for k in scores:
-            assert k == 0.0
+    for k in scores:
+        assert k == 0.0
 
-        # The reference should get a perfect score here
-        scores = mir_eval.hierarchy.tmeasure(ref, ref,
-                                             window=window,
-                                             frame_size=frame_size)
+    # The reference should get a perfect score here
+    scores = mir_eval.hierarchy.tmeasure(ref, ref, window=window, frame_size=frame_size)
 
-        for k in scores:
-            assert k == 1.0
-
-    for window in [5, 10, 15, 30, 90, None]:
-        for frame_size in [0.1, 0.5, 1.0]:
-            yield __test, window, frame_size
+    for k in scores:
+        assert k == 1.0
 
 
 def test_tmeasure_warning():
-
     # Warn if there are missing boundaries from one layer to the next
-    ref = [[[0, 5],
-            [5, 10]],
-           [[0, 10]]]
+    ref = [[[0, 5], [5, 10]], [[0, 10]]]
 
     ref = [np.asarray(_) for _ in ref]
 
-    warnings.resetwarnings()
-    warnings.simplefilter('always')
-    with warnings.catch_warnings(record=True) as out:
+    with pytest.warns(
+        UserWarning, match="Segment hierarchy is inconsistent at level 1"
+    ):
         mir_eval.hierarchy.tmeasure(ref, ref)
-
-        assert len(out) > 0
-        assert out[0].category is UserWarning
-        assert ('Segment hierarchy is inconsistent at level 1'
-                in str(out[0].message))
 
 
 def test_tmeasure_fail_span():
-
     # Does not start at 0
-    ref = [[[1, 10]],
-           [[1, 5],
-            [5, 10]]]
+    ref = [[[1, 10]], [[1, 5], [5, 10]]]
 
     ref = [np.asarray(_) for _ in ref]
 
-    yield raises(ValueError)(mir_eval.hierarchy.tmeasure), ref, ref
+    with pytest.raises(ValueError):
+        mir_eval.hierarchy.tmeasure(ref, ref)
 
     # Does not end at the right time
-    ref = [[[0, 5]],
-           [[0, 5],
-            [5, 6]]]
+    ref = [[[0, 5]], [[0, 5], [5, 6]]]
     ref = [np.asarray(_) for _ in ref]
 
-    yield raises(ValueError)(mir_eval.hierarchy.tmeasure), ref, ref
+    with pytest.raises(ValueError):
+        mir_eval.hierarchy.tmeasure(ref, ref)
 
     # Two annotaions of different shape
-    ref = [[[0, 10]],
-           [[0, 5],
-            [5, 10]]]
+    ref = [[[0, 10]], [[0, 5], [5, 10]]]
     ref = [np.asarray(_) for _ in ref]
 
-    est = [[[0, 15]],
-           [[0, 5],
-            [5, 15]]]
+    est = [[[0, 15]], [[0, 5], [5, 15]]]
     est = [np.asarray(_) for _ in est]
 
-    yield raises(ValueError)(mir_eval.hierarchy.tmeasure), ref, est
+    with pytest.raises(ValueError):
+        mir_eval.hierarchy.tmeasure(ref, est)
 
 
-def test_tmeasure_fail_frame_size():
-    ref = [[[0, 60]],
-           [[0, 30],
-            [30, 60]]]
+@pytest.mark.xfail(raises=ValueError)
+@pytest.mark.parametrize(
+    "window, frame_size",
+    [(None, -1), (None, 0), (15, -1), (15, 0), (15, 30), (30, -1), (30, 0), (30, 60)],
+)
+def test_tmeasure_fail_frame_size(window, frame_size):
+    ref = [[[0, 60]], [[0, 30], [30, 60]]]
     ref = [np.asarray(_) for _ in ref]
 
-    @raises(ValueError)
-    def __test(window, frame_size):
-        mir_eval.hierarchy.tmeasure(ref, ref,
-                                    window=window,
-                                    frame_size=frame_size)
-
-    for window in [None, 15, 30]:
-        for frame_size in [-1, 0]:
-            yield __test, window, frame_size
-        if window is not None:
-            yield __test, window, 2 * window
+    mir_eval.hierarchy.tmeasure(ref, ref, window=window, frame_size=frame_size)
 
 
-def test_lmeasure_pass():
-
+@pytest.mark.parametrize("frame_size", [0.1, 0.5, 1.0])
+def test_lmeasure_pass(frame_size):
     # The estimate here gets none of the structure correct.
     ref = [[[0, 30]], [[0, 15], [15, 30]]]
-    ref_lab = [['A'], ['a', 'b']]
+    ref_lab = [["A"], ["a", "b"]]
 
     # convert to arrays
     ref = [np.asarray(_) for _ in ref]
@@ -132,105 +102,97 @@ def test_lmeasure_pass():
     est = ref[:1]
     est_lab = ref_lab[:1]
 
-    def __test(frame_size):
-        # The estimate should get 0 score here
-        scores = mir_eval.hierarchy.lmeasure(ref, ref_lab, est, est_lab,
-                                             frame_size=frame_size)
+    # The estimate should get 0 score here
+    scores = mir_eval.hierarchy.lmeasure(
+        ref, ref_lab, est, est_lab, frame_size=frame_size
+    )
 
-        for k in scores:
-            assert k == 0.0
+    for k in scores:
+        assert k == 0.0
 
-        # The reference should get a perfect score here
-        scores = mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab,
-                                             frame_size=frame_size)
+    # The reference should get a perfect score here
+    scores = mir_eval.hierarchy.lmeasure(
+        ref, ref_lab, ref, ref_lab, frame_size=frame_size
+    )
 
-        for k in scores:
-            assert k == 1.0
-
-    for frame_size in [0.1, 0.5, 1.0]:
-        yield __test, frame_size
+    for k in scores:
+        assert k == 1.0
 
 
 def test_lmeasure_warning():
-
     # Warn if there are missing boundaries from one layer to the next
-    ref = [[[0, 5],
-            [5, 10]],
-           [[0, 10]]]
+    ref = [[[0, 5], [5, 10]], [[0, 10]]]
 
     ref = [np.asarray(_) for _ in ref]
-    ref_lab = [['a', 'b'], ['A']]
+    ref_lab = [["a", "b"], ["A"]]
 
-    warnings.resetwarnings()
-    warnings.simplefilter('always')
-    with warnings.catch_warnings(record=True) as out:
+    with pytest.warns(
+        UserWarning, match="Segment hierarchy is inconsistent at level 1"
+    ):
         mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab)
-
-        assert len(out) > 0
-        assert out[0].category is UserWarning
-        assert ('Segment hierarchy is inconsistent at level 1'
-                in str(out[0].message))
 
 
 def test_lmeasure_fail_span():
-
     # Does not start at 0
-    ref = [[[1, 10]],
-           [[1, 5],
-            [5, 10]]]
+    ref = [[[1, 10]], [[1, 5], [5, 10]]]
 
-    ref_lab = [['A'], ['a', 'b']]
+    ref_lab = [["A"], ["a", "b"]]
 
     ref = [np.asarray(_) for _ in ref]
 
-    yield (raises(ValueError)(mir_eval.hierarchy.lmeasure),
-           ref, ref_lab, ref, ref_lab)
+    with pytest.raises(ValueError):
+        mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab)
 
     # Does not end at the right time
-    ref = [[[0, 5]],
-           [[0, 5],
-            [5, 6]]]
+    ref = [[[0, 5]], [[0, 5], [5, 6]]]
     ref = [np.asarray(_) for _ in ref]
 
-    yield (raises(ValueError)(mir_eval.hierarchy.lmeasure),
-           ref, ref_lab, ref, ref_lab)
+    with pytest.raises(ValueError):
+        mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab)
 
     # Two annotations of different shape
-    ref = [[[0, 10]],
-           [[0, 5],
-            [5, 10]]]
+    ref = [[[0, 10]], [[0, 5], [5, 10]]]
     ref = [np.asarray(_) for _ in ref]
 
-    est = [[[0, 15]],
-           [[0, 5],
-            [5, 15]]]
+    est = [[[0, 15]], [[0, 5], [5, 15]]]
     est = [np.asarray(_) for _ in est]
 
-    yield (raises(ValueError)(mir_eval.hierarchy.lmeasure),
-           ref, ref_lab, est, ref_lab)
+    with pytest.raises(ValueError):
+        mir_eval.hierarchy.lmeasure(ref, ref_lab, est, ref_lab)
 
 
-def test_lmeasure_fail_frame_size():
-    ref = [[[0, 60]],
-           [[0, 30],
-            [30, 60]]]
+@pytest.mark.xfail(raises=ValueError)
+@pytest.mark.parametrize("frame_size", [-1, 0])
+def test_lmeasure_fail_frame_size(frame_size):
+    ref = [[[0, 60]], [[0, 30], [30, 60]]]
     ref = [np.asarray(_) for _ in ref]
-    ref_lab = [['A'], ['a', 'b']]
+    ref_lab = [["A"], ["a", "b"]]
 
-    @raises(ValueError)
-    def __test(frame_size):
-        mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab,
-                                    frame_size=frame_size)
-
-    for frame_size in [-1, 0]:
-        yield __test, frame_size
+    mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab, frame_size=frame_size)
 
 
-def test_hierarchy_regression():
+SCORES_GLOB = "data/hierarchy/output*.json"
+sco_files = sorted(glob.glob(SCORES_GLOB))
 
-    ref_files = sorted(glob('data/hierarchy/ref*.lab'))
-    est_files = sorted(glob('data/hierarchy/est*.lab'))
-    out_files = sorted(glob('data/hierarchy/output*.json'))
+
+@pytest.fixture
+def hierarchy_outcomes(request):
+    sco_f = request.param
+
+    with open(sco_f) as fdesc:
+        expected_scores = json.load(fdesc)
+    window = float(re.match(r".*output_w=(\d+).json$", sco_f).groups()[0])
+
+    return expected_scores, window
+
+
+@pytest.mark.parametrize("hierarchy_outcomes", sco_files, indirect=True)
+def test_hierarchy_regression(hierarchy_outcomes):
+    expected_scores, window = hierarchy_outcomes
+
+    # Hierarchy data is split across multiple lab files for these tests
+    ref_files = sorted(glob.glob("data/hierarchy/ref*.lab"))
+    est_files = sorted(glob.glob("data/hierarchy/est*.lab"))
 
     ref_hier = [mir_eval.io.load_labeled_intervals(_) for _ in ref_files]
     est_hier = [mir_eval.io.load_labeled_intervals(_) for _ in est_files]
@@ -240,25 +202,16 @@ def test_hierarchy_regression():
     est_ints = [seg[0] for seg in est_hier]
     est_labs = [seg[1] for seg in est_hier]
 
-    def __test(w, ref_i, ref_l, est_i, est_l, target):
-        outputs = mir_eval.hierarchy.evaluate(ref_i, ref_l,
-                                              est_i, est_l,
-                                              window=w)
+    outputs = mir_eval.hierarchy.evaluate(
+        ref_ints, ref_labs, est_ints, est_labs, window=window
+    )
 
-        for key in target:
-            assert np.allclose(target[key], outputs[key], atol=A_TOL)
-
-    for out in out_files:
-        with open(out, 'r') as fdesc:
-            target = json.load(fdesc)
-
-        # Extract the window parameter
-        window = float(re.match('.*output_w=(\d+).json$', out).groups()[0])
-        yield __test, window, ref_ints, ref_labs, est_ints, est_labs, target
+    assert outputs.keys() == expected_scores.keys()
+    for key in expected_scores:
+        assert np.allclose(expected_scores[key], outputs[key], atol=A_TOL)
 
 
 def test_count_inversions():
-
     # inversion count = |{(i, j) : a[i] >= b[j]}|
     a = [2, 4, 6]
     b = [1, 2, 3, 4]
@@ -296,29 +249,30 @@ def test_count_inversions():
 
 
 def test_meet():
-
     frame_size = 1
-    int_hier = [np.array([[0, 10]]),
-                np.array([[0, 6], [6, 10]]),
-                np.array([[0, 2], [2, 4], [4, 6], [6, 8], [8, 10]])]
+    int_hier = [
+        np.array([[0, 10]]),
+        np.array([[0, 6], [6, 10]]),
+        np.array([[0, 2], [2, 4], [4, 6], [6, 8], [8, 10]]),
+    ]
 
-    lab_hier = [['X'],
-                ['A', 'B'],
-                ['a', 'b', 'a', 'c', 'b']]
+    lab_hier = [["X"], ["A", "B"], ["a", "b", "a", "c", "b"]]
 
     # Target output
-    meet_truth = np.asarray([
-        [3, 3, 2, 2, 3, 3, 1, 1, 1, 1],   # (XAa)
-        [3, 3, 2, 2, 3, 3, 1, 1, 1, 1],   # (XAa)
-        [2, 2, 3, 3, 2, 2, 1, 1, 3, 3],   # (XAb)
-        [2, 2, 3, 3, 2, 2, 1, 1, 3, 3],   # (XAb)
-        [3, 3, 2, 2, 3, 3, 1, 1, 1, 1],   # (XAa)
-        [3, 3, 2, 2, 3, 3, 1, 1, 1, 1],   # (XAa)
-        [1, 1, 1, 1, 1, 1, 3, 3, 2, 2],   # (XBc)
-        [1, 1, 1, 1, 1, 1, 3, 3, 2, 2],   # (XBc)
-        [1, 1, 3, 3, 1, 1, 2, 2, 3, 3],   # (XBb)
-        [1, 1, 3, 3, 1, 1, 2, 2, 3, 3],   # (XBb)
-    ])
+    meet_truth = np.asarray(
+        [
+            [3, 3, 2, 2, 3, 3, 1, 1, 1, 1],  # (XAa)
+            [3, 3, 2, 2, 3, 3, 1, 1, 1, 1],  # (XAa)
+            [2, 2, 3, 3, 2, 2, 1, 1, 3, 3],  # (XAb)
+            [2, 2, 3, 3, 2, 2, 1, 1, 3, 3],  # (XAb)
+            [3, 3, 2, 2, 3, 3, 1, 1, 1, 1],  # (XAa)
+            [3, 3, 2, 2, 3, 3, 1, 1, 1, 1],  # (XAa)
+            [1, 1, 1, 1, 1, 1, 3, 3, 2, 2],  # (XBc)
+            [1, 1, 1, 1, 1, 1, 3, 3, 2, 2],  # (XBc)
+            [1, 1, 3, 3, 1, 1, 2, 2, 3, 3],  # (XBb)
+            [1, 1, 3, 3, 1, 1, 2, 2, 3, 3],  # (XBb)
+        ]
+    )
     meet = mir_eval.hierarchy._meet(int_hier, lab_hier, frame_size)
 
     # Is it the right type?
@@ -333,7 +287,6 @@ def test_meet():
 
 
 def test_compare_frame_rankings():
-
     # number of pairs (i, j)
     # where ref[i] < ref[j] and est[i] >= est[j]
 
@@ -345,34 +298,29 @@ def test_compare_frame_rankings():
 
     # Just count the normalizers
     # No self-inversions are possible from ref to itself
-    inv, norm = mir_eval.hierarchy._compare_frame_rankings(ref, ref,
-                                                           transitive=True)
+    inv, norm = mir_eval.hierarchy._compare_frame_rankings(ref, ref, transitive=True)
     assert inv == 0
     assert norm == 5.0
 
-    inv, norm = mir_eval.hierarchy._compare_frame_rankings(ref, ref,
-                                                           transitive=False)
+    inv, norm = mir_eval.hierarchy._compare_frame_rankings(ref, ref, transitive=False)
     assert inv == 0
     assert norm == 3.0
 
     est = np.asarray([1, 2, 1, 3])
     # In the transitive case, we lose two pairs
     # (1, 3) and (2, 2) -> (1, 1), (2, 1)
-    inv, norm = mir_eval.hierarchy._compare_frame_rankings(ref, est,
-                                                           transitive=True)
+    inv, norm = mir_eval.hierarchy._compare_frame_rankings(ref, est, transitive=True)
     assert inv == 2
     assert norm == 5.0
 
     # In the non-transitive case, we only lose one pair
     # because (1,3) was not counted
-    inv, norm = mir_eval.hierarchy._compare_frame_rankings(ref, est,
-                                                           transitive=False)
+    inv, norm = mir_eval.hierarchy._compare_frame_rankings(ref, est, transitive=False)
     assert inv == 1
     assert norm == 3.0
 
     # Do an all-zeros test
     ref = np.asarray([1, 1, 1, 1])
-    inv, norm = mir_eval.hierarchy._compare_frame_rankings(ref, ref,
-                                                           transitive=True)
+    inv, norm = mir_eval.hierarchy._compare_frame_rankings(ref, ref, transitive=True)
     assert inv == 0
     assert norm == 0.0

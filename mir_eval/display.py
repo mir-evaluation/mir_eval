@@ -1,46 +1,29 @@
-# -*- encoding: utf-8 -*-
-'''Display functions'''
+"""Display functions"""
 
 from collections import defaultdict
+from weakref import WeakKeyDictionary
 
 import numpy as np
 from scipy.signal import spectrogram
 
+import matplotlib as mpl
 from matplotlib.patches import Rectangle
 from matplotlib.ticker import FuncFormatter, MultipleLocator
 from matplotlib.ticker import Formatter
 from matplotlib.colors import LinearSegmentedColormap, LogNorm, ColorConverter
-from matplotlib.collections import BrokenBarHCollection
+from matplotlib.transforms import Bbox, TransformedBbox
 
 from .melody import freq_to_voicing
 from .util import midi_to_hz, hz_to_midi
 
 
-def __expand_limits(ax, limits, which='x'):
-    '''Helper function to expand axis limits'''
-
-    if which == 'x':
-        getter, setter = ax.get_xlim, ax.set_xlim
-    elif which == 'y':
-        getter, setter = ax.get_ylim, ax.set_ylim
-    else:
-        raise ValueError('invalid axis: {}'.format(which))
-
-    old_lims = getter()
-    new_lims = list(limits)
-
-    # infinite limits occur on new axis objects with no data
-    if np.isfinite(old_lims[0]):
-        new_lims[0] = min(old_lims[0], limits[0])
-
-    if np.isfinite(old_lims[1]):
-        new_lims[1] = max(old_lims[1], limits[1])
-
-    setter(new_lims)
+# This dictionary is used to track mir_eval-specific attributes
+# attached to matplotlib axes
+__AXMAP = WeakKeyDictionary()
 
 
 def __get_axes(ax=None, fig=None):
-    '''Get or construct the target axes object for a new plot.
+    """Get or construct the target axes object for a new plot.
 
     Parameters
     ----------
@@ -57,31 +40,41 @@ def __get_axes(ax=None, fig=None):
     ax : matplotlib.pyplot.axes
         An axis handle on which to draw the segmentation.
         If none is provided, a new set of axes is created.
-
     new_axes : bool
         If `True`, the axis object was newly constructed.
         If `False`, the axis object already existed.
-
-    '''
-
+    """
     new_axes = False
 
-    if ax is not None:
-        return ax, new_axes
+    if ax is None:
+        if fig is None:
+            import matplotlib.pyplot as plt
 
-    if fig is None:
-        import matplotlib.pyplot as plt
-        fig = plt.gcf()
+            fig = plt.gcf()
 
-    if not fig.get_axes():
-        new_axes = True
+        if not fig.get_axes():
+            new_axes = True
+        ax = fig.gca()
 
-    return fig.gca(), new_axes
+    # Create a storage bucket for this axes in case we need it
+    if ax not in __AXMAP:
+        __AXMAP[ax] = dict()
+
+    return ax, new_axes
 
 
-def segments(intervals, labels, base=None, height=None, text=False,
-             text_kw=None, ax=None, **kwargs):
-    '''Plot a segmentation as a set of disjoint rectangles.
+def segments(
+    intervals,
+    labels,
+    base=None,
+    height=None,
+    text=False,
+    text_kw=None,
+    ax=None,
+    prop_cycle=None,
+    **kwargs,
+):
+    """Plot a segmentation as a set of disjoint rectangles.
 
     Parameters
     ----------
@@ -89,33 +82,30 @@ def segments(intervals, labels, base=None, height=None, text=False,
         segment intervals, in the format returned by
         :func:`mir_eval.io.load_intervals` or
         :func:`mir_eval.io.load_labeled_intervals`.
-
     labels : list, shape=(n,)
         reference segment labels, in the format returned by
         :func:`mir_eval.io.load_labeled_intervals`.
-
     base : number
         The vertical position of the base of the rectangles.
         By default, this will be the bottom of the plot.
-
     height : number
         The height of the rectangles.
         By default, this will be the top of the plot (minus ``base``).
-
+        .. note:: If either `base` or `height` are provided, both must be provided.
     text : bool
         If true, each segment's label is displayed in its
         upper-left corner
-
     text_kw : dict
         If ``text == True``, the properties of the text
         object can be specified here.
         See ``matplotlib.pyplot.Text`` for valid parameters
-
     ax : matplotlib.pyplot.axes
         An axis handle on which to draw the segmentation.
         If none is provided, a new set of axes is created.
-
-    kwargs
+    prop_cycle : cycle.Cycler
+        An optional property cycle object to specify style properties.
+        If not provided, the default property cycler will be retrieved from matplotlib.
+    **kwargs
         Additional keyword arguments to pass to
         ``matplotlib.patches.Rectangle``.
 
@@ -123,12 +113,12 @@ def segments(intervals, labels, base=None, height=None, text=False,
     -------
     ax : matplotlib.pyplot.axes._subplots.AxesSubplot
         A handle to the (possibly constructed) plot axes
-    '''
+    """
     if text_kw is None:
         text_kw = dict()
-    text_kw.setdefault('va', 'top')
-    text_kw.setdefault('clip_on', True)
-    text_kw.setdefault('bbox', dict(boxstyle='round', facecolor='white'))
+    text_kw.setdefault("va", "top")
+    text_kw.setdefault("clip_on", True)
+    text_kw.setdefault("bbox", dict(boxstyle="round", facecolor="white"))
 
     # Make sure we have a numpy array
     intervals = np.atleast_2d(intervals)
@@ -137,17 +127,29 @@ def segments(intervals, labels, base=None, height=None, text=False,
 
     ax, new_axes = __get_axes(ax=ax)
 
+    if prop_cycle is None:
+        __AXMAP[ax].setdefault("prop_cycle", mpl.rcParams["axes.prop_cycle"])
+        __AXMAP[ax].setdefault("prop_iter", iter(mpl.rcParams["axes.prop_cycle"]))
+    elif "prop_iter" not in __AXMAP[ax]:
+        __AXMAP[ax]["prop_cycle"] = prop_cycle
+        __AXMAP[ax]["prop_iter"] = iter(prop_cycle)
+
+    prop_cycle = __AXMAP[ax]["prop_cycle"]
+    prop_iter = __AXMAP[ax]["prop_iter"]
+
     if new_axes:
-        ax.set_ylim([0, 1])
+        ax.set_yticks([])
 
-    # Infer height
-    if base is None:
-        base = ax.get_ylim()[0]
+    if base is None and height is None:
+        # If neither are provided, we'll use axes coordinates to span the figure
+        base, height = 0, 1
+        transform = ax.get_xaxis_transform()
 
-    if height is None:
-        height = ax.get_ylim()[1]
-
-    cycler = ax._get_patches_for_fill.prop_cycler
+    elif base is not None and height is not None:
+        # If both are provided, we'll use data coordinates
+        transform = None
+    else:
+        raise ValueError("When specifying base or height, both must be provided.")
 
     seg_map = dict()
 
@@ -155,41 +157,57 @@ def segments(intervals, labels, base=None, height=None, text=False,
         if lab in seg_map:
             continue
 
-        style = next(cycler)
+        try:
+            properties = next(prop_iter)
+        except StopIteration:
+            prop_iter = iter(prop_cycle)
+            __AXMAP[ax]["prop_iter"] = prop_iter
+            properties = next(prop_iter)
+
+        style = {
+            k: v
+            for k, v in properties.items()
+            if k in ["color", "facecolor", "edgecolor", "linewidth"]
+        }
+        # Swap color -> facecolor here so we preserve edgecolor on rects
+        style.setdefault("facecolor", style["color"])
+        style.pop("color", None)
         seg_map[lab] = seg_def_style.copy()
         seg_map[lab].update(style)
-        # Swap color -> facecolor here so we preserve edgecolor on rects
-        seg_map[lab]['facecolor'] = seg_map[lab].pop('color')
         seg_map[lab].update(kwargs)
-        seg_map[lab]['label'] = lab
+        seg_map[lab]["label"] = lab
 
     for ival, lab in zip(intervals, labels):
-        rect = Rectangle((ival[0], base), ival[1] - ival[0], height,
-                         **seg_map[lab])
-        ax.add_patch(rect)
-        seg_map[lab].pop('label', None)
+        rect = ax.axvspan(ival[0], ival[1], ymin=base, ymax=height, **seg_map[lab])
+        seg_map[lab].pop("label", None)
 
         if text:
-            ann = ax.annotate(lab,
-                              xy=(ival[0], height), xycoords='data',
-                              xytext=(8, -10), textcoords='offset points',
-                              **text_kw)
+            ann = ax.annotate(
+                lab,
+                xy=(ival[0], height),
+                xycoords=transform,
+                xytext=(8, -10),
+                textcoords="offset points",
+                **text_kw,
+            )
             ann.set_clip_path(rect)
-
-    if new_axes:
-        ax.set_yticks([])
-
-    # Only expand if we have data
-    if intervals.size:
-        __expand_limits(ax, [intervals.min(), intervals.max()], which='x')
 
     return ax
 
 
-def labeled_intervals(intervals, labels, label_set=None,
-                      base=None, height=None, extend_labels=True,
-                      ax=None, tick=True, **kwargs):
-    '''Plot labeled intervals with each label on its own row.
+def labeled_intervals(
+    intervals,
+    labels,
+    label_set=None,
+    base=None,
+    height=None,
+    extend_labels=True,
+    ax=None,
+    tick=True,
+    prop_cycle=None,
+    **kwargs,
+):
+    """Plot labeled intervals with each label on its own row.
 
     Parameters
     ----------
@@ -235,44 +253,73 @@ def labeled_intervals(intervals, labels, label_set=None,
     tick : bool
         If ``True``, sets tick positions and labels on the y-axis.
 
-    kwargs
+    prop_cycle : cycle.Cycler
+        An optional property cycle object to specify style properties.
+        If not provided, the default property cycler will be retrieved from matplotlib.
+
+    **kwargs
         Additional keyword arguments to pass to
-        `matplotlib.collection.BrokenBarHCollection`.
+        `matplotlib.collection.PolyCollection`.
 
     Returns
     -------
     ax : matplotlib.pyplot.axes._subplots.AxesSubplot
         A handle to the (possibly constructed) plot axes
-    '''
-
+    """
     # Get the axes handle
-    ax, _ = __get_axes(ax=ax)
+    ax, new_axes = __get_axes(ax=ax)
+
+    if prop_cycle is None:
+        __AXMAP[ax].setdefault("prop_cycle", mpl.rcParams["axes.prop_cycle"])
+        __AXMAP[ax].setdefault("prop_iter", iter(mpl.rcParams["axes.prop_cycle"]))
+    elif "prop_iter" not in __AXMAP[ax]:
+        __AXMAP[ax]["prop_cycle"] = prop_cycle
+        __AXMAP[ax]["prop_iter"] = iter(prop_cycle)
+
+    prop_cycle = __AXMAP[ax]["prop_cycle"]
+    prop_iter = __AXMAP[ax]["prop_iter"]
 
     # Make sure we have a numpy array
     intervals = np.atleast_2d(intervals)
 
     if label_set is None:
         # If we have non-empty pre-existing tick labels, use them
-        label_set = [_.get_text() for _ in ax.get_yticklabels()]
         # If none of the label strings have content, treat it as empty
-        if not any(label_set):
-            label_set = []
+        label_set = __AXMAP[ax].get("labels", [])
     else:
         label_set = list(label_set)
 
     # Put additional labels at the end, in order
+    extended = False
     if extend_labels:
         ticks = label_set + sorted(set(labels) - set(label_set))
+        if ticks != label_set and len(label_set) > 0:
+            extended = True
     elif label_set:
         ticks = label_set
     else:
         ticks = sorted(set(labels))
 
+    # Push the ticks up into the axmap
+    __AXMAP[ax]["labels"] = ticks
+
     style = dict(linewidth=1)
 
-    style.update(next(ax._get_patches_for_fill.prop_cycler))
+    try:
+        properties = next(prop_iter)
+    except StopIteration:
+        prop_iter = iter(prop_cycle)
+        __AXMAP[ax]["prop_iter"] = prop_iter
+        properties = next(prop_iter)
+
+    style = {
+        k: v
+        for k, v in properties.items()
+        if k in ["color", "facecolor", "edgecolor", "linewidth"]
+    }
     # Swap color -> facecolor here so we preserve edgecolor on rects
-    style['facecolor'] = style.pop('color')
+    style.setdefault("facecolor", style["color"])
+    style.pop("color", None)
     style.update(kwargs)
 
     if base is None:
@@ -295,33 +342,27 @@ def labeled_intervals(intervals, labels, label_set=None,
         xvals[lab].append((ival[0], ival[1] - ival[0]))
 
     for lab in seg_y:
-        ax.add_collection(BrokenBarHCollection(xvals[lab], seg_y[lab],
-                                               **style))
+        ax.broken_barh(xvals[lab], seg_y[lab], **style)
         # Pop the label after the first time we see it, so we only get
         # one legend entry
-        style.pop('label', None)
+        style.pop("label", None)
 
     # Draw a line separating the new labels from pre-existing labels
-    if label_set != ticks:
-        ax.axhline(len(label_set), color='k', alpha=0.5)
+    if extended:
+        ax.axhline(len(label_set), color="k", alpha=0.5)
 
     if tick:
-        ax.grid(True, axis='y')
+        ax.grid(True, axis="y")
         ax.set_yticks([])
         ax.set_yticks(base)
-        ax.set_yticklabels(ticks, va='bottom')
+        ax.set_yticklabels(ticks, va="bottom")
         ax.yaxis.set_major_formatter(IntervalFormatter(base, ticks))
-
-    if base.size:
-        __expand_limits(ax, [base.min(), (base + height).max()], which='y')
-    if intervals.size:
-        __expand_limits(ax, [intervals.min(), intervals.max()], which='x')
 
     return ax
 
 
 class IntervalFormatter(Formatter):
-    '''Ticker formatter for labeled interval plots.
+    """Ticker formatter for labeled interval plots.
 
     Parameters
     ----------
@@ -330,18 +371,18 @@ class IntervalFormatter(Formatter):
 
     ticks : array-like of string
         The labels for the ticks
-    '''
-    def __init__(self, base, ticks):
+    """
 
+    def __init__(self, base, ticks):
         self._map = {int(k): v for k, v in zip(base, ticks)}
 
     def __call__(self, x, pos=None):
-
-        return self._map.get(int(x), '')
+        """Map the input position to its corresponding interval label"""
+        return self._map.get(int(x), "")
 
 
 def hierarchy(intervals_hier, labels_hier, levels=None, ax=None, **kwargs):
-    '''Plot a hierarchical segmentation
+    """Plot a hierarchical segmentation
 
     Parameters
     ----------
@@ -351,25 +392,24 @@ def hierarchy(intervals_hier, labels_hier, levels=None, ax=None, **kwargs):
         :func:`mir_eval.io.load_intervals` or
         :func:`mir_eval.io.load_labeled_intervals`.
         Segmentations should be ordered by increasing specificity.
-
     labels_hier : list of list-like
         A list of segmentation labels.  Each element should
         be a list of labels for the corresponding element in
         `intervals_hier`.
-
     levels : list of string
         Each element ``levels[i]`` is a label for the ```i`` th segmentation.
         This is used in the legend to denote the levels in a segment hierarchy.
-
-    kwargs
+    ax : matplotlib.pyplot.axes
+        An axis handle on which to draw the intervals.
+        If none is provided, a new set of axes is created.
+    **kwargs
         Additional keyword arguments to `labeled_intervals`.
 
     Returns
     -------
     ax : matplotlib.pyplot.axes._subplots.AxesSubplot
         A handle to the (possibly constructed) plot axes
-    '''
-
+    """
     # This will break if a segment label exists in multiple levels
     if levels is None:
         levels = list(range(len(intervals_hier)))
@@ -380,20 +420,23 @@ def hierarchy(intervals_hier, labels_hier, levels=None, ax=None, **kwargs):
     # Count the pre-existing patches
     n_patches = len(ax.patches)
 
-    for ints, labs, key in zip(intervals_hier[::-1],
-                               labels_hier[::-1],
-                               levels[::-1]):
+    for ints, labs, key in zip(intervals_hier[::-1], labels_hier[::-1], levels[::-1]):
         labeled_intervals(ints, labs, label=key, ax=ax, **kwargs)
 
-    # Reverse the patch ordering for anything we've added.
-    # This way, intervals are listed in the legend from top to bottom
-    ax.patches[n_patches:] = ax.patches[n_patches:][::-1]
     return ax
 
 
-def events(times, labels=None, base=None, height=None, ax=None, text_kw=None,
-           **kwargs):
-    '''Plot event times as a set of vertical lines
+def events(
+    times,
+    labels=None,
+    base=None,
+    height=None,
+    ax=None,
+    text_kw=None,
+    prop_cycle=None,
+    **kwargs,
+):
+    """Plot event times as a set of vertical lines
 
     Parameters
     ----------
@@ -401,29 +444,27 @@ def events(times, labels=None, base=None, height=None, ax=None, text_kw=None,
         event times, in the format returned by
         :func:`mir_eval.io.load_events` or
         :func:`mir_eval.io.load_labeled_events`.
-
     labels : list, shape=(n,), optional
         event labels, in the format returned by
         :func:`mir_eval.io.load_labeled_events`.
-
     base : number
         The vertical position of the base of the line.
         By default, this will be the bottom of the plot.
-
     height : number
         The height of the lines.
         By default, this will be the top of the plot (minus `base`).
-
+        .. note:: If either `base` or `height` are provided, both must be provided.
     ax : matplotlib.pyplot.axes
         An axis handle on which to draw the segmentation.
         If none is provided, a new set of axes is created.
-
     text_kw : dict
         If `labels` is provided, the properties of the text
         objects can be specified here.
         See `matplotlib.pyplot.Text` for valid parameters
-
-    kwargs
+    prop_cycle : cycle.Cycler
+        An optional property cycle object to specify style properties.
+        If not provided, the default property cycler will be retrieved from matplotlib.
+    **kwargs
         Additional keyword arguments to pass to
         `matplotlib.pyplot.vlines`.
 
@@ -431,12 +472,12 @@ def events(times, labels=None, base=None, height=None, ax=None, text_kw=None,
     -------
     ax : matplotlib.pyplot.axes._subplots.AxesSubplot
         A handle to the (possibly constructed) plot axes
-    '''
+    """
     if text_kw is None:
         text_kw = dict()
-    text_kw.setdefault('va', 'top')
-    text_kw.setdefault('clip_on', True)
-    text_kw.setdefault('bbox', dict(boxstyle='round', facecolor='white'))
+    text_kw.setdefault("va", "top")
+    text_kw.setdefault("clip_on", True)
+    text_kw.setdefault("bbox", dict(boxstyle="round", facecolor="white"))
 
     # make sure we have an array for times
     times = np.asarray(times)
@@ -444,54 +485,67 @@ def events(times, labels=None, base=None, height=None, ax=None, text_kw=None,
     # Get the axes handle
     ax, new_axes = __get_axes(ax=ax)
 
-    # If we have fresh axes, set the limits
+    if prop_cycle is None:
+        __AXMAP[ax].setdefault("prop_cycle", mpl.rcParams["axes.prop_cycle"])
+        __AXMAP[ax].setdefault("prop_iter", iter(mpl.rcParams["axes.prop_cycle"]))
+    elif "prop_iter" not in __AXMAP[ax]:
+        __AXMAP[ax]["prop_cycle"] = prop_cycle
+        __AXMAP[ax]["prop_iter"] = iter(prop_cycle)
 
-    if new_axes:
-        # Infer base and height
-        if base is None:
-            base = 0
-        if height is None:
-            height = 1
+    prop_cycle = __AXMAP[ax]["prop_cycle"]
+    prop_iter = __AXMAP[ax]["prop_iter"]
 
-        ax.set_ylim([base, height])
+    if base is None and height is None:
+        # If neither are provided, we'll use axes coordinates to span the figure
+        base, height = 0, 1
+        transform = ax.get_xaxis_transform()
+
+    elif base is not None and height is not None:
+        # If both are provided, we'll use data coordinates
+        transform = None
     else:
-        if base is None:
-            base = ax.get_ylim()[0]
+        raise ValueError("When specifying base or height, both must be provided.")
 
-        if height is None:
-            height = ax.get_ylim()[1]
+    # Advance the property iterator if we can, restart it if we must
+    try:
+        properties = next(prop_iter)
+    except StopIteration:
+        prop_iter = iter(prop_cycle)
+        __AXMAP[ax]["prop_iter"] = prop_iter
+        properties = next(prop_iter)
 
-    cycler = ax._get_patches_for_fill.prop_cycler
-
-    style = next(cycler).copy()
+    style = {
+        k: v for k, v in properties.items() if k in ["color", "linestyle", "linewidth"]
+    }
     style.update(kwargs)
-    # If the user provided 'colors', don't override it with 'color'
-    if 'colors' in style:
-        style.pop('color', None)
 
-    lines = ax.vlines(times, base, base + height, **style)
+    # If the user provided 'colors', don't override it with 'color'
+    if "colors" in style:
+        style.pop("color", None)
+
+    lines = ax.vlines(times, base, base + height, transform=transform, **style)
 
     if labels:
         for path, lab in zip(lines.get_paths(), labels):
-            ax.annotate(lab,
-                        xy=(path.vertices[0][0], height),
-                        xycoords='data',
-                        xytext=(8, -10), textcoords='offset points',
-                        **text_kw)
+            ax.annotate(
+                lab,
+                xy=(path.vertices[0][0], height),
+                xycoords=transform,
+                xytext=(8, -10),
+                textcoords="offset points",
+                **text_kw,
+            )
 
     if new_axes:
         ax.set_yticks([])
 
-    __expand_limits(ax, [base, base + height], which='y')
-
-    if times.size:
-        __expand_limits(ax, [times.min(), times.max()], which='x')
-
     return ax
 
 
-def pitch(times, frequencies, midi=False, unvoiced=False, ax=None, **kwargs):
-    '''Visualize pitch contours
+def pitch(
+    times, frequencies, midi=False, unvoiced=False, ax=None, prop_cycle=None, **kwargs
+):
+    """Visualize pitch contours
 
     Parameters
     ----------
@@ -517,22 +571,34 @@ def pitch(times, frequencies, midi=False, unvoiced=False, ax=None, **kwargs):
         An axis handle on which to draw the pitch contours.
         If none is provided, a new set of axes is created.
 
-    kwargs
+    prop_cycle : cycle.Cycler
+        An optional property cycle object to specify style properties.
+        If not provided, the default property cycler will be retrieved from matplotlib.
+
+    **kwargs
         Additional keyword arguments to `matplotlib.pyplot.plot`.
 
     Returns
     -------
     ax : matplotlib.pyplot.axes._subplots.AxesSubplot
         A handle to the (possibly constructed) plot axes
-    '''
-
+    """
     ax, _ = __get_axes(ax=ax)
+
+    if prop_cycle is None:
+        __AXMAP[ax].setdefault("prop_cycle", mpl.rcParams["axes.prop_cycle"])
+        __AXMAP[ax].setdefault("prop_iter", iter(mpl.rcParams["axes.prop_cycle"]))
+    elif "prop_iter" not in __AXMAP[ax]:
+        __AXMAP[ax]["prop_cycle"] = prop_cycle
+        __AXMAP[ax]["prop_iter"] = iter(prop_cycle)
+
+    prop_cycle = __AXMAP[ax]["prop_cycle"]
+    prop_iter = __AXMAP[ax]["prop_iter"]
 
     times = np.asarray(times)
 
     # First, segment into contiguously voiced contours
-    frequencies, voicings = freq_to_voicing(np.asarray(frequencies,
-                                                       dtype=np.float))
+    frequencies, voicings = freq_to_voicing(np.asarray(frequencies, dtype=np.float64))
     voicings = voicings.astype(bool)
 
     # Here are all the change-points
@@ -551,8 +617,12 @@ def pitch(times, frequencies, midi=False, unvoiced=False, ax=None, **kwargs):
             u_slices.append(idx)
 
     # Now we just need to plot the contour
-    style = dict()
-    style.update(next(ax._get_lines.prop_cycler))
+    try:
+        style = next(prop_iter)
+    except StopIteration:
+        prop_iter = iter(prop_cycle)
+        __AXMAP[ax]["prop_iter"] = prop_iter
+        style = next(prop_iter)
     style.update(kwargs)
 
     if midi:
@@ -564,20 +634,21 @@ def pitch(times, frequencies, midi=False, unvoiced=False, ax=None, **kwargs):
 
     for idx in v_slices:
         ax.plot(times[idx], frequencies[idx], **style)
-        style.pop('label', None)
+        style.pop("label", None)
 
     # Plot the unvoiced portions
     if unvoiced:
-        style['alpha'] = style.get('alpha', 1.0) * 0.5
+        style["alpha"] = style.get("alpha", 1.0) * 0.5
         for idx in u_slices:
             ax.plot(times[idx], frequencies[idx], **style)
 
     return ax
 
 
-def multipitch(times, frequencies, midi=False, unvoiced=False, ax=None,
-               **kwargs):
-    '''Visualize multiple f0 measurements
+def multipitch(
+    times, frequencies, midi=False, unvoiced=False, ax=None, prop_cycle=None, **kwargs
+):
+    """Visualize multiple f0 measurements
 
     Parameters
     ----------
@@ -606,26 +677,44 @@ def multipitch(times, frequencies, midi=False, unvoiced=False, ax=None,
         An axis handle on which to draw the pitch contours.
         If none is provided, a new set of axes is created.
 
-    kwargs
+    prop_cycle : cycle.Cycler
+        An optional property cycle object to specify style properties.
+        If not provided, the default property cycler will be retrieved from matplotlib.
+
+    **kwargs
         Additional keyword arguments to `plt.scatter`.
 
     Returns
     -------
     ax : matplotlib.pyplot.axes._subplots.AxesSubplot
         A handle to the (possibly constructed) plot axes
-    '''
-
+    """
     # Get the axes handle
     ax, _ = __get_axes(ax=ax)
 
+    if prop_cycle is None:
+        __AXMAP[ax].setdefault("prop_cycle", mpl.rcParams["axes.prop_cycle"])
+        __AXMAP[ax].setdefault("prop_iter", iter(mpl.rcParams["axes.prop_cycle"]))
+    elif "prop_iter" not in __AXMAP[ax]:
+        __AXMAP[ax]["prop_cycle"] = prop_cycle
+        __AXMAP[ax]["prop_iter"] = iter(prop_cycle)
+
+    prop_cycle = __AXMAP[ax]["prop_cycle"]
+    prop_iter = __AXMAP[ax]["prop_iter"]
+
     # Set up a style for the plot
-    style_voiced = dict()
-    style_voiced.update(next(ax._get_lines.prop_cycler))
+    try:
+        style_voiced = next(prop_iter)
+    except StopIteration:
+        prop_iter = iter(prop_cycle)
+        __AXMAP[ax]["prop_iter"] = prop_iter
+        style_voiced = next(prop_iter)
+
     style_voiced.update(kwargs)
 
     style_unvoiced = style_voiced.copy()
-    style_unvoiced.pop('label', None)
-    style_unvoiced['alpha'] = style_unvoiced.get('alpha', 1.0) * 0.5
+    style_unvoiced.pop("label", None)
+    style_unvoiced["alpha"] = style_unvoiced.get("alpha", 1.0) * 0.5
 
     # We'll collect all times and frequencies first, then plot them
     voiced_times = []
@@ -638,7 +727,7 @@ def multipitch(times, frequencies, midi=False, unvoiced=False, ax=None,
         if not len(freqs):
             continue
 
-        freqs, voicings = freq_to_voicing(np.asarray(freqs, dtype=np.float))
+        freqs, voicings = freq_to_voicing(np.asarray(freqs, dtype=np.float64))
 
         # Discard all 0-frequency measurements
         idx = freqs > 0
@@ -668,7 +757,7 @@ def multipitch(times, frequencies, midi=False, unvoiced=False, ax=None,
 
 
 def piano_roll(intervals, pitches=None, midi=None, ax=None, **kwargs):
-    '''Plot a quantized piano roll as intervals
+    """Plot a quantized piano roll as intervals
 
     Parameters
     ----------
@@ -687,66 +776,82 @@ def piano_roll(intervals, pitches=None, midi=None, ax=None, **kwargs):
         An axis handle on which to draw the intervals.
         If none is provided, a new set of axes is created.
 
-    kwargs
+    **kwargs
         Additional keyword arguments to :func:`labeled_intervals`.
 
     Returns
     -------
     ax : matplotlib.pyplot.axes._subplots.AxesSubplot
         A handle to the (possibly constructed) plot axes
-    '''
-
+    """
     if midi is None:
         if pitches is None:
-            raise ValueError('At least one of `midi` or `pitches` '
-                             'must be provided.')
+            raise ValueError("At least one of `midi` or `pitches` " "must be provided.")
 
         midi = hz_to_midi(pitches)
 
     scale = np.arange(128)
-    ax = labeled_intervals(intervals, np.round(midi).astype(int),
-                           label_set=scale,
-                           tick=False,
-                           ax=ax,
-                           **kwargs)
+    ax = labeled_intervals(
+        intervals,
+        np.round(midi).astype(int),
+        label_set=scale,
+        tick=False,
+        ax=ax,
+        **kwargs,
+    )
 
     # Minor tick at each semitone
     ax.yaxis.set_minor_locator(MultipleLocator(1))
 
-    ax.axis('auto')
     return ax
 
 
-def separation(sources, fs=22050, labels=None, alpha=0.75, ax=None, **kwargs):
-    '''Source-separation visualization
+def separation(
+    sources,
+    fs=22050,
+    labels=None,
+    alpha=0.75,
+    ax=None,
+    rasterized=True,
+    edgecolors="None",
+    shading="gouraud",
+    prop_cycle=None,
+    **kwargs,
+):
+    """Source-separation visualization
 
     Parameters
     ----------
     sources : np.ndarray, shape=(nsrc, nsampl)
         A list of waveform buffers corresponding to each source
-
     fs : number > 0
         The sampling rate
-
     labels : list of strings
         An optional list of descriptors corresponding to each source
-
     alpha : float in [0, 1]
         Maximum alpha (opacity) of spectrogram values.
-
     ax : matplotlib.pyplot.axes
         An axis handle on which to draw the spectrograms.
         If none is provided, a new set of axes is created.
-
-    kwargs
+    rasterized : bool
+        If `True`, the spectrogram is rasterized.
+    edgecolors : str or None
+        The color of the edges of the spectrogram patches.
+        Set to "None" (default) to disable edge coloring.
+    shading : str
+        The shading method to use for the spectrogram.
+        See `matplotlib.pyplot.pcolormesh` for valid options.
+    prop_cycle : cycle.Cycler
+        An optional property cycle object to specify colors for each signal.
+        If not provided, the default property cycler will be retrieved from matplotlib.
+    **kwargs
         Additional keyword arguments to ``scipy.signal.spectrogram``
 
     Returns
     -------
     ax
         The axis handle for this plot
-    '''
-
+    """
     # Get the axes handle
     ax, new_axes = __get_axes(ax=ax)
 
@@ -754,9 +859,9 @@ def separation(sources, fs=22050, labels=None, alpha=0.75, ax=None, **kwargs):
     sources = np.atleast_2d(sources)
 
     if labels is None:
-        labels = ['Source {:d}'.format(_) for _ in range(len(sources))]
+        labels = [f"Source {_:d}" for _ in range(len(sources))]
 
-    kwargs.setdefault('scaling', 'spectrum')
+    kwargs.setdefault("scaling", "spectrum")
 
     # The cumulative spectrogram across sources
     # is used to establish the reference power
@@ -777,41 +882,60 @@ def separation(sources, fs=22050, labels=None, alpha=0.75, ax=None, **kwargs):
 
     color_conv = ColorConverter()
 
-    for i, spec in enumerate(specs):
+    if prop_cycle is None:
+        __AXMAP[ax].setdefault("prop_cycle", mpl.rcParams["axes.prop_cycle"])
+        __AXMAP[ax].setdefault("prop_iter", iter(mpl.rcParams["axes.prop_cycle"]))
+    elif "prop_iter" not in __AXMAP[ax]:
+        __AXMAP[ax]["prop_cycle"] = prop_cycle
+        __AXMAP[ax]["prop_iter"] = iter(prop_cycle)
 
+    prop_cycle = __AXMAP[ax]["prop_cycle"]
+    prop_iter = __AXMAP[ax]["prop_iter"]
+
+    for i, spec in enumerate(specs):
         # For each source, grab a new color from the cycler
         # Then construct a colormap that interpolates from
         # [transparent white -> new color]
-        color = next(ax._get_lines.prop_cycler)['color']
-        color = color_conv.to_rgba(color, alpha=alpha)
-        cmap = LinearSegmentedColormap.from_list(labels[i],
-                                                 [(1.0, 1.0, 1.0, 0.0),
-                                                  color])
+        # Advance the property iterator if we can, restart it if we must
+        try:
+            properties = next(prop_iter)
+        except StopIteration:
+            prop_iter = iter(prop_cycle)
+            __AXMAP[ax]["prop_iter"] = prop_iter
+            properties = next(prop_iter)
 
-        ax.pcolormesh(times, freqs, spec,
-                      cmap=cmap,
-                      norm=LogNorm(vmin=ref_min, vmax=ref_max),
-                      shading='gouraud',
-                      label=labels[i])
+        color = color_conv.to_rgba(properties["color"], alpha=alpha)
+        cmap = LinearSegmentedColormap.from_list(
+            labels[i], [(1.0, 1.0, 1.0, 0.0), color]
+        )
+
+        ax.pcolormesh(
+            times,
+            freqs,
+            spec,
+            cmap=cmap,
+            norm=LogNorm(vmin=ref_min, vmax=ref_max),
+            rasterized=rasterized,
+            edgecolors=edgecolors,
+            shading=shading,
+        )
 
         # Attach a 0x0 rect to the axis with the corresponding label
         # This way, it will show up in the legend
-        ax.add_patch(Rectangle((0, 0), 0, 0, color=color, label=labels[i]))
-
-    if new_axes:
-        ax.axis('tight')
+        ax.add_patch(
+            Rectangle((times.min(), freqs.min()), 0, 0, color=color, label=labels[i])
+        )
 
     return ax
 
 
 def __ticker_midi_note(x, pos):
-    '''A ticker function for midi notes.
+    """Format midi notes for ticker decoration.
 
     Inputs x are interpreted as midi numbers, and converted
     to [NOTE][OCTAVE]+[cents].
-    '''
-
-    NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+    """
+    NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
     cents = float(np.mod(x, 1.0))
     if cents >= 0.5:
@@ -823,22 +947,21 @@ def __ticker_midi_note(x, pos):
     octave = int(x / 12) - 1
 
     if cents == 0:
-        return '{:s}{:2d}'.format(NOTES[idx], octave)
-    return '{:s}{:2d}{:+02d}'.format(NOTES[idx], octave, int(cents * 100))
+        return f"{NOTES[idx]:s}{octave:2d}"
+    return f"{NOTES[idx]:s}{octave:2d}{int(cents * 100):+02d}"
 
 
 def __ticker_midi_hz(x, pos):
-    '''A ticker function for midi pitches.
+    """Format midi pitches for ticker decoration.
 
     Inputs x are interpreted as midi numbers, and converted
     to Hz.
-    '''
-
-    return '{:g}'.format(midi_to_hz(x))
+    """
+    return f"{midi_to_hz(x):g}"
 
 
 def ticker_notes(ax=None):
-    '''Set the y-axis of the given axes to MIDI notes
+    """Set the y-axis of the given axes to MIDI notes
 
     Parameters
     ----------
@@ -846,24 +969,24 @@ def ticker_notes(ax=None):
         The axes handle to apply the ticker.
         By default, uses the current axes handle.
 
-    '''
+    """
     ax, _ = __get_axes(ax=ax)
 
     ax.yaxis.set_major_formatter(FMT_MIDI_NOTE)
     # Get the tick labels and reset the vertical alignment
     for tick in ax.yaxis.get_ticklabels():
-        tick.set_verticalalignment('baseline')
+        tick.set_verticalalignment("baseline")
 
 
 def ticker_pitch(ax=None):
-    '''Set the y-axis of the given axes to MIDI frequencies
+    """Set the y-axis of the given axes to MIDI frequencies
 
     Parameters
     ----------
     ax : matplotlib.pyplot.axes
         The axes handle to apply the ticker.
         By default, uses the current axes handle.
-    '''
+    """
     ax, _ = __get_axes(ax=ax)
 
     ax.yaxis.set_major_formatter(FMT_MIDI_HZ)

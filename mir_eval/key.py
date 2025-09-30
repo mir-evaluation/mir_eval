@@ -1,4 +1,4 @@
-'''
+"""
 Key Detection involves determining the underlying key (distribution of notes
 and note transitions) in a piece of music.  Key detection algorithms are
 evaluated by comparing their estimated key to a ground-truth reference key and
@@ -16,19 +16,36 @@ Metrics
 -------
 * :func:`mir_eval.key.weighted_score`: Heuristic scoring of the relation of two
   keys.
-'''
+"""
 
 import collections
 import warnings
 from . import util
 
-KEY_TO_SEMITONE = {'c': 0, 'c#': 1, 'db': 1, 'd': 2, 'd#': 3, 'eb': 3, 'e': 4,
-                   'f': 5, 'f#': 6, 'gb': 6, 'g': 7, 'g#': 8, 'ab': 8, 'a': 9,
-                   'a#': 10, 'bb': 10, 'b': 11, 'x': None}
+KEY_TO_SEMITONE = {
+    "c": 0,
+    "c#": 1,
+    "db": 1,
+    "d": 2,
+    "d#": 3,
+    "eb": 3,
+    "e": 4,
+    "f": 5,
+    "f#": 6,
+    "gb": 6,
+    "g": 7,
+    "g#": 8,
+    "ab": 8,
+    "a": 9,
+    "a#": 10,
+    "bb": 10,
+    "b": 11,
+    "x": None,
+}
 
 
 def validate_key(key):
-    """Checks that a key is well-formatted, e.g. in the form ``'C# major'``.
+    """Check that a key is well-formatted, e.g. in the form ``'C# major'``.
    The Key can be 'X' if it is not possible to categorize the Key and mode
    can be 'other' if it can't be categorized as major or minor.
 
@@ -37,29 +54,29 @@ def validate_key(key):
     key : str
         Key to verify
     """
-    if len(key.split()) != 2 \
-            and not (len(key.split()) and key.lower() == 'x'):
-        raise ValueError("'{}' is not in the form '(key) (mode)' "
-                         "or 'X'".format(key))
-    if key.lower() != 'x':
+    if len(key.split()) != 2 and not (len(key.split()) and key.lower() == "x"):
+        raise ValueError("'{}' is not in the form '(key) (mode)' " "or 'X'".format(key))
+    if key.lower() != "x":
         key, mode = key.split()
 
-        if key.lower() == 'x':
+        if key.lower() == "x":
             raise ValueError(
                 "Mode {} is invalid; 'X' (Uncategorized) "
-                "doesn't have mode".format(mode))
+                "doesn't have mode".format(mode)
+            )
         if key.lower() not in KEY_TO_SEMITONE:
             raise ValueError(
                 "Key {} is invalid; should be e.g. D or C# or Eb or "
-                "X (Uncategorized)".format(key))
-        if mode not in ['major', 'minor', 'other']:
+                "X (Uncategorized)".format(key)
+            )
+        if mode not in ["major", "minor", "other"]:
             raise ValueError(
-                "Mode '{}' is invalid; must be 'major', 'minor' or 'other'"
-                .format(mode))
+                f"Mode '{mode}' is invalid; must be 'major', 'minor' or 'other'"
+            )
 
 
 def validate(reference_key, estimated_key):
-    """Checks that the input annotations to a metric are valid key strings and
+    """Check that the input annotations to a metric are valid key strings and
     throws helpful errors if not.
 
     Parameters
@@ -74,7 +91,7 @@ def validate(reference_key, estimated_key):
 
 
 def split_key_string(key):
-    """Splits a key string (of the form, e.g. ``'C# major'``), into a tuple of
+    """Split a key string (of the form, e.g. ``'C# major'``), into a tuple of
     ``(key, mode)`` where ``key`` is is an integer representing the semitone
     distance from C.
 
@@ -90,7 +107,7 @@ def split_key_string(key):
     mode : str
         String representing the mode.
     """
-    if key.lower() != 'x':
+    if key.lower() != "x":
         key, mode = key.split()
     else:
         mode = None
@@ -99,7 +116,7 @@ def split_key_string(key):
 
 def weighted_score(reference_key, estimated_key,
                    allow_descending_fifths=False):
-    """Computes a heuristic score which is weighted according to the
+    """Compute a heuristic score which is weighted according to the
     relationship of the reference and estimated key, as follows:
 
     +------------------------------------------------------+-------+
@@ -156,32 +173,35 @@ def weighted_score(reference_key, estimated_key,
     estimated_key, estimated_mode = split_key_string(estimated_key)
     # If keys are the same, return 1.
     if reference_key == estimated_key and reference_mode == estimated_mode:
-        return 1.
+        return 1.0
     # If reference or estimated key are x and they are not the same key
     # then the result is 'Other'.
     if reference_key is None or estimated_key is None:
-        return 0.
+        return 0.0
     # If keys are the same mode and a perfect fifth up (7 semitones)
-    if (estimated_mode == reference_mode and
-            (estimated_key - reference_key) % 12 == 7):
+    if estimated_mode == reference_mode and (estimated_key - reference_key) % 12 == 7:
         return 0.5
     # If keys are the same mode and a perfect fifth down (7 semitones)
     if (allow_descending_fifths and estimated_mode == reference_mode and
             (reference_key - estimated_key) % 12 == 7):
         return 0.5
     # Estimated key is relative minor of reference key (9 semitones)
-    if (estimated_mode != reference_mode == 'major' and
-            (estimated_key - reference_key) % 12 == 9):
+    if (
+        estimated_mode != reference_mode == "major"
+        and (estimated_key - reference_key) % 12 == 9
+    ):
         return 0.3
     # Estimated key is relative major of reference key (3 semitones)
-    if (estimated_mode != reference_mode == 'minor' and
-            (estimated_key - reference_key) % 12 == 3):
+    if (
+        estimated_mode != reference_mode == "minor"
+        and (estimated_key - reference_key) % 12 == 3
+    ):
         return 0.3
     # If keys are in different modes and parallel (same key name)
     if estimated_mode != reference_mode and reference_key == estimated_key:
         return 0.2
     # Otherwise return 0
-    return 0.
+    return 0.0
 
 
 def evaluate(reference_key, estimated_key, allow_descending_fifths=False,
@@ -203,7 +223,7 @@ def evaluate(reference_key, estimated_key, allow_descending_fifths=False,
         Estimated key string.
     allow_descending_fifths : bool
         Specifies whether to score descending fifth errors or not.
-    kwargs
+    **kwargs
         Additional keyword arguments which will be passed to the
         appropriate metric or preprocessing functions.
 

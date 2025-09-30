@@ -1,6 +1,82 @@
 Changes
 =======
 
+v0.8.2
+------
+
+- `#418`_: Fixed a bug in time-frequency sonification with single-interval inputs.
+
+.. _#418: https://github.com/mir-evaluation/mir_eval/pull/418
+   
+v0.8.1
+------
+
+- `#410`_: Fixed several errors with time-frequency sonification
+- `#412`_: Removed unused import of deprecated scipy submodule
+- `#416`_: `mir_eval.io` routines now support `pathlib.Path` (and generally `os.Pathlike`) inputs as well as strings or open file descriptors.
+- `#416`_: `mir_eval.io.load_wav` is deprecated and will be removed in v0.9.'
+
+.. _#410: https://github.com/mir-evaluation/mir_eval/pull/410
+.. _#412: https://github.com/mir-evaluation/mir_eval/pull/412
+.. _#416: https://github.com/mir-evaluation/mir_eval/pull/416
+
+
+v0.8
+----
+
+- `#397`_: Removed invalid chord types from `chord.QUALITIES`
+- `#390`_: Migrate from personal to organization account
+- `#388`_: Update to packaging workflow
+- `#387`_: Various modernizations 
+- `#385`_: Fixed import error
+- `#384`_: Rename `testing` to `tests`
+- `#382`_: Deprecated the source separation module
+- `#380`_: Matplotlib support modernization
+- `#379`_: Support nans in pitch contour sonification
+- `#378`_: Improved efficiency in chord validation
+- `#374`_: Fixed length calculation error in `sonify.time_frequency`
+- `#370`_: Test and CI modernization
+- `#367`_: Added interpolation method to docs for `resample_multipitch`
+- `#361`_: Added PyPI package release workflow
+- `#360`_: Fixed broken link
+- `#359`_: Remove support for python 2
+- `#356`_, `#357`_, `#358`_: Migrate testing to github actions
+- `#355`_: Optimize and fix sonification
+- `#353`_: Set numerical precision, fix support for modern numpy
+
+.. _#397: https://github.com/mir-evaluation/mir_eval/pull/397
+.. _#390: https://github.com/mir-evaluation/mir_eval/pull/390
+.. _#388: https://github.com/mir-evaluation/mir_eval/pull/388
+.. _#387: https://github.com/mir-evaluation/mir_eval/pull/387
+.. _#385: https://github.com/mir-evaluation/mir_eval/pull/385
+.. _#384: https://github.com/mir-evaluation/mir_eval/pull/384
+.. _#382: https://github.com/mir-evaluation/mir_eval/pull/382
+.. _#380: https://github.com/mir-evaluation/mir_eval/pull/380
+.. _#379: https://github.com/mir-evaluation/mir_eval/pull/379
+.. _#378: https://github.com/mir-evaluation/mir_eval/pull/378
+.. _#374: https://github.com/mir-evaluation/mir_eval/pull/374
+.. _#370: https://github.com/mir-evaluation/mir_eval/pull/370
+.. _#367: https://github.com/mir-evaluation/mir_eval/pull/367
+.. _#361: https://github.com/mir-evaluation/mir_eval/pull/361
+.. _#360: https://github.com/mir-evaluation/mir_eval/pull/360
+.. _#359: https://github.com/mir-evaluation/mir_eval/pull/359
+.. _#356: https://github.com/mir-evaluation/mir_eval/pull/356
+.. _#357: https://github.com/mir-evaluation/mir_eval/pull/357
+.. _#358: https://github.com/mir-evaluation/mir_eval/pull/358
+.. _#355: https://github.com/mir-evaluation/mir_eval/pull/355
+.. _#353: https://github.com/mir-evaluation/mir_eval/pull/353
+
+
+
+v0.7
+----
+
+- `#334`_: Support notation for unknown/ambiguous key or mode
+- `#343`_: Add suite of alignment metrics
+
+.. _#334: https://github.com/mir-evaluation/mir_eval/pull/334
+.. _#343: https://github.com/mir-evaluation/mir_eval/pull/343
+
 v0.6
 ----
 
@@ -18,19 +94,19 @@ v0.6
 - `#327`_: Stop testing 2.7
 - `#328`_: Cast n_voiced to int in display.multipitch
 
-.. _#297: https://github.com/craffel/mir_eval/pull/297
-.. _#299: https://github.com/craffel/mir_eval/pull/299
-.. _#301: https://github.com/craffel/mir_eval/pull/301
-.. _#302: https://github.com/craffel/mir_eval/pull/302
-.. _#305: https://github.com/craffel/mir_eval/pull/305
-.. _#307: https://github.com/craffel/mir_eval/pull/307
-.. _#309: https://github.com/craffel/mir_eval/pull/309
-.. _#312: https://github.com/craffel/mir_eval/pull/312
-.. _#320: https://github.com/craffel/mir_eval/pull/320
-.. _#323: https://github.com/craffel/mir_eval/pull/323
-.. _#324: https://github.com/craffel/mir_eval/pull/324
-.. _#327: https://github.com/craffel/mir_eval/pull/327
-.. _#328: https://github.com/craffel/mir_eval/pull/328
+.. _#297: https://github.com/mir-evaluation/mir_eval/pull/297
+.. _#299: https://github.com/mir-evaluation/mir_eval/pull/299
+.. _#301: https://github.com/mir-evaluation/mir_eval/pull/301
+.. _#302: https://github.com/mir-evaluation/mir_eval/pull/302
+.. _#305: https://github.com/mir-evaluation/mir_eval/pull/305
+.. _#307: https://github.com/mir-evaluation/mir_eval/pull/307
+.. _#309: https://github.com/mir-evaluation/mir_eval/pull/309
+.. _#312: https://github.com/mir-evaluation/mir_eval/pull/312
+.. _#320: https://github.com/mir-evaluation/mir_eval/pull/320
+.. _#323: https://github.com/mir-evaluation/mir_eval/pull/323
+.. _#324: https://github.com/mir-evaluation/mir_eval/pull/324
+.. _#327: https://github.com/mir-evaluation/mir_eval/pull/327
+.. _#328: https://github.com/mir-evaluation/mir_eval/pull/328
 
 v0.5
 ----
@@ -58,28 +134,28 @@ v0.5
 - `#282`_: remove evaluator scripts
 - `#283`_: add transcription eval with velocity
 
-.. _#222: https://github.com/craffel/mir_eval/pull/222
-.. _#225: https://github.com/craffel/mir_eval/pull/225
-.. _#227: https://github.com/craffel/mir_eval/pull/227
-.. _#234: https://github.com/craffel/mir_eval/pull/234
-.. _#236: https://github.com/craffel/mir_eval/pull/236
-.. _#240: https://github.com/craffel/mir_eval/pull/240
-.. _#242: https://github.com/craffel/mir_eval/pull/242
-.. _#245: https://github.com/craffel/mir_eval/pull/245
-.. _#247: https://github.com/craffel/mir_eval/pull/247
-.. _#249: https://github.com/craffel/mir_eval/pull/249
-.. _#252: https://github.com/craffel/mir_eval/pull/252
-.. _#254: https://github.com/craffel/mir_eval/pull/254
-.. _#255: https://github.com/craffel/mir_eval/pull/255
-.. _#258: https://github.com/craffel/mir_eval/pull/258
-.. _#259: https://github.com/craffel/mir_eval/pull/259
-.. _#263: https://github.com/craffel/mir_eval/pull/263
-.. _#266: https://github.com/craffel/mir_eval/pull/266
-.. _#268: https://github.com/craffel/mir_eval/pull/268
-.. _#277: https://github.com/craffel/mir_eval/pull/277
-.. _#279: https://github.com/craffel/mir_eval/pull/279
-.. _#282: https://github.com/craffel/mir_eval/pull/282
-.. _#283: https://github.com/craffel/mir_eval/pull/283
+.. _#222: https://github.com/mir-evaluation/mir_eval/pull/222
+.. _#225: https://github.com/mir-evaluation/mir_eval/pull/225
+.. _#227: https://github.com/mir-evaluation/mir_eval/pull/227
+.. _#234: https://github.com/mir-evaluation/mir_eval/pull/234
+.. _#236: https://github.com/mir-evaluation/mir_eval/pull/236
+.. _#240: https://github.com/mir-evaluation/mir_eval/pull/240
+.. _#242: https://github.com/mir-evaluation/mir_eval/pull/242
+.. _#245: https://github.com/mir-evaluation/mir_eval/pull/245
+.. _#247: https://github.com/mir-evaluation/mir_eval/pull/247
+.. _#249: https://github.com/mir-evaluation/mir_eval/pull/249
+.. _#252: https://github.com/mir-evaluation/mir_eval/pull/252
+.. _#254: https://github.com/mir-evaluation/mir_eval/pull/254
+.. _#255: https://github.com/mir-evaluation/mir_eval/pull/255
+.. _#258: https://github.com/mir-evaluation/mir_eval/pull/258
+.. _#259: https://github.com/mir-evaluation/mir_eval/pull/259
+.. _#263: https://github.com/mir-evaluation/mir_eval/pull/263
+.. _#266: https://github.com/mir-evaluation/mir_eval/pull/266
+.. _#268: https://github.com/mir-evaluation/mir_eval/pull/268
+.. _#277: https://github.com/mir-evaluation/mir_eval/pull/277
+.. _#279: https://github.com/mir-evaluation/mir_eval/pull/279
+.. _#282: https://github.com/mir-evaluation/mir_eval/pull/282
+.. _#283: https://github.com/mir-evaluation/mir_eval/pull/283
 
 v0.4
 ----
@@ -94,15 +170,15 @@ v0.4
 - `#212`_: added frame-wise blind-source separation evaluation
 - `#218`_: speed up `melody.resample_melody_series` when times are equivalent
 
-.. _#189: https://github.com/craffel/mir_eval/issues/189
-.. _#195: https://github.com/craffel/mir_eval/issues/195
-.. _#196: https://github.com/craffel/mir_eval/issues/196
-.. _#203: https://github.com/craffel/mir_eval/issues/203
-.. _#205: https://github.com/craffel/mir_eval/issues/205
-.. _#208: https://github.com/craffel/mir_eval/issues/208
-.. _#210: https://github.com/craffel/mir_eval/issues/210
-.. _#212: https://github.com/craffel/mir_eval/issues/212
-.. _#218: https://github.com/craffel/mir_eval/pull/218
+.. _#189: https://github.com/mir-evaluation/mir_eval/issues/189
+.. _#195: https://github.com/mir-evaluation/mir_eval/issues/195
+.. _#196: https://github.com/mir-evaluation/mir_eval/issues/196
+.. _#203: https://github.com/mir-evaluation/mir_eval/issues/203
+.. _#205: https://github.com/mir-evaluation/mir_eval/issues/205
+.. _#208: https://github.com/mir-evaluation/mir_eval/issues/208
+.. _#210: https://github.com/mir-evaluation/mir_eval/issues/210
+.. _#212: https://github.com/mir-evaluation/mir_eval/issues/212
+.. _#218: https://github.com/mir-evaluation/mir_eval/pull/218
 
 v0.3
 ----
@@ -111,10 +187,10 @@ v0.3
 - `#175`_: filter_kwargs passes through `**kwargs`
 - `#181`_: added key detection metrics
 
-.. _#170: https://github.com/craffel/mir_eval/issues/170
-.. _#173: https://github.com/craffel/mir_eval/issues/173
-.. _#175: https://github.com/craffel/mir_eval/issues/175
-.. _#181: https://github.com/craffel/mir_eval/issues/181
+.. _#170: https://github.com/mir-evaluation/mir_eval/issues/170
+.. _#173: https://github.com/mir-evaluation/mir_eval/issues/173
+.. _#175: https://github.com/mir-evaluation/mir_eval/issues/175
+.. _#181: https://github.com/mir-evaluation/mir_eval/issues/181
 
 v0.2
 ----
@@ -131,17 +207,17 @@ v0.2
 - `#159`_: fixed documentation error in `chord.tetrads`
 - `#160`_: fixed documentation error in `util.intervals_to_samples`
 
-.. _#103: https://github.com/craffel/mir_eval/issues/103
-.. _#109: https://github.com/craffel/mir_eval/issues/109
-.. _#122: https://github.com/craffel/mir_eval/issues/122
-.. _#136: https://github.com/craffel/mir_eval/issues/136
-.. _#138: https://github.com/craffel/mir_eval/issues/138
-.. _#139: https://github.com/craffel/mir_eval/issues/139
-.. _#147: https://github.com/craffel/mir_eval/issues/147
-.. _#150: https://github.com/craffel/mir_eval/issues/150
-.. _#151: https://github.com/craffel/mir_eval/issues/151
-.. _#159: https://github.com/craffel/mir_eval/issues/159
-.. _#160: https://github.com/craffel/mir_eval/issues/160
+.. _#103: https://github.com/mir-evaluation/mir_eval/issues/103
+.. _#109: https://github.com/mir-evaluation/mir_eval/issues/109
+.. _#122: https://github.com/mir-evaluation/mir_eval/issues/122
+.. _#136: https://github.com/mir-evaluation/mir_eval/issues/136
+.. _#138: https://github.com/mir-evaluation/mir_eval/issues/138
+.. _#139: https://github.com/mir-evaluation/mir_eval/issues/139
+.. _#147: https://github.com/mir-evaluation/mir_eval/issues/147
+.. _#150: https://github.com/mir-evaluation/mir_eval/issues/150
+.. _#151: https://github.com/mir-evaluation/mir_eval/issues/151
+.. _#159: https://github.com/mir-evaluation/mir_eval/issues/159
+.. _#160: https://github.com/mir-evaluation/mir_eval/issues/160
 
 
 v0.1
