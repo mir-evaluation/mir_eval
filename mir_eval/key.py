@@ -46,8 +46,8 @@ KEY_TO_SEMITONE = {
 
 def validate_key(key):
     """Check that a key is well-formatted, e.g. in the form ``'C# major'``.
-   The Key can be 'X' if it is not possible to categorize the Key and mode
-   can be 'other' if it can't be categorized as major or minor.
+    The Key can be 'X' if it is not possible to categorize the Key and mode
+    can be 'other' if it can't be categorized as major or minor.
 
     Parameters
     ----------
