@@ -49,10 +49,10 @@ def validate_key(key):
     The Key can be 'X' if it is not possible to categorize the Key and mode
     can be 'other' if it can't be categorized as major or minor.
 
-     Parameters
-     ----------
-     key : str
-         Key to verify
+    Parameters
+    ----------
+    key : str
+        Key to verify
     """
     if len(key.split()) != 2 and not (len(key.split()) and key.lower() == "x"):
         raise ValueError("'{}' is not in the form '(key) (mode)' " "or 'X'".format(key))
