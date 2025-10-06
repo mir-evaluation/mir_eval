@@ -46,13 +46,13 @@ KEY_TO_SEMITONE = {
 
 def validate_key(key):
     """Check that a key is well-formatted, e.g. in the form ``'C# major'``.
-   The Key can be 'X' if it is not possible to categorize the Key and mode
-   can be 'other' if it can't be categorized as major or minor.
+    The Key can be 'X' if it is not possible to categorize the Key and mode
+    can be 'other' if it can't be categorized as major or minor.
 
-    Parameters
-    ----------
-    key : str
-        Key to verify
+     Parameters
+     ----------
+     key : str
+         Key to verify
     """
     if len(key.split()) != 2 and not (len(key.split()) and key.lower() == "x"):
         raise ValueError("'{}' is not in the form '(key) (mode)' " "or 'X'".format(key))
@@ -114,8 +114,7 @@ def split_key_string(key):
     return KEY_TO_SEMITONE[key.lower()], mode
 
 
-def weighted_score(reference_key, estimated_key,
-                   allow_descending_fifths=False):
+def weighted_score(reference_key, estimated_key, allow_descending_fifths=False):
     """Compute a heuristic score which is weighted according to the
     relationship of the reference and estimated key, as follows:
 
@@ -163,10 +162,12 @@ def weighted_score(reference_key, estimated_key,
     # Notify users of difference between default behaviour in mir_eval and
     # the scoring used by MIREX since 2017
     if not allow_descending_fifths:
-        warnings.warn('The selected key scoring method does not match that '\
-            'currently used by MIREX. To use the same method, specify '\
-            'allow_descending_fifths=True. The default behaviour will '\
-            'change to allow_descending_fifths=True in the future.')
+        warnings.warn(
+            "The selected key scoring method does not match that "
+            "currently used by MIREX. To use the same method, specify "
+            "allow_descending_fifths=True. The default behaviour will "
+            "change to allow_descending_fifths=True in the future."
+        )
 
     validate(reference_key, estimated_key)
     reference_key, reference_mode = split_key_string(reference_key)
@@ -182,8 +183,11 @@ def weighted_score(reference_key, estimated_key,
     if estimated_mode == reference_mode and (estimated_key - reference_key) % 12 == 7:
         return 0.5
     # If keys are the same mode and a perfect fifth down (7 semitones)
-    if (allow_descending_fifths and estimated_mode == reference_mode and
-            (reference_key - estimated_key) % 12 == 7):
+    if (
+        allow_descending_fifths
+        and estimated_mode == reference_mode
+        and (reference_key - estimated_key) % 12 == 7
+    ):
         return 0.5
     # Estimated key is relative minor of reference key (9 semitones)
     if (
@@ -204,8 +208,7 @@ def weighted_score(reference_key, estimated_key,
     return 0.0
 
 
-def evaluate(reference_key, estimated_key, allow_descending_fifths=False,
-             **kwargs):
+def evaluate(reference_key, estimated_key, allow_descending_fifths=False, **kwargs):
     """Compute all metrics for the given reference and estimated annotations.
 
     Examples
@@ -237,6 +240,7 @@ def evaluate(reference_key, estimated_key, allow_descending_fifths=False,
     scores = collections.OrderedDict()
 
     scores["Weighted Score"] = util.filter_kwargs(
-        weighted_score, reference_key, estimated_key, allow_descending_fifths)
+        weighted_score, reference_key, estimated_key, allow_descending_fifths
+    )
 
     return scores
