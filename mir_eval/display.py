@@ -1165,7 +1165,6 @@ def chords(
     text=False,
     text_kw=None,
     ax=None,
-    prop_cycle=None,
     cmap="fifths",
     pattern=True,
     **kwargs,
@@ -1198,9 +1197,6 @@ def chords(
     ax : matplotlib.pyplot.axes
         An axis handle on which to draw the segmentation.
         If none is provided, a new set of axes is created.
-    prop_cycle : cycle.Cycler
-        An optional property cycle object to specify style properties.
-        If not provided, the default property cycler will be retrieved from matplotlib.
     cmap : {'pitch', 'fifths'}
         The color map to use for the chord display.
         If 'pitch', the colors will cycle chromatically (C, C#, D, ...)
@@ -1260,16 +1256,6 @@ def chords(
 
     ax, new_axes = __get_axes(ax=ax)
 
-    if prop_cycle is None:
-        __AXMAP[ax].setdefault("prop_cycle", mpl.rcParams["axes.prop_cycle"])
-        __AXMAP[ax].setdefault("prop_iter", iter(mpl.rcParams["axes.prop_cycle"]))
-    elif "prop_iter" not in __AXMAP[ax]:
-        __AXMAP[ax]["prop_cycle"] = prop_cycle
-        __AXMAP[ax]["prop_iter"] = iter(prop_cycle)
-
-    prop_cycle = __AXMAP[ax]["prop_cycle"]
-    prop_iter = __AXMAP[ax]["prop_iter"]
-
     if new_axes:
         ax.set_yticks([])
 
@@ -1290,13 +1276,6 @@ def chords(
 
         if lab in seg_map:
             continue
-
-        try:
-            properties = next(prop_iter)
-        except StopIteration:
-            prop_iter = iter(prop_cycle)
-            __AXMAP[ax]["prop_iter"] = prop_iter
-            properties = next(prop_iter)
 
         style = dict()
         # Get the color for this segment label
