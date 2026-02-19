@@ -836,7 +836,7 @@ def validate_frequencies(frequencies, max_freq, min_freq, allow_negatives=False)
 
 
 def has_kwargs(function):
-    r"""Determine whether a function has \*\*kwargs.
+    r"""Determine whether a function has `**kwargs`.
 
     Parameters
     ----------
@@ -860,10 +860,10 @@ def has_kwargs(function):
 def filter_kwargs(_function, *args, **kwargs):
     r"""Given a function and args and keyword args to pass to it, call the function
     but using only the keyword arguments which it accepts.  This is equivalent
-    to redefining the function with an additional \*\*kwargs to accept slop
+    to redefining the function with an additional `**kwargs` to accept slop
     keyword args.
 
-    If the target function already accepts \*\*kwargs parameters, no filtering
+    If the target function already accepts `**kwargs` parameters, no filtering
     is performed.
 
     Parameters

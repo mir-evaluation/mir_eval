@@ -86,7 +86,7 @@ def time_frequency(
         desired sampling rate of the output signal
 
     function : function
-        function to use to synthesize notes, should be :math:`2\pi`-periodic
+        function to use to synthesize notes, should be 2π-periodic
 
     length : int
         desired number of samples in the output signal,
