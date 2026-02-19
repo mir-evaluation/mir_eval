@@ -466,3 +466,70 @@ def test_display_labeled_events():
 def test_display_pianoroll_nopitch_nomidi():
     # Issue 214
     mir_eval.display.piano_roll([[0, 1]])
+
+
+@pytest.mark.mpl_image_compare(
+    baseline_images=["test_display_chord"],
+    extensions=["png"],
+    style=STYLE,
+    tolerance=11.6,  # high tolerance to account for font layout differences
+)
+def test_display_chord():
+    fig, ax = plt.subplots(
+        nrows=12,
+        ncols=2,
+        sharex=True,
+        sharey=True,
+        gridspec_kw={"hspace": 0, "wspace": 0.1},
+    )
+
+    # Cover all qualities for each pitch class
+    qualities = [
+        "N",
+        "maj(*3)",
+        "maj",
+        "min",
+        "aug",
+        "dim",
+        "maj7",
+        "minmaj7",
+        "7",
+        "min7",
+        "hdim7",
+        "dim7",
+        "X",
+        "maj6",
+        "min6",
+        "sus2",
+        "sus4",
+    ]
+    pitches = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+
+    for i, root in enumerate(pitches):
+        # Create the annotation
+        intervals = []
+        labels = []
+        for j, q in enumerate(qualities):
+            intervals.append((j, j + 1))
+            if q not in ["N", "X"]:
+                labels.append(f"{root}:{q}")
+            else:
+                labels.append(q)
+        # Draw it in fifths mode with patterns
+        mir_eval.display.chords(
+            intervals, labels, ax=ax[i, 0], cmap="fifths", pattern=True
+        )
+        # And pitches mode without patterns
+        mir_eval.display.chords(
+            intervals, labels, ax=ax[i, 1], cmap="pitch", pattern=False
+        )
+        ax[i, 0].set(yticks=[], ylabel=root)
+        ax[i, 1].set(yticks=[], ylabel=root)
+        ax[i, 1].yaxis.tick_right()
+
+    ax[0, 0].set(title="fifths, hatches")
+    ax[0, 1].set(title="pitch, no hatches")
+    for axi in ax.flat:
+        axi.label_outer()
+
+    return fig

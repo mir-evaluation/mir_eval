@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.8", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
         channel-priority: [strict]
         envfile: [".github/environment.yml"]
         include:
@@ -30,7 +30,7 @@ jobs:
             os: ubuntu-latest
             channel-priority: flexible
           - os: ubuntu-latest
-            python-version: "3.7"
+            python-version: "3.8"
             envfile: ".github/environment-minimal.yml"
             channel-priority: "flexible"
             name: "Minimal dependencies"
@@ -76,8 +76,16 @@ jobs:
 
       - name: Run unit tests
         shell: bash -l {0}
-        run: pytest
+        run: pytest --mpl-results-path=mpl_image_results/
         working-directory: tests
+
+      - name: Upload image comparison failures if any
+        if: failure() && hashFiles('tests/mpl_image_results/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: mpl-test-results-${{ runner.os }}--${{ runner.arch }}--${{ matrix.python-version }}
+          path: tests/mpl_image_results/
+          retention-days: 7
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

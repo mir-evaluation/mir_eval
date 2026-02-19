@@ -49,7 +49,6 @@ import collections
 from . import util
 import warnings
 
-
 # The maximum allowable beat time
 MAX_TIME = 30000.0
 

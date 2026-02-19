@@ -109,7 +109,6 @@ import collections
 from . import util
 import warnings
 
-
 # The number of decimals to keep for onset/offset threshold checks
 N_DECIMALS = 4
 

@@ -48,7 +48,6 @@ import scipy.interpolate
 from . import util
 import warnings
 
-
 MAX_TIME = 30000.0  # The maximum allowable time stamp (seconds)
 MAX_FREQ = 5000.0  # The maximum allowable frequency (Hz)
 MIN_FREQ = 20.0  # The minimum allowable frequency (Hz)
