@@ -474,7 +474,7 @@ def test_display_pianoroll_nopitch_nomidi():
     style=STYLE,
     tolerance=11.6,  # high tolerance to account for font layout differences
 )
-def test_display_chord_nolabels():
+def test_display_chord():
     fig, ax = plt.subplots(
         nrows=12,
         ncols=2,
