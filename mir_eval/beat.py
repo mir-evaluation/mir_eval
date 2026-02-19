@@ -32,7 +32,7 @@ Metrics
 * :func:`mir_eval.beat.cemgil`: Cemgil's score, which computes the sum of
   Gaussian errors for each beat
 * :func:`mir_eval.beat.goto`: Goto's score, a binary score which is 1 when at
-  least 25\% of the estimated beat sequence closely matches the reference beat
+  least 25% of the estimated beat sequence closely matches the reference beat
   sequence
 * :func:`mir_eval.beat.p_score`: McKinney's P-score, which computes the
   cross-correlation of the estimated and reference beat sequences represented
