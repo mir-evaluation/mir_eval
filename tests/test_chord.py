@@ -180,6 +180,7 @@ def test_rotate_bitmaps_to_roots(bitmap, root, expected_bitmap):
         ("A:9/b3", 9, [1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0], 3, False, False),
         ("G:dim(4)/6", 7, [1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0], 9, False, False),
         ("A:9", 9, [1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0], 0, True, False),
+        ("Ab:aug7", 8, [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0], 0, True, False),
     ],
 )
 def test_chord_encode(label, e_root, e_interval, e_bass, reduce, strict):
