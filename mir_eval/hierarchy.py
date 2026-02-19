@@ -674,8 +674,8 @@ def evaluate(
     est_labels_hier : list of list of str
         Hierarchical annotations are encoded as an ordered list
         of segmentations.  Each segmentation itself is a list (or list-like)
-        of intervals (`_intervals_hier`) and a list of lists of labels
-        (`_labels_hier`).
+        of intervals (``_intervals_hier``) and a list of lists of labels
+        (``_labels_hier``).
     **kwargs
         additional keyword arguments to the evaluation metrics.
 
