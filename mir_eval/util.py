@@ -836,7 +836,7 @@ def validate_frequencies(frequencies, max_freq, min_freq, allow_negatives=False)
 
 
 def has_kwargs(function):
-    r"""Determine whether a function has `**kwargs`.
+    r"""Determine whether a function has ``**kwargs``.
 
     Parameters
     ----------
