@@ -834,7 +834,7 @@ def evaluate(
 
     """
     # Convert to reference/estimated voicing/frequency (cent) arrays
-    (ref_voicing, ref_cent, est_voicing, est_cent) = util.filter_kwargs(
+    ref_voicing, ref_cent, est_voicing, est_cent = util.filter_kwargs(
         to_cent_voicing,
         ref_time,
         ref_freq,

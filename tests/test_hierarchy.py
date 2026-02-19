@@ -12,7 +12,6 @@ import scipy.sparse
 import mir_eval
 import pytest
 
-
 A_TOL = 1e-12
 
 

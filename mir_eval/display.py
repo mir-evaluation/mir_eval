@@ -22,7 +22,6 @@ from .melody import freq_to_voicing
 from .util import midi_to_hz, hz_to_midi
 from .chord import split as split_chord, encode as encode_chord
 
-
 # Colormaps for segment visualizations
 # First, the chromatic pitch maps
 __COLORMAPS__ = {

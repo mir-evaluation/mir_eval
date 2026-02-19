@@ -27,7 +27,6 @@ import collections
 from . import util
 import warnings
 
-
 # The maximum allowable beat time
 MAX_TIME = 30000.0
 
@@ -128,7 +127,7 @@ def evaluate(reference_onsets, estimated_onsets, **kwargs):
     # Compute all metrics
     scores = collections.OrderedDict()
 
-    (scores["F-measure"], scores["Precision"], scores["Recall"]) = util.filter_kwargs(
+    scores["F-measure"], scores["Precision"], scores["Recall"] = util.filter_kwargs(
         f_measure, reference_onsets, estimated_onsets, **kwargs
     )
 

@@ -2,12 +2,12 @@
 """
 Unit tests for mir_eval.tempo
 """
+
 import numpy as np
 import mir_eval
 import json
 import glob
 import pytest
-
 
 A_TOL = 1e-12
 
