@@ -1225,7 +1225,7 @@ def chords(
         - Minor 6th: cross hatch
     **kwargs
         Additional keyword arguments to pass to
-        ``matplotlib.patches.Rectangle``.
+        ``matplotlib.axes.Axes.axvspan``.
 
     Returns
     -------
