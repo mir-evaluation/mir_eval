@@ -214,3 +214,29 @@ def test_segment_functions_permuted(segment_data):
     assert scores.keys() == expected_scores.keys()
     for metric in scores:
         assert np.allclose(scores[metric], expected_scores[metric], atol=A_TOL)
+
+
+def test_frameless_pairwise():
+    # Test that pairwise works with frame_size=None
+    ref_intervals = np.array([[0, 1], [1, 2], [2, 3]])
+    ref_labels = ["a", "b", "a"]
+    est_intervals = np.array([[0, 2], [2, 3]])
+    est_labels = ["a", "b"]
+
+    score = mir_eval.segment.pairwise(
+        ref_intervals, ref_labels, est_intervals, est_labels, frame_size=None
+    )
+    assert np.allclose(score, (0.6, 0.6, 0.6), atol=A_TOL)
+
+
+def test_frameless_nce():
+    # Test that nce works with frame_size=None
+    ref_intervals = np.array([[0, 1], [1, 2], [2, 3]])
+    ref_labels = ["a", "b", "a"]
+    est_intervals = np.array([[0, 2], [2, 3]])
+    est_labels = ["a", "b"]
+
+    score = mir_eval.segment.nce(
+        ref_intervals, ref_labels, est_intervals, est_labels, frame_size=None
+    )
+    assert np.allclose(score, (1 / 3, 1 / 3, 1 / 3), atol=A_TOL)

@@ -350,8 +350,9 @@ def pairwise(
     estimated_labels : list, shape=(m,)
         estimated segment labels, in the format returned by
         :func:`mir_eval.io.load_labeled_intervals`.
-    frame_size : float > 0
-        length (in seconds) of frames for clustering
+    frame_size : float > 0 or None
+        length (in seconds) of frames for clustering;
+        if None, use exact segment duration instead of frames
         (Default value = 0.1)
     beta : float > 0
         beta value for F-measure
@@ -367,6 +368,14 @@ def pairwise(
         F-measure of detecting whether frames belong in the same cluster
 
     """
+    # raise FutureWarning for change of default frame_size to None
+    warnings.warn(
+        "Default `frame_size` will change from 0.1 to None in a future version. "
+        "Set `frame_size` explicitly for consistent results.",
+        FutureWarning,
+        stacklevel=2,
+    )
+
     validate_structure(
         reference_intervals, reference_labels, estimated_intervals, estimated_labels
     )
@@ -376,32 +385,59 @@ def pairwise(
     if reference_intervals.size == 0 or estimated_intervals.size == 0:
         return 0.0, 0.0, 0.0
 
-    # Generate the cluster labels
-    y_ref = util.intervals_to_samples(
-        reference_intervals, reference_labels, sample_size=frame_size
-    )[-1]
+    if frame_size is None:
+        # Use the union of segment boundaries and exact segment duration
+        union_boundaries = util.intervals_to_boundaries(
+            np.vstack([reference_intervals, estimated_intervals])
+        )
+        common_itvl = util.boundaries_to_intervals(union_boundaries)
+        itvl_mid_points = np.mean(common_itvl, axis=1)
+        common_itvl_duration = util.intervals_to_durations(common_itvl)
+        itvl_dur_meet = np.outer(common_itvl_duration, common_itvl_duration)
 
-    y_ref = util.index_labels(y_ref)[0]
+        # Get the labels of the mid points of common intervals
+        y_ref = util.interpolate_intervals(
+            reference_intervals, reference_labels, itvl_mid_points
+        )
+        y_est = util.interpolate_intervals(
+            estimated_intervals, estimated_labels, itvl_mid_points
+        )
+    else:
+        # Generate the cluster labels by uniformly sampling
+        y_ref = util.intervals_to_samples(
+            reference_intervals, reference_labels, sample_size=frame_size
+        )[-1]
+
+        y_est = util.intervals_to_samples(
+            estimated_intervals, estimated_labels, sample_size=frame_size
+        )[-1]
 
     # Map to index space
-    y_est = util.intervals_to_samples(
-        estimated_intervals, estimated_labels, sample_size=frame_size
-    )[-1]
-
+    y_ref = util.index_labels(y_ref)[0]
     y_est = util.index_labels(y_est)[0]
 
     # Build the reference label agreement matrix
     agree_ref = np.equal.outer(y_ref, y_ref)
-    # Count the unique pairs
-    n_agree_ref = (agree_ref.sum() - len(y_ref)) / 2.0
+    if frame_size is not None:
+        # Count the unique pairs
+        n_agree_ref = (agree_ref.sum() - len(y_ref)) / 2.0
+    else:
+        # weight by interval duration: not excluding the diagonal as frame_size -> 0.
+        n_agree_ref = (agree_ref * itvl_dur_meet).sum()
 
     # Repeat for estimate
     agree_est = np.equal.outer(y_est, y_est)
-    n_agree_est = (agree_est.sum() - len(y_est)) / 2.0
+    if frame_size is not None:
+        n_agree_est = (agree_est.sum() - len(y_est)) / 2.0
+    else:
+        n_agree_est = (agree_est * itvl_dur_meet).sum()
 
     # Find where they agree
     matches = np.logical_and(agree_ref, agree_est)
-    n_matches = (matches.sum() - len(y_ref)) / 2.0
+    if frame_size is not None:
+        n_matches = (matches.sum() - len(y_ref)) / 2.0
+    else:
+        n_matches = (matches * itvl_dur_meet).sum()
 
     precision = n_matches / n_agree_est
     recall = n_matches / n_agree_ref
@@ -509,7 +545,7 @@ def rand_index(
     return rand
 
 
-def _contingency_matrix(reference_indices, estimated_indices):
+def _contingency_matrix(reference_indices, estimated_indices, seg_durations=None):
     """Compute the contingency matrix of a true labeling vs an estimated one.
 
     Parameters
@@ -518,6 +554,9 @@ def _contingency_matrix(reference_indices, estimated_indices):
         Array of reference indices
     estimated_indices : np.ndarray
         Array of estimated indices
+    seg_durations : np.ndarray or None.
+        Array of segment durations. If provided (not None), the contingency matrix will be
+        weighted by segment duration instead of counting occurrences.
 
     Returns
     -------
@@ -530,11 +569,15 @@ def _contingency_matrix(reference_indices, estimated_indices):
     est_classes, est_class_idx = np.unique(estimated_indices, return_inverse=True)
     n_ref_classes = ref_classes.shape[0]
     n_est_classes = est_classes.shape[0]
+
+    # Optionally weight by segment duration
+    if seg_durations is None:
+        seg_durations = np.ones(len(reference_indices))
     # Using coo_matrix is faster than histogram2d
     return scipy.sparse.coo_matrix(
-        (np.ones(ref_class_idx.shape[0]), (ref_class_idx, est_class_idx)),
+        (seg_durations, (ref_class_idx, est_class_idx)),
         shape=(n_ref_classes, n_est_classes),
-        dtype=np.int64,
+        dtype=np.float64,
     ).toarray()
 
 
@@ -1004,8 +1047,9 @@ def nce(
     estimated_labels : list, shape=(m,)
         estimated segment labels, in the format returned by
         :func:`mir_eval.io.load_labeled_intervals`.
-    frame_size : float > 0
+    frame_size : float > 0 or None
         length (in seconds) of frames for clustering
+        if None, use exact segment duration instead of frames
         (Default value = 0.1)
     beta : float > 0
         beta for F-measure
@@ -1036,6 +1080,14 @@ def nce(
     S_F
         F-measure for (S_over, S_under)
     """
+    # raise FutureWarning for change of default frame_size to None
+    warnings.warn(
+        "Default `frame_size` will change from 0.1 to None in a future version. "
+        "Set `frame_size` explicitly for consistent results.",
+        FutureWarning,
+        stacklevel=2,
+    )
+
     validate_structure(
         reference_intervals, reference_labels, estimated_intervals, estimated_labels
     )
@@ -1045,25 +1097,49 @@ def nce(
     if reference_intervals.size == 0 or estimated_intervals.size == 0:
         return 0.0, 0.0, 0.0
 
-    # Generate the cluster labels
-    y_ref = util.intervals_to_samples(
-        reference_intervals, reference_labels, sample_size=frame_size
-    )[-1]
+    if frame_size is None:
+        # Use the union of segment boundaries and exact segment duration
+        union_boundaries = util.intervals_to_boundaries(
+            np.vstack([reference_intervals, estimated_intervals])
+        )
+        common_itvl = util.boundaries_to_intervals(union_boundaries)
+        itvl_mid_points = np.mean(common_itvl, axis=1)
+        common_itvl_duration = util.intervals_to_durations(common_itvl)
 
-    y_ref = util.index_labels(y_ref)[0]
+        # Get the labels of the mid points of common intervals
+        y_ref = util.interpolate_intervals(
+            reference_intervals, reference_labels, itvl_mid_points
+        )
+        y_est = util.interpolate_intervals(
+            estimated_intervals, estimated_labels, itvl_mid_points
+        )
+    else:
+        # Generate the cluster labels by uniformly sampling
+        y_ref = util.intervals_to_samples(
+            reference_intervals, reference_labels, sample_size=frame_size
+        )[-1]
+
+        y_est = util.intervals_to_samples(
+            estimated_intervals, estimated_labels, sample_size=frame_size
+        )[-1]
+
+        common_itvl_duration = None
 
     # Map to index space
-    y_est = util.intervals_to_samples(
-        estimated_intervals, estimated_labels, sample_size=frame_size
-    )[-1]
-
+    y_ref = util.index_labels(y_ref)[0]
     y_est = util.index_labels(y_est)[0]
 
     # Make the contingency table: shape = (n_ref, n_est)
-    contingency = _contingency_matrix(y_ref, y_est).astype(float)
+    contingency = _contingency_matrix(
+        y_ref, y_est, seg_durations=common_itvl_duration
+    ).astype(float)
 
-    # Normalize by the number of frames
-    contingency = contingency / len(y_ref)
+    if frame_size is not None:
+        # Normalize by the number of frames
+        contingency = contingency / len(y_ref)
+    else:
+        # Normalize by the total duration
+        contingency = contingency / np.sum(common_itvl_duration)
 
     # Compute the marginals
     p_est = contingency.sum(axis=0)
@@ -1145,8 +1221,9 @@ def vmeasure(
     estimated_labels : list, shape=(m,)
         estimated segment labels, in the format returned by
         :func:`mir_eval.io.load_labeled_intervals`.
-    frame_size : float > 0
+    frame_size : float > 0 or None
         length (in seconds) of frames for clustering
+        if None, use exact segment duration instead of frames
         (Default value = 0.1)
     beta : float > 0
         beta for F-measure
