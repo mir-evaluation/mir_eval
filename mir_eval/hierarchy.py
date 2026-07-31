@@ -232,6 +232,31 @@ def _meet(intervals_hier, labels_hier, frame_size):
     return scipy.sparse.csr_matrix(meet_matrix)
 
 
+def _common_intervals(*intervals_hiers):
+    """Construct atomic intervals from all hierarchy boundaries."""
+    all_boundaries = np.concatenate(
+        [
+            util.intervals_to_boundaries(intervals)
+            for intervals_hier in intervals_hiers
+            for intervals in intervals_hier
+        ]
+    )
+
+    return util.boundaries_to_intervals(np.unique(all_boundaries))
+
+
+def _meet_at_times(intervals_hier, labels_hier, times):
+    """Construct a meet matrix at the given time points."""
+    meet_matrix = np.zeros((len(times), len(times)), dtype=np.uint8)
+
+    for level, (intervals, labels) in enumerate(zip(intervals_hier, labels_hier), 1):
+        time_labels = util.interpolate_intervals(intervals, labels, times)
+        label_indices = util.index_labels(time_labels)[0]
+        meet_matrix[np.equal.outer(label_indices, label_indices)] = level
+
+    return meet_matrix
+
+
 def _gauc(ref_lca, est_lca, transitive, window):
     """Generalized area under the curve (GAUC)
 
@@ -327,10 +352,56 @@ def _gauc(ref_lca, est_lca, transitive, window):
     return score
 
 
-def _count_inversions(a, b):
-    """Count the number of inversions in two numpy arrays:
+def _gauc_frameless(ref_seg_meet, est_seg_meet, seg_durations, transitive):
+    """Compute duration-weighted GAUC over atomic intervals. See _gauc for details.
+
+    Parameters
+    ----------
+    ref_seg_meet : np.ndarray, shape=(n, n)
+        Reference meet matrix for atomic intervals
+    est_seg_meet : np.ndarray, shape=(n, n)
+        Estimated meet matrix for atomic intervals
+    seg_durations : np.ndarray, shape=(n,)
+        Duration of each atomic interval
+    transitive : bool
+        Whether to use transitive comparison
+
+    Returns
+    -------
+    score : float
+        Duration-weighted GAUC score
+    """
+    score = 0.0
+    total_weight = 0.0
+
+    for query, seg_duration in enumerate(seg_durations):
+        inversions, normalizer = _compare_frame_rankings(
+            ref_seg_meet[query],
+            est_seg_meet[query],
+            transitive=transitive,
+            index_weights=seg_durations,
+        )
+
+        if normalizer:
+            score += seg_duration * (1.0 - inversions / float(normalizer))
+            total_weight += seg_duration
+
+    # Preserve the existing _gauc convention: 0/0 -> 0.
+    if total_weight:
+        score /= total_weight
+    else:
+        score = 0.0
+
+    return score
+
+
+def _count_inversions(a, b, a_weights=None, b_weights=None):
+    """Count optionally weighted inversions between two arrays:
 
     # points i, j where a[i] >= b[j]
+
+    When weights are provided, each inversion contributes
+    `a_weights[i] * b_weights[j]` instead of one.
 
     Parameters
     ----------
@@ -340,15 +411,29 @@ def _count_inversions(a, b):
         This implementation is optimized for arrays with many
         repeated values.
 
+    a_weights, b_weights : np.ndarray, shape=(n,) (m,) or None
+        Optional weights for each element in a and b.
+        If provided, each inversion contributes `a_weights[i] * b_weights[j]`
+        instead of one.
+
     Returns
     -------
-    inversions : int
-        The number of detected inversions
+    inversions : float
+        The number of detected inversions, potentially weighted.
     """
-    a, a_counts = np.unique(a, return_counts=True)
-    b, b_counts = np.unique(b, return_counts=True)
+    if a_weights is None and b_weights is None:
+        # use the counts
+        a, a_counts = np.unique(a, return_counts=True)
+        b, b_counts = np.unique(b, return_counts=True)
+    else:
+        # get weighted counts by bincount
+        a, a_inverse = np.unique(a, return_inverse=True)
+        b, b_inverse = np.unique(b, return_inverse=True)
 
-    inversions = 0
+        a_counts = np.bincount(a_inverse, weights=a_weights)
+        b_counts = np.bincount(b_inverse, weights=b_weights)
+
+    inversions = 0.0
     i = 0
     j = 0
 
@@ -362,8 +447,8 @@ def _count_inversions(a, b):
     return inversions
 
 
-def _compare_frame_rankings(ref, est, transitive=False):
-    """Compute the number of ranking disagreements in two lists.
+def _compare_frame_rankings(ref, est, transitive=False, index_weights=None):
+    """Compute optionally weighted ranking disagreements between two lists.
 
     Parameters
     ----------
@@ -374,10 +459,15 @@ def _compare_frame_rankings(ref, est, transitive=False):
     transitive : bool
         If true, all pairs of reference levels are compared.
         If false, only adjacent pairs of reference levels are compared.
+    index_weights : np.ndarray, shape=(n,), optional
+        Non-negative weights associated with the indexed points. When
+        provided, each pair ``(i, j)`` contributes
+        ``index_weights[i] * index_weights[j]`` to the inversion count
+        and normalizer. If omitted, each pair contributes one.
 
     Returns
     -------
-    inversions : int
+    inversions : float
         The number of pairs of indices `i, j` where
         `ref[i] < ref[j]` but `est[i] >= est[j]`.
     normalizer : float
@@ -388,6 +478,9 @@ def _compare_frame_rankings(ref, est, transitive=False):
     idx = np.argsort(ref)
     ref_sorted = ref[idx]
     est_sorted = est[idx]
+
+    if index_weights is not None:
+        index_weights = index_weights[idx]
 
     # Find the break-points in ref_sorted
     levels, positions, counts = np.unique(
@@ -402,7 +495,10 @@ def _compare_frame_rankings(ref, est, transitive=False):
 
     for level, cnt, start, end in zip(levels, counts, positions[:-1], positions[1:]):
         index[level] = slice(start, end)
-        ref_map[level] = cnt
+        if index_weights is not None:
+            ref_map[level] = np.sum(index_weights[index[level]])
+        else:
+            ref_map[level] = cnt
 
     # Now that we have values sorted, apply the inversion-counter to
     # pairs of reference values
@@ -418,12 +514,20 @@ def _compare_frame_rankings(ref, est, transitive=False):
     if normalizer == 0:
         return 0, 0.0
 
-    inversions = 0
+    inversions = 0.0
 
     for level_1, level_2 in level_pairs:
-        inversions += _count_inversions(
-            est_sorted[index[level_1]], est_sorted[index[level_2]]
-        )
+        if index_weights is None:
+            inversions += _count_inversions(
+                est_sorted[index[level_1]], est_sorted[index[level_2]]
+            )
+        else:
+            inversions += _count_inversions(
+                est_sorted[index[level_1]],
+                est_sorted[index[level_2]],
+                a_weights=index_weights[index[level_1]],
+                b_weights=index_weights[index[level_2]],
+            )
 
     return inversions, float(normalizer)
 
@@ -569,9 +673,9 @@ def lmeasure(
     estimated_labels_hier : list of ndarray
         Like ``reference_intervals_hier`` and ``reference_labels_hier``
         but for the estimated annotation
-    frame_size : float > 0
+    frame_size : float > 0 or None
         length (in seconds) of frames.  The frame size cannot be longer than
-        the window.
+        the window. If None, use exact segment duration instead of framing.
     beta : float > 0
         beta parameter for the F-measure.
 
@@ -593,23 +697,50 @@ def lmeasure(
 
         If ``frame_size > window`` or ``frame_size <= 0``
     """
+    # raise FutureWarning for change of default frame_size to None
+    warnings.warn(
+        "Default `frame_size` will change from 0.1 to None in a future version. "
+        "Set `frame_size` explicitly for consistent results.",
+        FutureWarning,
+        stacklevel=2,
+    )
+
     # Compute the number of frames in the window
-    if frame_size <= 0:
+    if frame_size is not None and frame_size <= 0:
         raise ValueError(
-            "frame_size ({:.2f}) must be a positive " "number.".format(frame_size)
+            "frame_size ({:.2f}) must be a positive number or None.".format(frame_size)
         )
 
     # Validate the hierarchical segmentations
     validate_hier_intervals(reference_intervals_hier)
     validate_hier_intervals(estimated_intervals_hier)
 
-    # Build the least common ancestor matrices
-    ref_meet = _meet(reference_intervals_hier, reference_labels_hier, frame_size)
-    est_meet = _meet(estimated_intervals_hier, estimated_labels_hier, frame_size)
+    if frame_size is None:
+        atomic_intervals = _common_intervals(
+            reference_intervals_hier,
+            estimated_intervals_hier,
+        )
+        seg_durations = util.intervals_to_durations(atomic_intervals)
 
-    # Compute precision and recall
-    l_recall = _gauc(ref_meet, est_meet, True, None)
-    l_precision = _gauc(est_meet, ref_meet, True, None)
+        # build meet matrix at atomic interval midpoints
+        query_time = np.mean(atomic_intervals, axis=1)
+        ref_meet = _meet_at_times(
+            reference_intervals_hier, reference_labels_hier, query_time
+        )
+        est_meet = _meet_at_times(
+            estimated_intervals_hier, estimated_labels_hier, query_time
+        )
+
+        l_recall = _gauc_frameless(ref_meet, est_meet, seg_durations, True)
+        l_precision = _gauc_frameless(est_meet, ref_meet, seg_durations, True)
+    else:
+        # Build the least common ancestor matrices
+        ref_meet = _meet(reference_intervals_hier, reference_labels_hier, frame_size)
+        est_meet = _meet(estimated_intervals_hier, estimated_labels_hier, frame_size)
+
+        # Compute precision and recall
+        l_recall = _gauc(ref_meet, est_meet, True, None)
+        l_precision = _gauc(est_meet, ref_meet, True, None)
 
     l_measure = util.f_measure(l_precision, l_recall, beta=beta)
 

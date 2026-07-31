@@ -89,7 +89,7 @@ def test_tmeasure_fail_frame_size(window, frame_size):
     mir_eval.hierarchy.tmeasure(ref, ref, window=window, frame_size=frame_size)
 
 
-@pytest.mark.parametrize("frame_size", [0.1, 0.5, 1.0])
+@pytest.mark.parametrize("frame_size", [0.1, 0.5, 1.0, None])
 def test_lmeasure_pass(frame_size):
     # The estimate here gets none of the structure correct.
     ref = [[[0, 30]], [[0, 15], [15, 30]]]
@@ -323,3 +323,151 @@ def test_compare_frame_rankings():
     inv, norm = mir_eval.hierarchy._compare_frame_rankings(ref, ref, transitive=True)
     assert inv == 0
     assert norm == 0.0
+
+
+def test_compare_frame_rankings_unit_weights():
+    ref = np.asarray([1, 2, 3, 3])
+    est = np.asarray([1, 2, 1, 3])
+
+    unweighted = mir_eval.hierarchy._compare_frame_rankings(ref, est, transitive=True)
+    weighted = mir_eval.hierarchy._compare_frame_rankings(
+        ref,
+        est,
+        transitive=True,
+        index_weights=np.ones(len(ref)),
+    )
+
+    assert weighted == unweighted
+
+
+def test_compare_frame_rankings_weighted():
+    ref = np.asarray([1, 2, 3, 3])
+    est = np.asarray([1, 2, 1, 3])
+    index_weights = np.asarray([1.0, 2.0, 3.0, 4.0])
+
+    # Total weights at each reference level:
+    #
+    # level 1: 1
+    # level 2: 2
+    # level 3: 3 + 4 = 7
+    #
+    # Transitive normalizer:
+    #   (1, 2): 1 * 2 = 2
+    #   (1, 3): 1 * 7 = 7
+    #   (2, 3): 2 * 7 = 14
+    #   total = 23
+    #
+    # No inversions when comparing ref against itself.
+    inv, norm = mir_eval.hierarchy._compare_frame_rankings(
+        ref,
+        ref,
+        transitive=True,
+        index_weights=index_weights,
+    )
+    assert inv == 0
+    assert norm == 23.0
+
+    # Non-transitive normalizer:
+    #   (1, 2): 1 * 2 = 2
+    #   (2, 3): 2 * 7 = 14
+    #   total = 16
+    inv, norm = mir_eval.hierarchy._compare_frame_rankings(
+        ref,
+        ref,
+        transitive=False,
+        index_weights=index_weights,
+    )
+    assert inv == 0
+    assert norm == 16.0
+
+    # For est = [1, 2, 1, 3], the weighted inversions are:
+    #
+    # Reference levels (1, 3):
+    #   est[0] >= est[2]: 1 >= 1
+    #   contribution = 1 * 3 = 3
+    #
+    # Reference levels (2, 3):
+    #   est[1] >= est[2]: 2 >= 1
+    #   contribution = 2 * 3 = 6
+    #
+    # Transitive total = 3 + 6 = 9
+    inv, norm = mir_eval.hierarchy._compare_frame_rankings(
+        ref,
+        est,
+        transitive=True,
+        index_weights=index_weights,
+    )
+    assert inv == 9.0
+    assert norm == 23.0
+
+    # Non-transitive comparisons exclude reference levels (1, 3),
+    # leaving only the inversion between levels (2, 3).
+    inv, norm = mir_eval.hierarchy._compare_frame_rankings(
+        ref,
+        est,
+        transitive=False,
+        index_weights=index_weights,
+    )
+    assert inv == 6.0
+    assert norm == 16.0
+
+    # A constant reference ranking has no ordered level pairs.
+    constant_ref = np.asarray([1, 1, 1, 1])
+
+    inv, norm = mir_eval.hierarchy._compare_frame_rankings(
+        constant_ref,
+        constant_ref,
+        transitive=True,
+        index_weights=index_weights,
+    )
+    assert inv == 0
+    assert norm == 0.0
+
+
+def test_lmeasure_frameless_simple():
+    ref_itvls = [
+        np.array([[0.0, 3.0]]),
+        np.array([[0.0, 2.0], [2.0, 3.0]]),
+    ]
+    ref_labels = [
+        ["A"],
+        ["x", "y"],
+    ]
+
+    est_itvls = [
+        np.array([[0.0, 3.0]]),
+        np.array([[0.0, 1.0], [1.0, 3.0]]),
+    ]
+    est_labels = [
+        ["B"],
+        ["c", "d"],
+    ]
+
+    score = mir_eval.hierarchy.lmeasure(
+        ref_itvls, ref_labels, est_itvls, est_labels, frame_size=None
+    )
+    assert np.allclose(score, (1 / 3, 1 / 3, 1 / 3), atol=A_TOL)
+
+
+def test_lmeasure_frameless_against_framed():
+
+    # Hierarchy data is split across multiple lab files for these tests
+    ref_files = sorted(glob.glob("data/hierarchy/ref*.lab"))
+    est_files = sorted(glob.glob("data/hierarchy/est*.lab"))
+
+    ref_hier = [mir_eval.io.load_labeled_intervals(_) for _ in ref_files]
+    est_hier = [mir_eval.io.load_labeled_intervals(_) for _ in est_files]
+
+    ref_ints = [seg[0] for seg in ref_hier]
+    ref_labs = [seg[1] for seg in ref_hier]
+    est_ints = [seg[0] for seg in est_hier]
+    est_labs = [seg[1] for seg in est_hier]
+
+    framed_outputs = mir_eval.hierarchy.lmeasure(
+        ref_ints, ref_labs, est_ints, est_labs, frame_size=0.1
+    )
+    frameless_outputs = mir_eval.hierarchy.lmeasure(
+        ref_ints, ref_labs, est_ints, est_labs, frame_size=None
+    )
+
+    assert np.allclose(framed_outputs, frameless_outputs, atol=0.01)
