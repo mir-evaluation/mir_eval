@@ -674,8 +674,8 @@ def lmeasure(
         Like ``reference_intervals_hier`` and ``reference_labels_hier``
         but for the estimated annotation
     frame_size : float > 0 or None
-        length (in seconds) of frames.  The frame size cannot be longer than
-        the window. If None, use exact segment duration instead of framing.
+        length (in seconds) of frames.
+        If None, use exact segment duration instead of framing.
     beta : float > 0
         beta parameter for the F-measure.
 
@@ -695,15 +695,16 @@ def lmeasure(
 
         If the input hierarchies have different time durations
 
-        If ``frame_size > window`` or ``frame_size <= 0``
+        If ``frame_size <= 0``
     """
     # raise FutureWarning for change of default frame_size to None
-    warnings.warn(
-        "Default `frame_size` will change from 0.1 to None in a future version. "
-        "Set `frame_size` explicitly for consistent results.",
-        FutureWarning,
-        stacklevel=2,
-    )
+    if frame_size == 0.1:
+        warnings.warn(
+            "Default `frame_size` will change from 0.1 to None in a future version. "
+            "Set `frame_size` explicitly for consistent results.",
+            FutureWarning,
+            stacklevel=2,
+        )
 
     # Compute the number of frames in the window
     if frame_size is not None and frame_size <= 0:

@@ -369,12 +369,13 @@ def pairwise(
 
     """
     # raise FutureWarning for change of default frame_size to None
-    warnings.warn(
-        "Default `frame_size` will change from 0.1 to None in a future version. "
-        "Set `frame_size` explicitly for consistent results.",
-        FutureWarning,
-        stacklevel=2,
-    )
+    if frame_size == 0.1:
+        warnings.warn(
+            "Default `frame_size` will change from 0.1 to None in a future version. "
+            "Set `frame_size` explicitly for consistent results.",
+            FutureWarning,
+            stacklevel=2,
+        )
 
     validate_structure(
         reference_intervals, reference_labels, estimated_intervals, estimated_labels
@@ -572,13 +573,18 @@ def _contingency_matrix(reference_indices, estimated_indices, seg_durations=None
 
     # Optionally weight by segment duration
     if seg_durations is None:
-        seg_durations = np.ones(len(reference_indices))
-    # Using coo_matrix is faster than histogram2d
-    return scipy.sparse.coo_matrix(
-        (seg_durations, (ref_class_idx, est_class_idx)),
-        shape=(n_ref_classes, n_est_classes),
-        dtype=np.float64,
-    ).toarray()
+        # Using coo_matrix is faster than histogram2d
+        return scipy.sparse.coo_matrix(
+            (np.ones(ref_class_idx.shape[0]), (ref_class_idx, est_class_idx)),
+            shape=(n_ref_classes, n_est_classes),
+            dtype=np.int64,
+        ).toarray()
+    else:
+        return scipy.sparse.coo_matrix(
+            (seg_durations, (ref_class_idx, est_class_idx)),
+            shape=(n_ref_classes, n_est_classes),
+            dtype=np.float64,
+        ).toarray()
 
 
 def _adjusted_rand_index(reference_indices, estimated_indices):
@@ -1081,12 +1087,13 @@ def nce(
         F-measure for (S_over, S_under)
     """
     # raise FutureWarning for change of default frame_size to None
-    warnings.warn(
-        "Default `frame_size` will change from 0.1 to None in a future version. "
-        "Set `frame_size` explicitly for consistent results.",
-        FutureWarning,
-        stacklevel=2,
-    )
+    if frame_size == 0.1:
+        warnings.warn(
+            "Default `frame_size` will change from 0.1 to None in a future version. "
+            "Set `frame_size` explicitly for consistent results.",
+            FutureWarning,
+            stacklevel=2,
+        )
 
     validate_structure(
         reference_intervals, reference_labels, estimated_intervals, estimated_labels
