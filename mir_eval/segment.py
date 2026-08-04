@@ -368,15 +368,6 @@ def pairwise(
         F-measure of detecting whether frames belong in the same cluster
 
     """
-    # raise FutureWarning for change of default frame_size to None
-    if frame_size == 0.1:
-        warnings.warn(
-            "Default `frame_size` will change from 0.1 to None in a future version. "
-            "Set `frame_size` explicitly for consistent results.",
-            FutureWarning,
-            stacklevel=2,
-        )
-
     validate_structure(
         reference_intervals, reference_labels, estimated_intervals, estimated_labels
     )
@@ -1086,15 +1077,6 @@ def nce(
     S_F
         F-measure for (S_over, S_under)
     """
-    # raise FutureWarning for change of default frame_size to None
-    if frame_size == 0.1:
-        warnings.warn(
-            "Default `frame_size` will change from 0.1 to None in a future version. "
-            "Set `frame_size` explicitly for consistent results.",
-            FutureWarning,
-            stacklevel=2,
-        )
-
     validate_structure(
         reference_intervals, reference_labels, estimated_intervals, estimated_labels
     )
