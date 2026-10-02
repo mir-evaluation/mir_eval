@@ -1356,6 +1356,28 @@ def sevenths_inv(reference_labels, estimated_labels):
     return comparison_scores
 
 
+def _snap_tiny_overlaps(intervals):
+    """Resolve tiny overlaps at adjacent chord boundaries.
+
+    Limit each adjustment to 10 ns and one millionth of either neighboring
+    interval's duration. Positive gaps are preserved.
+    """
+    if len(intervals) < 2:
+        return intervals
+
+    gap = intervals[1:, 0] - intervals[:-1, 1]
+    durations = intervals[:, 1] - intervals[:, 0]
+    tolerance = np.minimum(1e-8, 1e-6 * np.minimum(durations[:-1], durations[1:]))
+    tiny_overlap = (gap < 0) & (-gap <= tolerance)
+    if not tiny_overlap.any():
+        return intervals
+
+    intervals = intervals.copy()
+    starts = np.flatnonzero(tiny_overlap) + 1
+    intervals[starts, 0] = intervals[starts - 1, 1]
+    return intervals
+
+
 def directional_hamming_distance(reference_intervals, estimated_intervals):
     """Compute the directional hamming distance between reference and
     estimated intervals as defined by [#harte2010towards]_ and used for MIREX
@@ -1385,9 +1407,22 @@ def directional_hamming_distance(reference_intervals, estimated_intervals):
     directional hamming distance : float
         directional hamming distance between reference intervals and
         estimated intervals.
+
+    Notes
+    -----
+    Adjacent intervals that overlap by at most 1e-8 seconds and one millionth
+    of the shorter neighboring interval are treated as touching: the later
+    start is moved to the earlier end. This tolerates nanosecond-scale errors
+    in serialized or computed time stamps, while limiting the relative change
+    in interval duration. The adjustment applies to both inputs before the
+    adjacent-overlap check and scoring. Positive gaps are preserved, and the
+    input arrays are not modified.
     """
     util.validate_intervals(estimated_intervals)
     util.validate_intervals(reference_intervals)
+
+    reference_intervals = _snap_tiny_overlaps(reference_intervals)
+    estimated_intervals = _snap_tiny_overlaps(estimated_intervals)
 
     # make sure chord intervals do not overlap
     if (
