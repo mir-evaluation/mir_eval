@@ -516,6 +516,98 @@ def test_directional_hamming_distance():
         dhd(ivs_overlap_one, est_ivs)
 
 
+@pytest.mark.parametrize(
+    "end, next_start, final_end, split, expected",
+    [
+        (1.0, 1.0 - 1e-9, 2.0, 0.5, 0.25),
+        (2.126712, 2.1267119990000003, 4.0, 2.0, (2.126712 - 2.0) / 4.0),
+    ],
+)
+def test_directional_hamming_distance_tiny_overlap(
+    end, next_start, final_end, split, expected
+):
+    """Serialization errors should not invalidate a shared chord boundary."""
+    reference = np.array([[0.0, end], [next_start, final_end]])
+    estimated = np.array([[0.0, split], [split, final_end]])
+    original = reference.copy()
+    reference.setflags(write=False)
+
+    # The estimated split only divides the first reference interval.
+    dhd = mir_eval.chord.directional_hamming_distance
+    assert dhd(reference, estimated) == pytest.approx(expected, abs=1e-12)
+    assert mir_eval.chord.overseg(reference, estimated) == pytest.approx(
+        1.0 - expected, abs=1e-12
+    )
+    assert mir_eval.chord.underseg(reference, estimated) == pytest.approx(
+        1.0 - expected, abs=1e-12
+    )
+    np.testing.assert_array_equal(reference, original)
+
+
+def test_directional_hamming_distance_tiny_estimated_overlap():
+    """Use the same adjusted boundaries for validation and scoring."""
+    reference = np.array([[0.0, 1.0], [1.0, 2.0]])
+    estimated = np.array([[0.0, 1.0], [1.0 - 1e-9, 2.0]])
+    original = estimated.copy()
+    estimated.setflags(write=False)
+    assert mir_eval.chord.directional_hamming_distance(reference, estimated) == 0
+    np.testing.assert_array_equal(estimated, original)
+
+
+def test_directional_hamming_distance_frame_arithmetic():
+    """Reproduce the np.arange example in issue #295."""
+    hop_length = 0.1
+    frames = np.arange(10) * hop_length
+    starts = frames - hop_length / 2
+    ends = frames + hop_length / 2
+    starts[0], ends[-1] = frames[0], frames[-1]
+    intervals = np.column_stack((starts, ends))
+    original = intervals.copy()
+    assert np.any(intervals[:-1, 1] > intervals[1:, 0])
+    assert mir_eval.chord.directional_hamming_distance(
+        intervals, intervals
+    ) == pytest.approx(0.0, abs=1e-15)
+    assert mir_eval.chord.overseg(intervals, intervals) == pytest.approx(1.0)
+    assert mir_eval.chord.underseg(intervals, intervals) == pytest.approx(1.0)
+    np.testing.assert_array_equal(intervals, original)
+
+
+@pytest.mark.parametrize(
+    "gap, final_end", [(1e-9, 2.0), (1e-5, 2.0), (1e-9, 1.0 + 1e-6)]
+)
+def test_directional_hamming_distance_preserves_gaps(gap, final_end):
+    """Even a nanosecond gap may be real and must retain its score."""
+    gapped = np.array([[0.0, 1.0], [1.0 + gap, final_end]])
+    middle = 1.0 + gap / 2
+    split_in_gap = np.array([[0.0, middle], [middle, final_end]])
+    dhd = mir_eval.chord.directional_hamming_distance
+
+    # The split is outside both reference intervals, so it causes no loss.
+    assert dhd(gapped, split_in_gap) == 0.0
+    # In the reverse direction, each half-gap contributes to the loss.
+    expected = (gapped[1, 0] - gapped[0, 1]) / final_end
+    assert dhd(split_in_gap, gapped) == pytest.approx(
+        expected, rel=0, abs=np.finfo(float).eps
+    )
+
+
+@pytest.mark.parametrize(
+    "reference",
+    [
+        [[0.0, 1.0], [1.0 - 1e-5, 2.0]],
+        [[0.0, 1.0], [1.0 - 1.01e-8, 2.0]],
+        [[0.0, 1.0], [1.0 - 1e-9, 1.0 + 1e-9]],
+        [[0.0, 1e-9], [0.5e-9, 1e-9]],
+    ],
+)
+def test_directional_hamming_distance_rejects_material_overlap(reference):
+    """Do not accept material overlap or collapse short intervals."""
+    with pytest.raises(ValueError, match="must not overlap"):
+        mir_eval.chord.directional_hamming_distance(
+            np.array(reference), np.array([[0.0, 2.0]])
+        )
+
+
 def test_segmentation_functions():
     ref_ivs = np.array([[0.0, 2.0], [2.0, 2.5], [2.5, 3.2]])
     est_ivs = np.array([[0.0, 3.0], [3.0, 3.5]])
