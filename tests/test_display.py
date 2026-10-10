@@ -533,3 +533,36 @@ def test_display_chord():
         axi.label_outer()
 
     return fig
+
+
+def test_display_events_transform():
+    # A user-provided transform should be used instead of the inferred one
+    fig, ax = plt.subplots()
+    mir_eval.display.events([1, 2], labels=["a", "b"], ax=ax, transform=ax.transAxes)
+    assert ax.collections[0].get_transform() is ax.transAxes
+    fig.canvas.draw()
+    plt.close(fig)
+
+
+def test_display_events_base_height():
+    # With base and height given, the lines should be drawn in data coordinates
+    fig, ax = plt.subplots()
+    mir_eval.display.events([1, 2], labels=["a", "b"], base=0, height=5, ax=ax)
+    assert ax.collections[0].get_transform() is ax.transData
+    fig.canvas.draw()
+    plt.close(fig)
+
+
+@pytest.mark.parametrize("func", [mir_eval.display.segments, mir_eval.display.chords])
+def test_display_intervals_base_height_text(func):
+    fig, ax = plt.subplots()
+    func([[0, 1], [1, 2]], ["C:maj", "A:min"], base=0, height=1, text=True, ax=ax)
+    fig.canvas.draw()
+    plt.close(fig)
+
+
+def test_display_chord_transform():
+    fig, ax = plt.subplots()
+    mir_eval.display.chords([[0, 1]], ["C:maj"], ax=ax, transform=ax.transAxes)
+    fig.canvas.draw()
+    plt.close(fig)
