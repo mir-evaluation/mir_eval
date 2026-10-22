@@ -21,7 +21,7 @@ from packaging import version
 
 # Workaround to enable test skipping on older matplotlibs where we know it to be problematic
 MPL_VERSION = version.parse(matplotlib.__version__)
-OLD_MPL = not (MPL_VERSION >= version.parse("3.10.0"))
+OLD_MPL = not (MPL_VERSION >= version.parse("3.11.0"))
 
 # Workaround for old freetype builds with our image fixtures
 FT_VERSION = version.parse(matplotlib.ft2font.__freetype_version__)
