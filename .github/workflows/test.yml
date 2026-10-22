@@ -79,7 +79,7 @@ jobs:
 
       - name: Run unit tests
         shell: bash -l {0}
-        run: pytest  ${{ matrix.pytest-flags } 
+        run: pytest ${{ matrix.pytest-flags }}
         working-directory: tests
 
       - name: Upload image comparison failures if any
