@@ -24,11 +24,14 @@ jobs:
         include:
           - python-version: "3.13"
             os: macos-latest
+            pytest-flags: "--mpl --mpl-results-path=mpl_image_results/"
           - python-version: "3.13"
             os: windows-latest
+            pytest-flags: "--mpl --mpl-results-path=mpl_image_results/"
           - python-version: "3.13"
             os: ubuntu-latest
             channel-priority: flexible
+            pytest-flags: "--mpl --mpl-results-path=mpl_image_results/"
           - os: ubuntu-latest
             python-version: "3.8"
             envfile: ".github/environment-minimal.yml"
@@ -76,7 +79,7 @@ jobs:
 
       - name: Run unit tests
         shell: bash -l {0}
-        run: pytest --mpl-results-path=mpl_image_results/
+        run: pytest  ${{ matrix.pytest-flags } 
         working-directory: tests
 
       - name: Upload image comparison failures if any
