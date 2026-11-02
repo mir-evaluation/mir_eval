@@ -289,6 +289,6 @@ texinfo_documents = [
 autodoc_member_order = "bysource"
 linkcheck_allow_unauthorized = True
 linkcheck_ignore = [
-    # Sphinx has problems with the anchor on this one, but it does work
-    'http://www.music-ir.org/mirex/wiki/2015:Multiple_Fundamental_Frequency_Estimation_%26_Tracking_Results_-_MIREX_Dataset#Task_2:Note_Tracking_.28NT.29'
+    # music-ir.org is giving SSL errors which gives sphinx issues
+    r'https?://([\w-]+\.)*music-ir\.org(/.*)?',
 ]
