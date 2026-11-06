@@ -102,6 +102,17 @@ def test_resample_melody_series():
     assert np.allclose(res_voicing, expected_voicing)
 
 
+def test_resample_melody_series_late_frames():
+    times = 2048 + np.arange(3) / 64
+    cents = np.array([100.0, 200.0, 300.0])
+    voicing = np.ones(3)
+    res_cents, res_voicing = mir_eval.melody.resample_melody_series(
+        times, cents, voicing, times + 1 / 64
+    )
+    np.testing.assert_allclose(res_cents, [200.0, 300.0, 0.0])
+    np.testing.assert_allclose(res_voicing, [1, 1, 0])
+
+
 def test_resample_melody_series_same_times():
     # Check the case where the time bases are identical
     times = np.array([0.0, 0.1, 0.2, 0.3])

@@ -63,6 +63,14 @@ def __scores_equal(score_a, score_b):
     return equal
 
 
+def test_metrics_shifted_by_one_frame():
+    times = 2048 + np.arange(3) / 64
+    freqs = [np.array([f]) for f in [220.0, 330.0, 440.0]]
+    with pytest.warns(UserWarning, match="Resampling to common time base"):
+        scores = mir_eval.multipitch.evaluate(times, freqs, times + 1 / 64, freqs)
+    assert scores["Accuracy"] == 0.0
+
+
 def test_resample_multif0():
     times = np.array([0.00, 0.01, 0.02, 0.03])
     empty_times = np.array([])
