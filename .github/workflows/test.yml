@@ -22,13 +22,13 @@ jobs:
         channel-priority: [strict]
         envfile: [".github/environment.yml"]
         include:
-          - python-version: "3.13"
+          - python-version: "3.15"
             os: macos-latest
             pytest-flags: "--mpl --mpl-results-path=mpl_image_results/"
-          - python-version: "3.13"
+          - python-version: "3.15"
             os: windows-latest
             pytest-flags: "--mpl --mpl-results-path=mpl_image_results/"
-          - python-version: "3.13"
+          - python-version: "3.15"
             os: ubuntu-latest
             channel-priority: flexible
             pytest-flags: "--mpl --mpl-results-path=mpl_image_results/"
@@ -40,7 +40,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Cache conda packages
         uses: actions/cache@v4
@@ -84,14 +84,14 @@ jobs:
 
       - name: Upload image comparison failures if any
         if: failure() && hashFiles('tests/mpl_image_results/**') != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mpl-test-results-${{ runner.os }}--${{ runner.arch }}--${{ matrix.python-version }}
           path: tests/mpl_image_results/
           retention-days: 7
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
