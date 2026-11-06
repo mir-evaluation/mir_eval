@@ -346,9 +346,12 @@ def compute_err_score(true_positives, n_ref, n_est):
 
 
 def metrics(ref_time, ref_freqs, est_time, est_freqs, **kwargs):
-    """Compute multipitch metrics. All metrics are computed at the 'macro' level
-    such that the frame true positive/false positive/false negative rates are
-    summed across time and the metrics are computed on the combined values.
+    """Compute multipitch metrics from counts pooled across frames.
+
+    Frequencies are matched within each frame. The counts are then summed
+    across frames before computing each score. For example, if one frame has
+    one correct estimate out of one and another has one out of three, the
+    overall precision is 2 / 4.
 
     Examples
     --------
