@@ -13,7 +13,7 @@ jobs:
             channel-priority: "flexible"
             envfile: ".github/environment-lint.yml"
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Cache conda
