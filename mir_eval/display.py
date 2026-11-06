@@ -261,7 +261,7 @@ def segments(
 
     elif base is not None and height is not None:
         # If both are provided, we'll use data coordinates
-        transform = None
+        transform = ax.transData
     else:
         raise ValueError("When specifying base or height, both must be provided.")
 
@@ -616,7 +616,7 @@ def events(
 
     elif base is not None and height is not None:
         # If both are provided, we'll use data coordinates
-        transform = None
+        transform = ax.transData
     else:
         raise ValueError("When specifying base or height, both must be provided.")
 
@@ -631,20 +631,22 @@ def events(
     style = {
         k: v for k, v in properties.items() if k in ["color", "linestyle", "linewidth"]
     }
+    # A user-provided transform takes precedence over the inferred one
+    style["transform"] = transform
     style.update(kwargs)
 
     # If the user provided 'colors', don't override it with 'color'
     if "colors" in style:
         style.pop("color", None)
 
-    lines = ax.vlines(times, base, base + height, transform=transform, **style)
+    lines = ax.vlines(times, base, base + height, **style)
 
     if labels:
         for path, lab in zip(lines.get_paths(), labels):
             ax.annotate(
                 lab,
                 xy=(path.vertices[0][0], height),
-                xycoords=transform,
+                xycoords=style["transform"],
                 xytext=(8, -10),
                 textcoords="offset points",
                 **text_kw,
@@ -1266,7 +1268,7 @@ def chords(
 
     elif base is not None and height is not None:
         # If both are provided, we'll use data coordinates
-        transform = None
+        transform = ax.transData
     else:
         raise ValueError("When specifying base or height, both must be provided.")
 
@@ -1302,14 +1304,7 @@ def chords(
         seg_map[lab]["label"] = lab
 
     for ival, lab in zip(intervals, labels):
-        rect = ax.axvspan(
-            ival[0],
-            ival[1],
-            ymin=base,
-            ymax=height,
-            **seg_map[lab],
-            transform=transform,
-        )
+        rect = ax.axvspan(ival[0], ival[1], ymin=base, ymax=height, **seg_map[lab])
         seg_map[lab].pop("label", None)
 
         if text:
