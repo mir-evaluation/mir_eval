@@ -463,6 +463,10 @@ def test_lmeasure_frameless_against_framed():
     est_ints = [seg[0] for seg in est_hier]
     est_labs = [seg[1] for seg in est_hier]
 
+    # Make the last interval in est end at the same time as the last interval in ref
+    for i in range(len(est_ints)):
+        est_ints[i][-1][-1] = ref_ints[-1][-1][-1]
+
     framed_outputs = mir_eval.hierarchy.lmeasure(
         ref_ints, ref_labs, est_ints, est_labs, frame_size=0.1
     )
@@ -471,3 +475,29 @@ def test_lmeasure_frameless_against_framed():
     )
 
     assert np.allclose(framed_outputs, frameless_outputs, atol=0.01)
+
+
+@pytest.mark.xfail(raises=ValueError)
+@pytest.mark.parametrize("frame_size", [None, 0.1])
+def test_lmeasure_fail_length_mismatch(frame_size):
+    ref_itvls = [
+        np.array([[0.0, 4.0]]),
+        np.array([[0.0, 2.0], [2.0, 4.0]]),
+    ]
+    ref_labels = [
+        ["A"],
+        ["x", "y"],
+    ]
+
+    est_itvls = [
+        np.array([[0.0, 3.0]]),
+        np.array([[0.0, 1.0], [1.0, 3.0]]),
+    ]
+    est_labels = [
+        ["B"],
+        ["c", "d"],
+    ]
+
+    mir_eval.hierarchy.lmeasure(
+        ref_itvls, ref_labels, est_itvls, est_labels, frame_size=frame_size
+    )
