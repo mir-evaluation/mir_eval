@@ -708,9 +708,12 @@ def lmeasure(
     validate_hier_intervals(estimated_intervals_hier)
 
     if frame_size is None:
+        ref_end = _hierarchy_bounds(reference_intervals_hier)[1]
+        est_end = _hierarchy_bounds(estimated_intervals_hier)[1]
+        if not np.allclose(ref_end, est_end):
+            raise ValueError("Reference and estimated hierarchies must have the same duration.")
         atomic_intervals = _common_intervals(
-            reference_intervals_hier,
-            estimated_intervals_hier,
+            reference_intervals_hier, estimated_intervals_hier
         )
         seg_durations = util.intervals_to_durations(atomic_intervals)
 
