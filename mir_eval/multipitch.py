@@ -408,7 +408,7 @@ def metrics(ref_time, ref_freqs, est_time, est_freqs, **kwargs):
     validate(ref_time, ref_freqs, est_time, est_freqs)
 
     # resample est_freqs if est_times is different from ref_times
-    if est_time.size != ref_time.size or not np.allclose(est_time, ref_time):
+    if est_time.size != ref_time.size or not np.allclose(est_time, ref_time, rtol=0):
         warnings.warn(
             "Estimate times not equal to reference times. "
             "Resampling to common time base."
