@@ -12,9 +12,6 @@ Based on the methods described in:
     Queen Mary University of London Technical Report C4DM-TR-09-06
     London, United Kingdom, 8 October 2009.
 
-See also the Beat Evaluation Toolbox:
-    https://code.soundsoftware.ac.uk/projects/beat-evaluation/
-
 Conventions
 -----------
 
