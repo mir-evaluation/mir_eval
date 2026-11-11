@@ -99,7 +99,6 @@ def test_tempo_tol_range(tol):
     ],
 )
 def test_tempo_fail_bad_reftempo(bad_tempo):
-    good_ref = np.array([60, 120])
     good_est = np.array([120, 180])
 
     mir_eval.tempo.detection(bad_tempo, 0.5, good_est, 0.08)
@@ -118,7 +117,6 @@ def test_tempo_fail_bad_reftempo(bad_tempo):
 )
 def test_tempo_fail_bad_esttempo(bad_tempo):
     good_ref = np.array([60, 120])
-    good_est = np.array([120, 180])
 
     mir_eval.tempo.detection(good_ref, 0.5, bad_tempo, 0.08)
 

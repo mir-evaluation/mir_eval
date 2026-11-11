@@ -1,0 +1,169 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mir_eval"
+dynamic = ["version"]
+description = "Common metrics for common audio/music processing tasks."
+readme = "README.rst"
+license = "MIT"
+authors = [
+    {name = "Colin Raffel", email = "craffel@gmail.com"}
+]
+requires-python = ">=3.13"
+classifiers = [
+    "Programming Language :: Python",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+]
+dependencies = [
+    "numpy>=2.1.0",
+    "scipy>=1.15.0",
+    "decorator>=5.2.1",
+]
+
+[project.optional-dependencies]
+display = [
+    "matplotlib>=3.10.0",
+]
+tests = [
+    "mir_eval[display]",
+    "pytest>=9.0.0",
+    "pytest-cov>=6.0.0",
+    "pytest-mpl>=0.17.0",
+]
+docs = [
+    "mir_eval[display]",
+    "sphinx>=8.1.0",
+    "numpydoc>=1.8.0",
+    "sphinx_rtd_theme>=3.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/mir-evaluation/mir_eval"
+Download = "https://github.com/mir-evaluation/mir_eval/releases"
+Source = "https://github.com/mir-evaluation/mir_eval"
+
+[dependency-groups]
+test = [
+    "pytest>=9.0.0",
+    "pytest-cov>=6.0.0",
+    "pytest-mpl>=0.17.0",
+]
+lint = [
+    "codespell>=2.4.0",
+    "ruff>=0.8.0",
+    "numpydoc>=1.8.0",
+]
+docs = [
+    "sphinx>=8.1.0",
+    "numpydoc>=1.8.0",
+    "sphinx_rtd_theme>=3.0.0",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "mir_eval.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["mir_eval*"]
+
+[tool.pytest.ini_options]
+addopts = "--cov-report term-missing --cov mir_eval --cov-report=xml --mpl-baseline-path=baseline_images/test_display"
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.coverage.run]
+omit = [
+    "mir_eval/separation.py",
+]
+
+[tool.codespell]
+ignore-words-list = "nce,fpr,shepard,dum,theis"
+skip = "./tests,./docs,./.git,./coverage.xml"
+
+[tool.ruff]
+line-length = 119
+extend-exclude = [
+    "docs/_build",
+    "docs/auto_*",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "W",
+    "S",
+    "D",
+]
+ignore = [
+    "EXE001",
+    "S101",
+    "S110",
+    "D107",
+    "D203",
+    "D205",
+    "D212",
+    "D213",
+    "D400",
+    "D402",
+    "D413",
+    "D415",
+    "D416",
+    "D417",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401", "F403", "D"]
+"tests/**" = ["S", "D"]
+
+[tool.numpydoc_validation]
+checks = [
+    "all",
+    "ES01", # No extended summary
+    "EX01", # No examples section
+    "SA01", # No See Also section
+    "SA02", # Punctuation in See Also section is not that important
+    "GL01", # Docstring starting on the same line as open quotes?
+    "GL02", # Closing quotes on the same line or blank line before quotes
+    "GL03", # Double line break found
+    "GL06", # Found unknown section
+    "GL07", # Section order (mir_eval has Examples before Parameters)
+    "GL08", # @overload stubs and internal helpers do not need docstrings
+    "PR01", # Parameters not documented
+    "PR02", # Extra parameter names included
+    "PR04", # Parameter has no type
+    "PR06", # Parameter type string/boolean
+    "PR07", # Parameter has no description
+    "PR08", # Capitalization of parameter descriptions is not that important
+    "PR09", # Punctuation of parameter descriptions is not that important
+    "RT01", # No Returns section
+    "RT02", # Include shape descriptions in return types
+    "RT03", # Return value has no description
+    "RT04", # Capitalization in return descriptions is not that important
+    "RT05", # Punctuation in return descriptions is not that important
+    "SS01", # Module-level docstrings use autosummary format, not numpydoc
+    "SS03", # Punctuation in summary is not that important
+    "SS05", # Summary must start with infinitive verb
+    "SS06", # Summary should fit in a single line
+    "SA04", # See Also descriptions are not that important
+]
+exclude = [
+    # Exclude module-level docstrings:
+    "^[^.]+$",
+    # Exclude all private functions and classes (those beginning with _):
+    "\\._",
+]
+exclude_files = [
+    '.*/__init__.py',
+]

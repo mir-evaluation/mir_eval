@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 """Unit tests for the display module"""
 
-# For testing purposes, clobber the rcfile
-import matplotlib
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -16,8 +13,6 @@ from mir_eval.io import load_valued_intervals
 from mir_eval.io import load_labeled_events
 from mir_eval.io import load_ragged_time_series
 from mir_eval.io import load_wav
-
-from packaging import version
 
 STYLE = "default"
 

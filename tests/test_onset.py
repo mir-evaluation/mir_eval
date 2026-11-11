@@ -7,7 +7,6 @@ import pytest
 import json
 import mir_eval
 import glob
-import warnings
 
 A_TOL = 1e-12
 

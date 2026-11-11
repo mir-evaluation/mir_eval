@@ -68,7 +68,7 @@ def test_scale_degree_to_semitone(degree, semitone):
 
 @pytest.mark.parametrize("degree", ["7b", "4#", "77", "15"])
 @pytest.mark.xfail(raises=mir_eval.chord.InvalidChordException)
-def test_scale_degree_to_semitone(degree):
+def test_scale_degree_to_semitone_fail(degree):
     mir_eval.chord.scale_degree_to_semitone(degree)
 
 

@@ -104,7 +104,7 @@ def load_delimited(filename, converters, delimiter=r"\s+", comment="#"):
                 # Try converting the value, throw a helpful error on failure
                 try:
                     converted_value = converter(value)
-                except:
+                except Exception:
                     raise ValueError(
                         "Couldn't convert value {} using {} "
                         "found at {}:{:d}:\n\t{}".format(

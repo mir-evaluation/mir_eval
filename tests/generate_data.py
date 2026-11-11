@@ -119,7 +119,7 @@ if __name__ == "__main__":
             ref_data = loader(ref_file)
             est_data = loader(est_file)
             # Some loaders return tuples, others don't
-            if type(ref_data) == tuple:
+            if isinstance(ref_data, tuple):
                 scores = submodule.evaluate(*(ref_data + est_data))
             else:
                 scores = submodule.evaluate(ref_data, est_data)

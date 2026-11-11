@@ -16,7 +16,6 @@ from matplotlib.colors import (
     LogNorm,
     ColorConverter,
 )
-from matplotlib.transforms import Bbox, TransformedBbox
 
 from .melody import freq_to_voicing
 from .util import midi_to_hz, hz_to_midi
@@ -530,9 +529,6 @@ def hierarchy(intervals_hier, labels_hier, levels=None, ax=None, **kwargs):
 
     # Get the axes handle
     ax, _ = __get_axes(ax=ax)
-
-    # Count the pre-existing patches
-    n_patches = len(ax.patches)
 
     for ints, labs, key in zip(intervals_hier[::-1], labels_hier[::-1], levels[::-1]):
         labeled_intervals(ints, labs, label=key, ax=ax, **kwargs)

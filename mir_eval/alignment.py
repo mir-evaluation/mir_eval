@@ -251,8 +251,8 @@ def percentage_correct_segments(
         duration = reference_timestamps[-1] - reference_timestamps[0]
         if duration <= 0:
             raise ValueError(
-                f"Reference timestamps are all identical, can not compute PCS"
-                f" metric!"
+                "Reference timestamps are all identical, can not compute PCS"
+                " metric!"
             )
 
         ref_starts = reference_timestamps[:-1]
