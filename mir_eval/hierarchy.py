@@ -22,10 +22,10 @@ segmentation contains the most.
 Metrics
 -------
 * :func:`mir_eval.hierarchy.tmeasure`: Precision, recall, and F-measure of
-  triplet-based frame accuracy for boundary detection.
+  triplet-based frame accuracy for boundary detection [#mcfee2015]_, [#mcfee2017]_.
 
 * :func:`mir_eval.hierarchy.lmeasure`: Precision, recall, and F-measure of
-  triplet-based frame accuracy for segment labeling.
+  triplet-based frame accuracy for segment labeling [#mcfee2017]_.
 
 References
 ----------

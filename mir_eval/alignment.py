@@ -16,14 +16,13 @@ Metrics
 -------
 * :func:`mir_eval.alignment.absolute_error`: Median absolute error and average absolute error
 * :func:`mir_eval.alignment.percentage_correct`: Percentage of correct timestamps,
-  where a timestamp is counted
-  as correct if it lies within a certain tolerance window around the ground truth timestamp
-* :func:`mir_eval.alignment.pcs`: Percentage of correct segments: Percentage of overlap between
-  predicted segments and ground truth segments, where segments are defined by (start time,
-  end time) pairs
-* :func:`mir_eval.alignment.perceptual_metric`: metric based on human synchronicity perception as
-  measured in the paper "User-centered evaluation of lyrics to audio alignment",
-  N. Lizé-Masclef, A. Vaglio, M. Moussallam, ISMIR 2021
+  where a timestamp is counted as correct if it lies within a certain tolerance
+  window around the ground truth timestamp [#mauch2010]_, [#dzhambazov2017]_
+* :func:`mir_eval.alignment.percentage_correct_segments`: Percentage of correct segments:
+  Percentage of overlap between predicted segments and ground truth segments, where segments
+  are defined by (start time, end time) pairs [#fujihara2011]_
+* :func:`mir_eval.alignment.karaoke_perceptual_metric`: Metric based on human synchronicity perception
+  as measured in the paper "User-centered evaluation of lyrics to audio alignment" [#lizemasclef2021]_
 
 References
 ----------

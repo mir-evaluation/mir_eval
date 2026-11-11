@@ -724,7 +724,7 @@ def overall_accuracy(ref_voicing, ref_cent, est_voicing, est_cent, cent_toleranc
 def evaluate(ref_time, ref_freq, est_time, est_freq, est_voicing=None, ref_reward=None, **kwargs):
     """Evaluate two melody (predominant f0) transcriptions, where the first is
     treated as the reference (ground truth) and the second as the estimate to
-    be evaluated (prediction).
+    be evaluated (prediction) [#]_, [#]_, [#]_.
 
     Examples
     --------
