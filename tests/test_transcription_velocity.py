@@ -23,9 +23,7 @@ file_sets = list(zip(ref_files, est_files, sco_files))
 
 def _load_transcription_velocity(filename):
     """Loader for data in the format start, end, pitch, velocity."""
-    starts, ends, pitches, velocities = mir_eval.io.load_delimited(
-        filename, [float, float, int, int]
-    )
+    starts, ends, pitches, velocities = mir_eval.io.load_delimited(filename, [float, float, int, int])
     # Stack into an interval matrix
     intervals = np.array([starts, ends]).T
     # return pitches and velocities as np.ndarray
@@ -52,13 +50,9 @@ def test_negative_velocity():
     bad_i, bad_p, bad_v = np.array([[0, 1]]), np.array([100]), np.array([-1])
 
     with pytest.raises(ValueError):
-        mir_eval.transcription_velocity.validate(
-            bad_i, bad_p, bad_v, good_i, good_p, good_v
-        )
+        mir_eval.transcription_velocity.validate(bad_i, bad_p, bad_v, good_i, good_p, good_v)
     with pytest.raises(ValueError):
-        mir_eval.transcription_velocity.validate(
-            good_i, good_p, good_v, bad_i, bad_p, bad_v
-        )
+        mir_eval.transcription_velocity.validate(good_i, good_p, good_v, bad_i, bad_p, bad_v)
 
 
 def test_wrong_shape_velocity():
@@ -66,13 +60,9 @@ def test_wrong_shape_velocity():
     bad_i, bad_p, bad_v = np.array([[0, 1]]), np.array([100]), np.array([1, 2])
 
     with pytest.raises(ValueError):
-        mir_eval.transcription_velocity.validate(
-            bad_i, bad_p, bad_v, good_i, good_p, good_v
-        )
+        mir_eval.transcription_velocity.validate(bad_i, bad_p, bad_v, good_i, good_p, good_v)
     with pytest.raises(ValueError):
-        mir_eval.transcription_velocity.validate(
-            good_i, good_p, good_v, bad_i, bad_p, bad_v
-        )
+        mir_eval.transcription_velocity.validate(good_i, good_p, good_v, bad_i, bad_p, bad_v)
 
 
 def test_precision_recall_f1_overlap():
@@ -83,9 +73,7 @@ def test_precision_recall_f1_overlap():
     est_i = np.array([[0, 1], [0.5, 0.7], [1, 2]])
     est_p = np.array([100, 110, 80])
     est_v = np.array([10, 70, 110])
-    p, r, f, o = mir_eval.transcription_velocity.precision_recall_f1_overlap(
-        ref_i, ref_p, ref_v, est_i, est_p, est_v
-    )
+    p, r, f, o = mir_eval.transcription_velocity.precision_recall_f1_overlap(ref_i, ref_p, ref_v, est_i, est_p, est_v)
     assert np.allclose((p, r, f, o), (2 / 3.0, 2 / 3.0, 2 / 3.0, 1.0))
     p, r, f, o = mir_eval.transcription_velocity.precision_recall_f1_overlap(
         ref_i, ref_p, ref_v, est_i, est_p, est_v, velocity_tolerance=0.3
@@ -128,9 +116,7 @@ def test_regression(velocity_data):
         expected_scores,
     ) = velocity_data
 
-    scores = mir_eval.transcription_velocity.evaluate(
-        ref_int, ref_pitch, ref_vel, est_int, est_pitch, est_vel
-    )
+    scores = mir_eval.transcription_velocity.evaluate(ref_int, ref_pitch, ref_vel, est_int, est_pitch, est_vel)
     assert scores.keys() == expected_scores.keys()
     for metric in scores:
         assert np.allclose(scores[metric], expected_scores[metric], atol=A_TOL), metric

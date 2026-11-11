@@ -84,9 +84,7 @@ def test_resample_melody_series():
     times_new = np.linspace(0, 0.08, 9)
     expected_cents = np.array([2.0, 2.0, 2.0, 0.0, 0.0, 0.0, -0.8, -0.1, 0.6])
     expected_voicing = np.array([1, 1, 1, 0, 0, 0, 1, 1, 1])
-    res_cents, res_voicing = mir_eval.melody.resample_melody_series(
-        times, cents, voicing, times_new
-    )
+    res_cents, res_voicing = mir_eval.melody.resample_melody_series(times, cents, voicing, times_new)
     assert np.allclose(res_cents, expected_cents)
     assert np.allclose(res_voicing, expected_voicing)
 
@@ -97,9 +95,7 @@ def test_resample_melody_series():
     times_new = np.linspace(0, 0.08, 9)
     expected_cents = np.array([2.0, 2.0, 2.0, 0.0, 0.0, 0.0, -0.8, -0.1, 0.6])
     expected_voicing = np.array([0.8, 0.52, 0.24, 0.01, 0.08, 0.15, 0.28, 0.56, 0.84])
-    res_cents, res_voicing = mir_eval.melody.resample_melody_series(
-        times, cents, voicing, times_new
-    )
+    res_cents, res_voicing = mir_eval.melody.resample_melody_series(times, cents, voicing, times_new)
     assert np.allclose(res_cents, expected_cents)
     assert np.allclose(res_voicing, expected_voicing)
 
@@ -112,9 +108,7 @@ def test_resample_melody_series_same_times():
     voicing = np.array([0, 0, 1, 1])
     expected_cents = np.array([2.0, 0.0, -1.0, 1.0])
     expected_voicing = np.array([False, False, True, True])
-    res_cents, res_voicing = mir_eval.melody.resample_melody_series(
-        times, cents, voicing, times_new
-    )
+    res_cents, res_voicing = mir_eval.melody.resample_melody_series(times, cents, voicing, times_new)
     assert np.allclose(res_cents, expected_cents)
     assert np.allclose(res_voicing, expected_voicing)
 
@@ -125,9 +119,7 @@ def test_resample_melody_series_same_times():
     voicing = np.array([0.5, 0.8, 0.9, 1.0])
     expected_cents = np.array([2.0, 0.0, -1.0, 1.0])
     expected_voicing = np.array([0.5, 0.8, 0.9, 1.0])
-    res_cents, res_voicing = mir_eval.melody.resample_melody_series(
-        times, cents, voicing, times_new
-    )
+    res_cents, res_voicing = mir_eval.melody.resample_melody_series(times, cents, voicing, times_new)
     assert np.allclose(res_cents, expected_cents)
     assert np.allclose(res_voicing, expected_voicing)
 
@@ -138,9 +130,7 @@ def test_to_cent_voicing():
     ref_time, ref_freq = mir_eval.io.load_time_series(ref_file)
     est_file = sorted(glob.glob(EST_GLOB))[0]
     est_time, est_freq = mir_eval.io.load_time_series(est_file)
-    ref_v, ref_c, est_v, est_c = mir_eval.melody.to_cent_voicing(
-        ref_time, ref_freq, est_time, est_freq
-    )
+    ref_v, ref_c, est_v, est_c = mir_eval.melody.to_cent_voicing(ref_time, ref_freq, est_time, est_freq)
     # Expected values
     test_range = np.arange(220, 225)
     expected_ref_v = np.array([False, False, False, True, True])
@@ -248,9 +238,7 @@ def test_continuous_voicing_metrics():
     ]
 
     for est_voicing, expected_scores in zip(all_est_voicing, all_expected):
-        actual_scores = mir_eval.melody.evaluate(
-            ref_time, ref_freq, est_time, est_freq, est_voicing=est_voicing
-        )
+        actual_scores = mir_eval.melody.evaluate(ref_time, ref_freq, est_time, est_freq, est_voicing=est_voicing)
         for metric in actual_scores:
             assert np.isclose(actual_scores[metric], expected_scores[metric])
 
@@ -410,9 +398,7 @@ def test_melody_function_empty(metric):
         mir_eval.melody.overall_accuracy,
     ],
 )
-@pytest.mark.parametrize(
-    "ref_freq, est_freq", [(np.ones(11), np.ones(10)), (np.ones(10), np.ones(11))]
-)
+@pytest.mark.parametrize("ref_freq, est_freq", [(np.ones(11), np.ones(10)), (np.ones(10), np.ones(11))])
 def test_melody_badlength(metric, ref_freq, est_freq):
     # frequency and time must be the same length
     metric(np.ones(10), ref_freq, np.ones(10), est_freq)

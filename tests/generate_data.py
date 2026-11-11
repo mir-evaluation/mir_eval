@@ -29,9 +29,7 @@ import sys
 
 def load_transcription_velocity(filename):
     """Loader for data in the format start, end, pitch, velocity."""
-    starts, ends, pitches, velocities = mir_eval.io.load_delimited(
-        filename, [float, float, int, int]
-    )
+    starts, ends, pitches, velocities = mir_eval.io.load_delimited(filename, [float, float, int, int])
     # Stack into an interval matrix
     intervals = np.array([starts, ends]).T
     # return pitches and velocities as np.ndarray

@@ -38,9 +38,7 @@ def chord_data(request):
     return ref_intervals, ref_labels, est_intervals, est_labels, expected_scores
 
 
-@pytest.mark.parametrize(
-    "pitch, semitone", [("Gbb", 5), ("G", 7), ("G#", 8), ("Cb", 11), ("B#", 0)]
-)
+@pytest.mark.parametrize("pitch, semitone", [("Gbb", 5), ("G", 7), ("G#", 8), ("Cb", 11), ("B#", 0)])
 def test_pitch_class_to_semitone_valid(pitch, semitone):
     assert mir_eval.chord.pitch_class_to_semitone(pitch) == semitone
 
@@ -92,17 +90,13 @@ def test_scale_degree_to_bitmap(degree, bitmap, modulo, length):
     )
 
 
-@pytest.mark.parametrize(
-    "label", ["C", "Eb:min/5", "A#:dim7", "B:maj(*1,*5)/3", "A#:sus4", "A:(9,11)"]
-)
+@pytest.mark.parametrize("label", ["C", "Eb:min/5", "A#:dim7", "B:maj(*1,*5)/3", "A#:sus4", "A:(9,11)"])
 def test_validate_chord_label(label):
     # For valid labels, calling the function without an error = pass
     mir_eval.chord.validate_chord_label(label)
 
 
-@pytest.mark.parametrize(
-    "label", ["C::maj", "C//5", "C((4)", "C5))", "C:maj(*3/3", "Cmaj*3/3)", "asdf"]
-)
+@pytest.mark.parametrize("label", ["C::maj", "C//5", "C((4)", "C5))", "C:maj(*3/3", "Cmaj*3/3)", "asdf"])
 @pytest.mark.xfail(raises=mir_eval.chord.InvalidChordException)
 def test_validate_bad_chord_label(label):
     mir_eval.chord.validate_chord_label(label)
@@ -186,9 +180,7 @@ def test_rotate_bitmaps_to_roots(bitmap, root, expected_bitmap):
     ],
 )
 def test_chord_encode(label, e_root, e_interval, e_bass, reduce, strict):
-    root, intervals, bass = mir_eval.chord.encode(
-        label, reduce_extended_chords=reduce, strict_bass_intervals=strict
-    )
+    root, intervals, bass = mir_eval.chord.encode(label, reduce_extended_chords=reduce, strict_bass_intervals=strict)
     assert root == e_root, (root, e_root)
     assert np.all(intervals == e_interval), (intervals, e_interval)
     assert bass == e_bass, (bass, e_bass)
@@ -198,9 +190,7 @@ def test_chord_encode(label, e_root, e_interval, e_bass, reduce, strict):
 def test_chord_encode_fail():
     # Non-chord bass notes *must* be explicitly named as extensions when
     #   strict_bass_intervals == True
-    mir_eval.chord.encode(
-        "G:dim(4)/6", reduce_extended_chords=False, strict_bass_intervals=True
-    )
+    mir_eval.chord.encode("G:dim(4)/6", reduce_extended_chords=False, strict_bass_intervals=True)
 
 
 def test_encode_many():
@@ -237,9 +227,7 @@ def __check_not_comparable(metric, ref_label, est_label):
         UserWarning,
         match="No reference chords were comparable to estimated chords, returning 0.",
     ):
-        score = mir_eval.chord.weighted_accuracy(
-            metric([ref_label], [est_label]), np.array([1])
-        )
+        score = mir_eval.chord.weighted_accuracy(metric([ref_label], [est_label]), np.array([1]))
         # And confirm that the metric is 0
         assert np.allclose(score, 0)
 
@@ -471,9 +459,7 @@ def test_sevenths(ref_label, est_label, score):
     __check_one_metric(mir_eval.chord.sevenths, ref_label, est_label, score)
 
 
-@pytest.mark.parametrize(
-    "ref_label, est_label", [("C:sus2", "C:sus2/2"), ("C:hdim7", "C:hdim7"), ("X", "N")]
-)
+@pytest.mark.parametrize("ref_label, est_label", [("C:sus2", "C:sus2/2"), ("C:hdim7", "C:hdim7"), ("X", "N")])
 def test_sevenths_nocomp(ref_label, est_label):
     __check_not_comparable(mir_eval.chord.sevenths, ref_label, est_label)
 
@@ -491,9 +477,7 @@ def test_sevenths_inv(ref_label, est_label, score):
     __check_one_metric(mir_eval.chord.sevenths_inv, ref_label, est_label, score)
 
 
-@pytest.mark.parametrize(
-    "ref_label, est_label", [("C:dim7/b3", "C:dim7/b3"), ("X", "N")]
-)
+@pytest.mark.parametrize("ref_label, est_label", [("C:dim7/b3", "C:dim7/b3"), ("X", "N")])
 def test_sevenths_inv_nocomp(ref_label, est_label):
     __check_not_comparable(mir_eval.chord.sevenths_inv, ref_label, est_label)
 
@@ -568,9 +552,7 @@ def test_merge_chord_intervals():
 def test_weighted_accuracy():
     # First, test for a warning on empty beats
     with pytest.warns(UserWarning, match="No nonzero weights, returning 0"):
-        score = mir_eval.chord.weighted_accuracy(
-            np.array([1, 0, 1]), np.array([0, 0, 0])
-        )
+        score = mir_eval.chord.weighted_accuracy(np.array([1, 0, 1]), np.array([0, 0, 0]))
         # And that the metric is 0
         assert np.allclose(score, 0)
 
@@ -602,9 +584,7 @@ def test_chord_functions(chord_data):
     ref_intervals, ref_labels, est_intervals, est_labels, expected_scores = chord_data
 
     # Compute scores
-    scores = mir_eval.chord.evaluate(
-        ref_intervals, ref_labels, est_intervals, est_labels
-    )
+    scores = mir_eval.chord.evaluate(ref_intervals, ref_labels, est_intervals, est_labels)
     # Compare them
     assert scores.keys() == expected_scores.keys()
     for metric in scores:
@@ -613,10 +593,7 @@ def test_chord_functions(chord_data):
 
 def test_quality_to_bitmap():
     # Test simple case
-    assert np.all(
-        mir_eval.chord.quality_to_bitmap("maj")
-        == np.array([1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0])
-    )
+    assert np.all(mir_eval.chord.quality_to_bitmap("maj") == np.array([1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]))
 
 
 @pytest.mark.xfail(raises=mir_eval.chord.InvalidChordException)

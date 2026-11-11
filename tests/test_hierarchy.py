@@ -44,9 +44,7 @@ def test_tmeasure_warning():
 
     ref = [np.asarray(_) for _ in ref]
 
-    with pytest.warns(
-        UserWarning, match="Segment hierarchy is inconsistent at level 1"
-    ):
+    with pytest.warns(UserWarning, match="Segment hierarchy is inconsistent at level 1"):
         mir_eval.hierarchy.tmeasure(ref, ref)
 
 
@@ -102,17 +100,13 @@ def test_lmeasure_pass(frame_size):
     est_lab = ref_lab[:1]
 
     # The estimate should get 0 score here
-    scores = mir_eval.hierarchy.lmeasure(
-        ref, ref_lab, est, est_lab, frame_size=frame_size
-    )
+    scores = mir_eval.hierarchy.lmeasure(ref, ref_lab, est, est_lab, frame_size=frame_size)
 
     for k in scores:
         assert k == 0.0
 
     # The reference should get a perfect score here
-    scores = mir_eval.hierarchy.lmeasure(
-        ref, ref_lab, ref, ref_lab, frame_size=frame_size
-    )
+    scores = mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab, frame_size=frame_size)
 
     for k in scores:
         assert k == 1.0
@@ -125,9 +119,7 @@ def test_lmeasure_warning():
     ref = [np.asarray(_) for _ in ref]
     ref_lab = [["a", "b"], ["A"]]
 
-    with pytest.warns(
-        UserWarning, match="Segment hierarchy is inconsistent at level 1"
-    ):
+    with pytest.warns(UserWarning, match="Segment hierarchy is inconsistent at level 1"):
         mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab)
 
 
@@ -202,9 +194,7 @@ def test_hierarchy_regression(hierarchy_outcomes):
     est_ints = [seg[0] for seg in est_hier]
     est_labs = [seg[1] for seg in est_hier]
 
-    outputs = mir_eval.hierarchy.evaluate(
-        ref_ints, ref_labs, est_ints, est_labs, window=window
-    )
+    outputs = mir_eval.hierarchy.evaluate(ref_ints, ref_labs, est_ints, est_labs, window=window)
 
     assert outputs.keys() == expected_scores.keys()
     for key in expected_scores:

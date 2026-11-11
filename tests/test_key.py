@@ -29,9 +29,7 @@ file_sets = list(zip(ref_files, est_files, sco_files))
     "good_key",
     ["C major", "c major", "C# major", "Bb minor", "db minor", "X", "x", "C other"],
 )
-@pytest.mark.parametrize(
-    "bad_key", ["C maj", "Cb major", "C", "K major", "F## minor" "X other", "x minor"]
-)
+@pytest.mark.parametrize("bad_key", ["C maj", "Cb major", "C", "K major", "F## minorX other", "x minor"])
 def test_key_function_fail(good_key, bad_key):
     score = mir_eval.key.weighted_score(good_key, good_key)
     assert score == 1.0

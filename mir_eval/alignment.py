@@ -47,7 +47,6 @@ References
 
 """
 
-
 import numpy as np
 from scipy.stats import skewnorm
 
@@ -67,24 +66,16 @@ def validate(reference_timestamps: np.ndarray, estimated_timestamps: np.ndarray)
     """
     # We need to have 1D numpy arrays
     if not isinstance(reference_timestamps, np.ndarray):
-        raise ValueError(
-            "Reference timestamps need to be a numpy array, but got"
-            f" {type(reference_timestamps)}"
-        )
+        raise ValueError(f"Reference timestamps need to be a numpy array, but got {type(reference_timestamps)}")
     if not isinstance(estimated_timestamps, np.ndarray):
-        raise ValueError(
-            "Estimated timestamps need to be a numpy array, but got"
-            f" {type(estimated_timestamps)}"
-        )
+        raise ValueError(f"Estimated timestamps need to be a numpy array, but got {type(estimated_timestamps)}")
     if reference_timestamps.ndim != 1:
         raise ValueError(
-            "Reference timestamps need to be a one-dimensional vector, but got"
-            f" {reference_timestamps.ndim} dimensions"
+            f"Reference timestamps need to be a one-dimensional vector, but got {reference_timestamps.ndim} dimensions"
         )
     if estimated_timestamps.ndim != 1:
         raise ValueError(
-            "Estimated timestamps need to be a one-dimensional vector, but got"
-            f" {estimated_timestamps.ndim} dimensions"
+            f"Estimated timestamps need to be a one-dimensional vector, but got {estimated_timestamps.ndim} dimensions"
         )
 
     # If reference or estimated timestamps are empty, cannot compute metric
@@ -170,9 +161,7 @@ def percentage_correct(reference_timestamps, estimated_timestamps, window=0.3):
     return np.mean(deviations <= window)
 
 
-def percentage_correct_segments(
-    reference_timestamps, estimated_timestamps, duration: float | None = None
-):
+def percentage_correct_segments(reference_timestamps, estimated_timestamps, duration: float | None = None):
     """Calculate the percentage of correct segments (PCS) metric.
 
     It constructs segments out of predicted and estimated timestamps separately
@@ -223,9 +212,7 @@ def percentage_correct_segments(
     if duration is not None:
         duration = float(duration)
         if duration <= 0:
-            raise ValueError(
-                f"Positive duration needs to be provided, but got {duration}"
-            )
+            raise ValueError(f"Positive duration needs to be provided, but got {duration}")
         if np.max(reference_timestamps) > duration:
             raise ValueError(
                 "Expected largest reference timestamp"
@@ -248,10 +235,7 @@ def percentage_correct_segments(
         # Ignore regions before start and after end reference timestamp
         duration = reference_timestamps[-1] - reference_timestamps[0]
         if duration <= 0:
-            raise ValueError(
-                "Reference timestamps are all identical, can not compute PCS"
-                " metric!"
-            )
+            raise ValueError("Reference timestamps are all identical, can not compute PCS metric!")
 
         ref_starts = reference_timestamps[:-1]
         ref_ends = reference_timestamps[1:]
@@ -300,9 +284,7 @@ def karaoke_perceptual_metric(reference_timestamps, estimated_timestamps):
     localisation = -0.22270315
     scale = 0.29779424
     normalisation_factor = 1.6857
-    perceptual_scores = (1.0 / normalisation_factor) * skewnorm.pdf(
-        offsets, skewness, loc=localisation, scale=scale
-    )
+    perceptual_scores = (1.0 / normalisation_factor) * skewnorm.pdf(offsets, skewness, loc=localisation, scale=scale)
 
     return np.mean(perceptual_scores)
 
@@ -336,20 +318,14 @@ def evaluate(reference_timestamps, estimated_timestamps, **kwargs):
     # Compute all metrics
     scores = {}
 
-    scores["pc"] = filter_kwargs(
-        percentage_correct, reference_timestamps, estimated_timestamps, **kwargs
-    )
-    scores["mae"], scores["aae"] = absolute_error(
-        reference_timestamps, estimated_timestamps
-    )
+    scores["pc"] = filter_kwargs(percentage_correct, reference_timestamps, estimated_timestamps, **kwargs)
+    scores["mae"], scores["aae"] = absolute_error(reference_timestamps, estimated_timestamps)
     scores["pcs"] = filter_kwargs(
         percentage_correct_segments,
         reference_timestamps,
         estimated_timestamps,
         **kwargs,
     )
-    scores["perceptual"] = karaoke_perceptual_metric(
-        reference_timestamps, estimated_timestamps
-    )
+    scores["perceptual"] = karaoke_perceptual_metric(reference_timestamps, estimated_timestamps)
 
     return scores

@@ -87,15 +87,9 @@ def validate(
     transcription.validate(ref_intervals, ref_pitches, est_intervals, est_pitches)
     # Check that velocities have the same length as intervals/pitches
     if not ref_velocities.shape[0] == ref_pitches.shape[0]:
-        raise ValueError(
-            "Reference velocities must have the same length as "
-            "pitches and intervals."
-        )
+        raise ValueError("Reference velocities must have the same length as pitches and intervals.")
     if not est_velocities.shape[0] == est_pitches.shape[0]:
-        raise ValueError(
-            "Estimated velocities must have the same length as "
-            "pitches and intervals."
-        )
+        raise ValueError("Estimated velocities must have the same length as pitches and intervals.")
     # Check that the velocities are positive
     if ref_velocities.size > 0 and np.min(ref_velocities) < 0:
         raise ValueError("Reference velocities must be positive.")
@@ -364,22 +358,12 @@ def precision_recall_f1_overlap(
     recall = float(len(matching)) / len(ref_pitches)
     f_measure = util.f_measure(precision, recall, beta=beta)
 
-    avg_overlap_ratio = transcription.average_overlap_ratio(
-        ref_intervals, est_intervals, matching
-    )
+    avg_overlap_ratio = transcription.average_overlap_ratio(ref_intervals, est_intervals, matching)
 
     return precision, recall, f_measure, avg_overlap_ratio
 
 
-def evaluate(
-    ref_intervals,
-    ref_pitches,
-    ref_velocities,
-    est_intervals,
-    est_pitches,
-    est_velocities,
-    **kwargs
-):
+def evaluate(ref_intervals, ref_pitches, ref_velocities, est_intervals, est_pitches, est_velocities, **kwargs):
     """Compute all metrics for the given reference and estimated annotations.
 
     Examples
@@ -437,7 +421,7 @@ def evaluate(
             est_intervals,
             est_pitches,
             est_velocities,
-            **kwargs
+            **kwargs,
         )
 
     # Precision, recall and f-measure NOT taking note offsets into account
@@ -455,7 +439,7 @@ def evaluate(
         est_intervals,
         est_pitches,
         est_velocities,
-        **kwargs
+        **kwargs,
     )
 
     return scores

@@ -121,9 +121,7 @@ def test_beat_functions(beat_data):
 def test_goto_proportion_correct():
     # This covers the case when over 75% of the beat tracking is correct, and
     # more than 3 beats are incorrect
-    assert mir_eval.beat.goto(
-        np.arange(100), np.append(np.arange(80), np.arange(80, 100) + 0.2)
-    )
+    assert mir_eval.beat.goto(np.arange(100), np.append(np.arange(80), np.arange(80, 100) + 0.2))
 
 
 @pytest.mark.parametrize(
@@ -142,9 +140,5 @@ def test_warning_on_one_beat(metric):
 
 def test_continuity_edge_cases():
     # There is some special-case logic for when there are few beats
-    assert np.allclose(
-        mir_eval.beat.continuity(np.array([6.0, 6.0]), np.array([6.0, 7.0])), 0.0
-    )
-    assert np.allclose(
-        mir_eval.beat.continuity(np.array([6.0, 6.0]), np.array([6.5, 7.0])), 0.0
-    )
+    assert np.allclose(mir_eval.beat.continuity(np.array([6.0, 6.0]), np.array([6.0, 7.0])), 0.0)
+    assert np.allclose(mir_eval.beat.continuity(np.array([6.0, 6.0]), np.array([6.5, 7.0])), 0.0)

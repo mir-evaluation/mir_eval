@@ -114,9 +114,7 @@ def _get_reference_beat_variations(reference_beats):
     # Create annotations at twice the metric level
     interpolated_indices = np.arange(0, reference_beats.shape[0] - 0.5, 0.5)
     original_indices = np.arange(0, reference_beats.shape[0])
-    double_reference_beats = np.interp(
-        interpolated_indices, original_indices, reference_beats
-    )
+    double_reference_beats = np.interp(interpolated_indices, original_indices, reference_beats)
     # Return metric variations:
     # True, off-beat, double tempo, half tempo odd, and half tempo even
     return (
@@ -222,9 +220,7 @@ def cemgil(reference_beats, estimated_beats, cemgil_sigma=0.04):
     return accuracies[0], np.max(accuracies)
 
 
-def goto(
-    reference_beats, estimated_beats, goto_threshold=0.35, goto_mu=0.2, goto_sigma=0.2
-):
+def goto(reference_beats, estimated_beats, goto_threshold=0.35, goto_mu=0.2, goto_sigma=0.2):
     """Calculate Goto's score, a binary 1 or 0 depending on some specific
     heuristic criteria
 
@@ -279,9 +275,7 @@ def goto(
         # Window end - in the middle of the current beat and the next
         window_max = reference_beats[n] + next_interval
         # Get estimated beats in the window
-        beats_in_window = np.logical_and(
-            (estimated_beats >= window_min), (estimated_beats < window_max)
-        )
+        beats_in_window = np.logical_and((estimated_beats >= window_min), (estimated_beats < window_max))
         # False negative/positive
         if beats_in_window.sum() == 0 or beats_in_window.sum() > 1:
             paired[n] = 0
@@ -355,15 +349,9 @@ def p_score(reference_beats, estimated_beats, p_score_threshold=0.2):
     # Warn when only one beat is provided for either estimated or reference,
     # report a warning
     if reference_beats.size == 1:
-        warnings.warn(
-            "Only one reference beat was provided, so beat intervals"
-            " cannot be computed."
-        )
+        warnings.warn("Only one reference beat was provided, so beat intervals cannot be computed.")
     if estimated_beats.size == 1:
-        warnings.warn(
-            "Only one estimated beat was provided, so beat intervals"
-            " cannot be computed."
-        )
+        warnings.warn("Only one estimated beat was provided, so beat intervals cannot be computed.")
     # When estimated or reference beats have <= 1 beats, can't compute the
     # metric, so return 0
     if estimated_beats.size <= 1 or reference_beats.size <= 1:
@@ -375,9 +363,7 @@ def p_score(reference_beats, estimated_beats, p_score_threshold=0.2):
     estimated_beats = np.array(estimated_beats - offset)
     reference_beats = np.array(reference_beats - offset)
     # Get the largest time index
-    end_point = np.int64(
-        np.ceil(np.max([np.max(estimated_beats), np.max(reference_beats)]))
-    )
+    end_point = np.int64(np.ceil(np.max([np.max(estimated_beats), np.max(reference_beats)])))
     # Make impulse trains with impulses at beat locations
     reference_train = np.zeros(end_point * sampling_rate + 1)
     beat_indices = np.ceil(reference_beats * sampling_rate).astype(np.int64)
@@ -450,15 +436,9 @@ def continuity(
     # Warn when only one beat is provided for either estimated or reference,
     # report a warning
     if reference_beats.size == 1:
-        warnings.warn(
-            "Only one reference beat was provided, so beat intervals"
-            " cannot be computed."
-        )
+        warnings.warn("Only one reference beat was provided, so beat intervals cannot be computed.")
     if estimated_beats.size == 1:
-        warnings.warn(
-            "Only one estimated beat was provided, so beat intervals"
-            " cannot be computed."
-        )
+        warnings.warn("Only one estimated beat was provided, so beat intervals cannot be computed.")
     # When estimated or reference beats have <= 1 beats, can't compute the
     # metric, so return 0
     if estimated_beats.size <= 1 or reference_beats.size <= 1:
@@ -489,15 +469,11 @@ def continuity(
                     # How far is the estimated beat from the reference beat,
                     # relative to the inter-annotation-interval?
                     if nearest + 1 < reference_beats.shape[0]:
-                        reference_interval = (
-                            reference_beats[nearest + 1] - reference_beats[nearest]
-                        )
+                        reference_interval = reference_beats[nearest + 1] - reference_beats[nearest]
                     else:
                         # Special case when nearest + 1 is too large - use the
                         # previous interval instead
-                        reference_interval = (
-                            reference_beats[nearest] - reference_beats[nearest - 1]
-                        )
+                        reference_interval = reference_beats[nearest] - reference_beats[nearest - 1]
                     # Handle this special case when beats are not unique
                     if reference_interval == 0:
                         if min_difference == 0:
@@ -522,10 +498,7 @@ def continuity(
                             period = np.inf
                     else:
                         period = np.abs(1 - estimated_interval / reference_interval)
-                    if (
-                        phase < continuity_phase_threshold
-                        and period < continuity_period_threshold
-                    ):
+                    if phase < continuity_phase_threshold and period < continuity_period_threshold:
                         # Set this annotation as used
                         used_annotations[nearest] = 1
                         # This beat is matched
@@ -534,21 +507,14 @@ def continuity(
                 else:
                     # How far is the estimated beat from the reference beat,
                     # relative to the inter-annotation-interval?
-                    reference_interval = (
-                        reference_beats[nearest] - reference_beats[nearest - 1]
-                    )
+                    reference_interval = reference_beats[nearest] - reference_beats[nearest - 1]
                     phase = np.abs(min_difference / reference_interval)
                     # How close is the inter-beat-interval
                     # to the inter-annotation-interval?
                     estimated_interval = estimated_beats[m] - estimated_beats[m - 1]
-                    reference_interval = (
-                        reference_beats[nearest] - reference_beats[nearest - 1]
-                    )
+                    reference_interval = reference_beats[nearest] - reference_beats[nearest - 1]
                     period = np.abs(1 - estimated_interval / reference_interval)
-                    if (
-                        phase < continuity_phase_threshold
-                        and period < continuity_period_threshold
-                    ):
+                    if phase < continuity_phase_threshold and period < continuity_period_threshold:
                         # Set this annotation as used
                         used_annotations[nearest] = 1
                         # This beat is matched
@@ -610,21 +576,13 @@ def information_gain(reference_beats, estimated_beats, bins=41):
     # If an even number of bins is provided,
     # there will be no bin centered at zero, so warn the user.
     if not bins % 2:
-        warnings.warn(
-            "bins parameter is even, " "so there will not be a bin centered at zero."
-        )
+        warnings.warn("bins parameter is even, so there will not be a bin centered at zero.")
     # Warn when only one beat is provided for either estimated or reference,
     # report a warning
     if reference_beats.size == 1:
-        warnings.warn(
-            "Only one reference beat was provided, so beat intervals"
-            " cannot be computed."
-        )
+        warnings.warn("Only one reference beat was provided, so beat intervals cannot be computed.")
     if estimated_beats.size == 1:
-        warnings.warn(
-            "Only one estimated beat was provided, so beat intervals"
-            " cannot be computed."
-        )
+        warnings.warn("Only one estimated beat was provided, so beat intervals cannot be computed.")
     # When estimated or reference beats have <= 1 beats, can't compute the
     # metric, so return 0
     if estimated_beats.size <= 1 or reference_beats.size <= 1:
@@ -742,9 +700,7 @@ def evaluate(reference_beats, estimated_beats, **kwargs):
     scores = {}
 
     # F-Measure
-    scores["F-measure"] = util.filter_kwargs(
-        f_measure, reference_beats, estimated_beats, **kwargs
-    )
+    scores["F-measure"] = util.filter_kwargs(f_measure, reference_beats, estimated_beats, **kwargs)
 
     # Cemgil
     scores["Cemgil"], scores["Cemgil Best Metric Level"] = util.filter_kwargs(
@@ -752,14 +708,10 @@ def evaluate(reference_beats, estimated_beats, **kwargs):
     )
 
     # Goto
-    scores["Goto"] = util.filter_kwargs(
-        goto, reference_beats, estimated_beats, **kwargs
-    )
+    scores["Goto"] = util.filter_kwargs(goto, reference_beats, estimated_beats, **kwargs)
 
     # P-Score
-    scores["P-score"] = util.filter_kwargs(
-        p_score, reference_beats, estimated_beats, **kwargs
-    )
+    scores["P-score"] = util.filter_kwargs(p_score, reference_beats, estimated_beats, **kwargs)
 
     # Continuity metrics
     (
@@ -770,8 +722,6 @@ def evaluate(reference_beats, estimated_beats, **kwargs):
     ) = util.filter_kwargs(continuity, reference_beats, estimated_beats, **kwargs)
 
     # Information gain
-    scores["Information gain"] = util.filter_kwargs(
-        information_gain, reference_beats, estimated_beats, **kwargs
-    )
+    scores["Information gain"] = util.filter_kwargs(information_gain, reference_beats, estimated_beats, **kwargs)
 
     return scores

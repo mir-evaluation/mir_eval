@@ -120,15 +120,11 @@ def test_match_notes():
     ref_int, ref_pitch = REF[:, :2], REF[:, 2]
     est_int, est_pitch = EST[:, :2], EST[:, 2]
 
-    matching = mir_eval.transcription.match_notes(
-        ref_int, ref_pitch, est_int, est_pitch
-    )
+    matching = mir_eval.transcription.match_notes(ref_int, ref_pitch, est_int, est_pitch)
 
     assert matching == [(0, 0), (3, 3)]
 
-    matching = mir_eval.transcription.match_notes(
-        ref_int, ref_pitch, est_int, est_pitch, offset_ratio=None
-    )
+    matching = mir_eval.transcription.match_notes(ref_int, ref_pitch, est_int, est_pitch, offset_ratio=None)
 
     assert matching == [(0, 0), (1, 1), (3, 3)]
 
@@ -137,9 +133,7 @@ def test_match_notes_strict():
     ref_int, ref_pitch = np.array([[0, 1]]), np.array([100])
     est_int, est_pitch = np.array([[0.05, 1]]), np.array([100])
 
-    matching = mir_eval.transcription.match_notes(
-        ref_int, ref_pitch, est_int, est_pitch, strict=True
-    )
+    matching = mir_eval.transcription.match_notes(ref_int, ref_pitch, est_int, est_pitch, strict=True)
 
     assert matching == []
 
@@ -154,9 +148,7 @@ def test_precision_recall_f1_overlap():
         recall,
         f_measure,
         avg_overlap_ratio,
-    ) = mir_eval.transcription.precision_recall_f1_overlap(
-        ref_int, ref_pitch, est_int, est_pitch
-    )
+    ) = mir_eval.transcription.precision_recall_f1_overlap(ref_int, ref_pitch, est_int, est_pitch)
 
     scores_gen = np.array([precision, recall, f_measure, avg_overlap_ratio])
     scores_exp = np.array(
@@ -174,9 +166,7 @@ def test_precision_recall_f1_overlap():
         recall,
         f_measure,
         avg_overlap_ratio,
-    ) = mir_eval.transcription.precision_recall_f1_overlap(
-        ref_int, ref_pitch, est_int, est_pitch, offset_ratio=None
-    )
+    ) = mir_eval.transcription.precision_recall_f1_overlap(ref_int, ref_pitch, est_int, est_pitch, offset_ratio=None)
 
     scores_gen = np.array([precision, recall, f_measure, avg_overlap_ratio])
     scores_exp = np.array(
@@ -195,9 +185,7 @@ def test_onset_precision_recall_f1():
     ref_int = REF[:, :2]
     est_int = EST[:, :2]
 
-    precision, recall, f_measure = mir_eval.transcription.onset_precision_recall_f1(
-        ref_int, est_int
-    )
+    precision, recall, f_measure = mir_eval.transcription.onset_precision_recall_f1(ref_int, est_int)
 
     scores_gen = np.array([precision, recall, f_measure])
     scores_exp = np.array(
@@ -215,9 +203,7 @@ def test_offset_precision_recall_f1():
     ref_int = REF[:, :2]
     est_int = EST[:, :2]
 
-    precision, recall, f_measure = mir_eval.transcription.offset_precision_recall_f1(
-        ref_int, est_int
-    )
+    precision, recall, f_measure = mir_eval.transcription.offset_precision_recall_f1(ref_int, est_int)
 
     scores_gen = np.array([precision, recall, f_measure])
     scores_exp = np.array(
@@ -289,9 +275,7 @@ def test_precision_recall_f1_overlap_empty():
         recall,
         f1,
         avg_overlap_ratio,
-    ) = mir_eval.transcription.precision_recall_f1_overlap(
-        ref_int, ref_pitch, est_int, est_pitch
-    )
+    ) = mir_eval.transcription.precision_recall_f1_overlap(ref_int, ref_pitch, est_int, est_pitch)
 
     assert (precision, recall, f1) == (0, 0, 0)
 
@@ -300,9 +284,7 @@ def test_precision_recall_f1_overlap_empty():
         recall,
         f1,
         avg_overlap_ratio,
-    ) = mir_eval.transcription.precision_recall_f1_overlap(
-        est_int, est_pitch, ref_int, ref_pitch
-    )
+    ) = mir_eval.transcription.precision_recall_f1_overlap(est_int, est_pitch, ref_int, ref_pitch)
 
     assert (precision, recall, f1) == (0, 0, 0)
 
@@ -312,15 +294,11 @@ def test_onset_precision_recall_f1_empty():
     ref_int = np.empty(shape=(0, 2))
     est_int = np.array([[0, 1]])
 
-    precision, recall, f1 = mir_eval.transcription.onset_precision_recall_f1(
-        ref_int, est_int
-    )
+    precision, recall, f1 = mir_eval.transcription.onset_precision_recall_f1(ref_int, est_int)
 
     assert (precision, recall, f1) == (0, 0, 0)
 
-    precision, recall, f1 = mir_eval.transcription.onset_precision_recall_f1(
-        est_int, ref_int
-    )
+    precision, recall, f1 = mir_eval.transcription.onset_precision_recall_f1(est_int, ref_int)
 
     assert (precision, recall, f1) == (0, 0, 0)
 
@@ -330,14 +308,10 @@ def test_offset_precision_recall_f1_empty():
     ref_int = np.empty(shape=(0, 2))
     est_int = np.array([[0, 1]])
 
-    precision, recall, f1 = mir_eval.transcription.offset_precision_recall_f1(
-        ref_int, est_int
-    )
+    precision, recall, f1 = mir_eval.transcription.offset_precision_recall_f1(ref_int, est_int)
 
     assert (precision, recall, f1) == (0, 0, 0)
 
-    precision, recall, f1 = mir_eval.transcription.offset_precision_recall_f1(
-        est_int, ref_int
-    )
+    precision, recall, f1 = mir_eval.transcription.offset_precision_recall_f1(est_int, ref_int)
 
     assert (precision, recall, f1) == (0, 0, 0)

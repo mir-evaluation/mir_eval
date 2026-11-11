@@ -39,9 +39,7 @@ def segment_data(request):
     return ref_intervals, ref_labels, est_intervals, est_labels, expected_scores
 
 
-@pytest.mark.parametrize(
-    "metric", [mir_eval.segment.detection, mir_eval.segment.deviation]
-)
+@pytest.mark.parametrize("metric", [mir_eval.segment.detection, mir_eval.segment.deviation])
 def test_segment_boundary_empty(metric):
     with pytest.warns(UserWarning, match="Reference intervals are empty"):
         metric(np.zeros((0, 2)), np.array([[1, 2], [2, 3]]), trim=False)
@@ -58,9 +56,7 @@ def test_segment_boundary_empty(metric):
 
 
 @pytest.mark.xfail(raises=ValueError)
-@pytest.mark.parametrize(
-    "metric", [mir_eval.segment.detection, mir_eval.segment.deviation]
-)
+@pytest.mark.parametrize("metric", [mir_eval.segment.detection, mir_eval.segment.deviation])
 @pytest.mark.parametrize(
     "intervals",
     [
@@ -78,16 +74,12 @@ def test_segment_boundary_errors(metric, intervals):
 
 def test_segment_boundary_detection_perfect():
     correct_intervals = np.array([[0, 1], [1, 2]])
-    assert np.allclose(
-        mir_eval.segment.detection(correct_intervals, correct_intervals), 1
-    )
+    assert np.allclose(mir_eval.segment.detection(correct_intervals, correct_intervals), 1)
 
 
 def test_segment_boundary_deviation_perfect():
     correct_intervals = np.array([[0, 1], [1, 2]])
-    assert np.allclose(
-        mir_eval.segment.deviation(correct_intervals, correct_intervals), 0
-    )
+    assert np.allclose(mir_eval.segment.deviation(correct_intervals, correct_intervals), 0)
 
 
 @pytest.mark.parametrize(
@@ -186,9 +178,7 @@ def test_segment_structure_perfect(metric):
             [np.log(2), 1, 1],
         )
     else:
-        assert np.allclose(
-            metric(reference_intervals, labels, estimated_intervals, labels), 1
-        )
+        assert np.allclose(metric(reference_intervals, labels, estimated_intervals, labels), 1)
 
 
 @pytest.mark.parametrize("segment_data", file_sets, indirect=True)
@@ -196,9 +186,7 @@ def test_segment_functions(segment_data):
     ref_intervals, ref_labels, est_intervals, est_labels, expected_scores = segment_data
 
     # Compute scores
-    scores = mir_eval.segment.evaluate(
-        ref_intervals, ref_labels, est_intervals, est_labels
-    )
+    scores = mir_eval.segment.evaluate(ref_intervals, ref_labels, est_intervals, est_labels)
     assert scores.keys() == expected_scores.keys()
     for metric in scores:
         assert np.allclose(scores[metric], expected_scores[metric], atol=A_TOL)

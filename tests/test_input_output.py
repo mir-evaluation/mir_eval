@@ -113,9 +113,7 @@ def test_load_labeled_events():
 def test_load_intervals():
     # Test for a value error when invalid labeled events are supplied
     with tempfile.TemporaryFile("r+") as f:
-        with pytest.warns(
-            UserWarning, match="All interval durations must be strictly positive"
-        ):
+        with pytest.warns(UserWarning, match="All interval durations must be strictly positive"):
             # Non-increasing is invalid
             f.write("10 9\n9 10")
             f.seek(0)
@@ -127,9 +125,7 @@ def test_load_intervals():
 def test_load_labeled_intervals():
     # Test for a value error when invalid labeled events are supplied
     with tempfile.TemporaryFile("r+") as f:
-        with pytest.warns(
-            UserWarning, match="All interval durations must be strictly positive"
-        ):
+        with pytest.warns(UserWarning, match="All interval durations must be strictly positive"):
             # Non-increasing is invalid
             f.write("10 9 a\n9 10 b")
             f.seek(0)
@@ -142,9 +138,7 @@ def test_load_labeled_intervals():
 def test_load_valued_intervals():
     # Test for a value error when invalid valued events are supplied
     with tempfile.TemporaryFile("r+") as f:
-        with pytest.warns(
-            UserWarning, match="All interval durations must be strictly positive"
-        ):
+        with pytest.warns(UserWarning, match="All interval durations must be strictly positive"):
             # Non-increasing is invalid
             f.write("10 9 5\n9 10 6")
             f.seek(0)
@@ -180,9 +174,7 @@ def test_load_ragged_time_series():
     with tempfile.TemporaryFile("r+") as f:
         f.write("#comment\n0 1 2\n3 4\n# comment\n5 6 7")
         f.seek(0)
-        times, values = mir_eval.io.load_ragged_time_series(
-            f, int, header=False, comment="#"
-        )
+        times, values = mir_eval.io.load_ragged_time_series(f, int, header=False, comment="#")
         assert np.allclose(times, [0, 3, 5])
         assert np.allclose(values[0], [1, 2])
         assert np.allclose(values[1], [4])
@@ -219,6 +211,4 @@ def test_load_tempo_badweight():
 
 def test_load_bad_tempi():
     with pytest.warns(UserWarning, match="non-negative numbers"):
-        tempi, weight = mir_eval.io.load_tempo(
-            os.path.join(DATA_DIR, "tempo", "bad02.lab")
-        )
+        tempi, weight = mir_eval.io.load_tempo(os.path.join(DATA_DIR, "tempo", "bad02.lab"))

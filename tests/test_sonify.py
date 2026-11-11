@@ -116,9 +116,7 @@ def test_time_frequency_frequency():
 
 @pytest.mark.parametrize("fs", [8000, 44100])
 def test_chroma(fs):
-    signal = mir_eval.sonify.chroma(
-        np.random.standard_normal((12, 1000)), np.linspace(0, 10, 1000), fs
-    )
+    signal = mir_eval.sonify.chroma(np.random.standard_normal((12, 1000)), np.linspace(0, 10, 1000), fs)
     assert len(signal) == 10 * fs
     signal = mir_eval.sonify.chroma(
         np.random.standard_normal((12, 1000)),
@@ -132,9 +130,7 @@ def test_chroma(fs):
 @pytest.mark.parametrize("fs", [8000, 44100])
 def test_chords(fs):
     intervals = np.array([np.arange(10), np.arange(1, 11)]).T
-    signal = mir_eval.sonify.chords(
-        ["C", "C:maj", "D:min7", "E:min", "C#", "C", "C", "C", "C", "C"], intervals, fs
-    )
+    signal = mir_eval.sonify.chords(["C", "C:maj", "D:min7", "E:min", "C#", "C", "C", "C", "C", "C"], intervals, fs)
     assert len(signal) == 10 * fs
     signal = mir_eval.sonify.chords(
         ["C", "C:maj", "D:min7", "E:min", "C#", "C", "C", "C", "C", "C"],

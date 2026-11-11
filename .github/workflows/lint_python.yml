@@ -48,5 +48,8 @@ jobs:
     - name: Linting check
       run: ruff check --output-format=github mir_eval tests
 
+    - name: Formatting check
+      run: ruff format --check mir_eval tests
+
     - name: Docstring formatting check
       run: numpydoc lint mir_eval/*.py

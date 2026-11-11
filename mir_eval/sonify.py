@@ -61,9 +61,7 @@ def clicks(times, fs, click=None, length=None):
     return click_signal
 
 
-def time_frequency(
-    gram, frequencies, times, fs, function=np.sin, length=None, n_dec=1, threshold=0.01
-):
+def time_frequency(gram, frequencies, times, fs, function=np.sin, length=None, n_dec=1, threshold=0.01):
     r"""Reverse synthesis of a time-frequency representation of a signal
 
     Parameters
@@ -124,14 +122,10 @@ def time_frequency(
         times = np.vstack((times, [np.max(times), last_time_in_secs]))
 
     if times.shape[0] != gram.shape[1]:
-        raise ValueError(
-            f"times.shape={times.shape} is incompatible with gram.shape={gram.shape}"
-        )
+        raise ValueError(f"times.shape={times.shape} is incompatible with gram.shape={gram.shape}")
 
     if frequencies.shape[0] != gram.shape[0]:
-        raise ValueError(
-            f"frequencies.shape={frequencies.shape} is incompatible with gram.shape={gram.shape}"
-        )
+        raise ValueError(f"frequencies.shape={frequencies.shape} is incompatible with gram.shape={gram.shape}")
 
     padding = [0, 0]
     stacking = []
@@ -234,9 +228,7 @@ def _fast_synthesize(frequency, n_dec, fs, function, length):
     return long_signal.flat
 
 
-def pitch_contour(
-    times, frequencies, fs, amplitudes=None, function=np.sin, length=None, kind="linear"
-):
+def pitch_contour(times, frequencies, fs, amplitudes=None, function=np.sin, length=None, kind="linear"):
     r"""Sonify a pitch contour.
 
     Parameters
@@ -380,10 +372,7 @@ def chords(chord_labels, intervals, fs, **kwargs):
     # Convert from labels to chroma
     roots, interval_bitmaps, _ = chord.encode_many(chord_labels)
     chromagram = np.array(
-        [
-            np.roll(interval_bitmap, root)
-            for (interval_bitmap, root) in zip(interval_bitmaps, roots)
-        ]
+        [np.roll(interval_bitmap, root) for (interval_bitmap, root) in zip(interval_bitmaps, roots)]
     ).T
 
     return chroma(chromagram, intervals, fs, **kwargs)

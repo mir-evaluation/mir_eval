@@ -94,10 +94,7 @@ def load_delimited(filename, converters, delimiter=r"\s+", comment="#"):
 
             # Throw a helpful error if we got an unexpected # of columns
             if n_columns != len(data):
-                raise ValueError(
-                    f"Expected {n_columns} columns, got {len(data)} at "
-                    f"{filename}:{row:d}:\n\t{line}"
-                )
+                raise ValueError(f"Expected {n_columns} columns, got {len(data)} at {filename}:{row:d}:\n\t{line}")
 
             for value, column, converter in zip(data, columns, converters):
                 # Try converting the value, throw a helpful error on failure
@@ -187,9 +184,7 @@ def load_labeled_events(filename, delimiter=r"\s+", comment="#"):
 
     """
     # Use our universal function to load in the events
-    events, labels = load_delimited(
-        filename, [float, str], delimiter=delimiter, comment=comment
-    )
+    events, labels = load_delimited(filename, [float, str], delimiter=delimiter, comment=comment)
     events = np.array(events)
     # Validate them, but throw a warning in place of an error
     try:
@@ -228,9 +223,7 @@ def load_intervals(filename, delimiter=r"\s+", comment="#"):
 
     """
     # Use our universal function to load in the events
-    starts, ends = load_delimited(
-        filename, [float, float], delimiter=delimiter, comment=comment
-    )
+    starts, ends = load_delimited(filename, [float, float], delimiter=delimiter, comment=comment)
     # Stack into an interval matrix
     intervals = np.array([starts, ends]).T
     # Validate them, but throw a warning in place of an error
@@ -273,9 +266,7 @@ def load_labeled_intervals(filename, delimiter=r"\s+", comment="#"):
 
     """
     # Use our universal function to load in the events
-    starts, ends, labels = load_delimited(
-        filename, [float, float, str], delimiter=delimiter, comment=comment
-    )
+    starts, ends, labels = load_delimited(filename, [float, float, str], delimiter=delimiter, comment=comment)
     # Stack into an interval matrix
     intervals = np.array([starts, ends]).T
     # Validate them, but throw a warning in place of an error
@@ -316,9 +307,7 @@ def load_time_series(filename, delimiter=r"\s+", comment="#"):
 
     """
     # Use our universal function to load in the events
-    times, values = load_delimited(
-        filename, [float, float], delimiter=delimiter, comment=comment
-    )
+    times, values = load_delimited(filename, [float, float], delimiter=delimiter, comment=comment)
     times = np.array(times)
     values = np.array(values)
 
@@ -434,9 +423,7 @@ def load_valued_intervals(filename, delimiter=r"\s+", comment="#"):
 
     """
     # Use our universal function to load in the events
-    starts, ends, values = load_delimited(
-        filename, [float, float, float], delimiter=delimiter, comment=comment
-    )
+    starts, ends, values = load_delimited(filename, [float, float, float], delimiter=delimiter, comment=comment)
     # Stack into an interval matrix
     intervals = np.array([starts, ends]).T
     # Validate them, but throw a warning in place of an error
@@ -479,9 +466,7 @@ def load_key(filename, delimiter=r"\s+", comment="#"):
 
     """
     # Use our universal function to load the key and mode strings
-    scale, mode = load_delimited(
-        filename, [str, str], delimiter=delimiter, comment=comment
-    )
+    scale, mode = load_delimited(filename, [str, str], delimiter=delimiter, comment=comment)
     if len(scale) != 1:
         raise ValueError("Key file should contain only one line.")
     scale, mode = scale[0], mode[0]
@@ -526,9 +511,7 @@ def load_tempo(filename, delimiter=r"\s+", comment="#"):
         The relative importance of ``tempi[0]`` compared to ``tempi[1]``
     """
     # Use our universal function to load the key and mode strings
-    t1, t2, weight = load_delimited(
-        filename, [float, float, float], delimiter=delimiter, comment=comment
-    )
+    t1, t2, weight = load_delimited(filename, [float, float, float], delimiter=delimiter, comment=comment)
 
     weight = weight[0]
     tempi = np.concatenate([t1, t2])
@@ -548,9 +531,7 @@ def load_tempo(filename, delimiter=r"\s+", comment="#"):
     return tempi, weight
 
 
-def load_ragged_time_series(
-    filename, dtype=float, delimiter=r"\s+", header=False, comment="#"
-):
+def load_ragged_time_series(filename, dtype=float, delimiter=r"\s+", header=False, comment="#"):
     r"""Load data from a delimited time series annotation file with
     a variable number of columns.
 
@@ -626,8 +607,7 @@ def load_ragged_time_series(
                 converted_time = float(data[0])
             except (TypeError, ValueError) as exe:
                 raise ValueError(
-                    f"Couldn't convert value {data[0]} using {float.__name__} "
-                    f"found at {filename}:{row:d}:\n\t{line}"
+                    f"Couldn't convert value {data[0]} using {float.__name__} found at {filename}:{row:d}:\n\t{line}"
                 ) from exe
             times.append(converted_time)
 
@@ -637,8 +617,7 @@ def load_ragged_time_series(
                 converted_value = np.array(data[1:], dtype=dtype)
             except (TypeError, ValueError) as exe:
                 raise ValueError(
-                    f"Couldn't convert value {data[1:]} using {dtype.__name__} "
-                    f"found at {filename}:{row:d}:\n\t{line}"
+                    f"Couldn't convert value {data[1:]} using {dtype.__name__} found at {filename}:{row:d}:\n\t{line}"
                 ) from exe
             values.append(converted_value)
 

@@ -54,24 +54,16 @@ def validate_key(key):
         Key to verify
     """
     if len(key.split()) != 2 and not (len(key.split()) and key.lower() == "x"):
-        raise ValueError(f"'{key}' is not in the form '(key) (mode)' " "or 'X'")
+        raise ValueError(f"'{key}' is not in the form '(key) (mode)' or 'X'")
     if key.lower() != "x":
         key, mode = key.split()
 
         if key.lower() == "x":
-            raise ValueError(
-                f"Mode {mode} is invalid; 'X' (Uncategorized) "
-                "doesn't have mode"
-            )
+            raise ValueError(f"Mode {mode} is invalid; 'X' (Uncategorized) doesn't have mode")
         if key.lower() not in KEY_TO_SEMITONE:
-            raise ValueError(
-                f"Key {key} is invalid; should be e.g. D or C# or Eb or "
-                "X (Uncategorized)"
-            )
+            raise ValueError(f"Key {key} is invalid; should be e.g. D or C# or Eb or X (Uncategorized)")
         if mode not in ["major", "minor", "other"]:
-            raise ValueError(
-                f"Mode '{mode}' is invalid; must be 'major', 'minor' or 'other'"
-            )
+            raise ValueError(f"Mode '{mode}' is invalid; must be 'major', 'minor' or 'other'")
 
 
 def validate(reference_key, estimated_key):
@@ -182,23 +174,13 @@ def weighted_score(reference_key, estimated_key, allow_descending_fifths=False):
     if estimated_mode == reference_mode and (estimated_key - reference_key) % 12 == 7:
         return 0.5
     # If keys are the same mode and a perfect fifth down (7 semitones)
-    if (
-        allow_descending_fifths
-        and estimated_mode == reference_mode
-        and (reference_key - estimated_key) % 12 == 7
-    ):
+    if allow_descending_fifths and estimated_mode == reference_mode and (reference_key - estimated_key) % 12 == 7:
         return 0.5
     # Estimated key is relative minor of reference key (9 semitones)
-    if (
-        estimated_mode != reference_mode == "major"
-        and (estimated_key - reference_key) % 12 == 9
-    ):
+    if estimated_mode != reference_mode == "major" and (estimated_key - reference_key) % 12 == 9:
         return 0.3
     # Estimated key is relative major of reference key (3 semitones)
-    if (
-        estimated_mode != reference_mode == "minor"
-        and (estimated_key - reference_key) % 12 == 3
-    ):
+    if estimated_mode != reference_mode == "minor" and (estimated_key - reference_key) % 12 == 3:
         return 0.3
     # If keys are in different modes and parallel (same key name)
     if estimated_mode != reference_mode and reference_key == estimated_key:

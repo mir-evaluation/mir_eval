@@ -312,7 +312,7 @@ def adjust_intervals(
     # When intervals are empty and either t_min or t_max are not supplied,
     # we can't append new intervals
     elif (t_min is None or t_max is None) and intervals.size == 0:
-        raise ValueError("Supplied intervals are empty, can't append new" " intervals")
+        raise ValueError("Supplied intervals are empty, can't append new intervals")
 
     if t_min is not None:
         # Find the intervals that end at or after t_min
@@ -507,10 +507,7 @@ def merge_labeled_intervals(x_intervals, x_labels, y_intervals, y_labels):
         x_intervals[-1, 1] == y_intervals[-1, 1],
     ]
     if False in align_check:
-        raise ValueError(
-            "Time intervals do not align; did you mean to call "
-            "'adjust_intervals()' first?"
-        )
+        raise ValueError("Time intervals do not align; did you mean to call 'adjust_intervals()' first?")
     time_boundaries = np.unique(np.concatenate([x_intervals, y_intervals], axis=0))
     output_intervals = np.array([time_boundaries[:-1], time_boundaries[1:]]).T
 
@@ -746,10 +743,7 @@ def validate_intervals(intervals):
     """
     # Validate interval shape
     if intervals.ndim != 2 or intervals.shape[1] != 2:
-        raise ValueError(
-            "Intervals should be n-by-2 numpy ndarray, "
-            f"but shape={intervals.shape}"
-        )
+        raise ValueError(f"Intervals should be n-by-2 numpy ndarray, but shape={intervals.shape}")
 
     # Make sure no times are negative
     if (intervals < 0).any():
@@ -782,10 +776,7 @@ def validate_events(events, max_time=30000.0):
         )
     # Make sure event locations are 1-d np ndarrays
     if events.ndim != 1:
-        raise ValueError(
-            "Event times should be 1-d numpy ndarray, "
-            f"but shape={events.shape}"
-        )
+        raise ValueError(f"Event times should be 1-d numpy ndarray, but shape={events.shape}")
     # Make sure event times are increasing
     if (np.diff(events) < 0).any():
         raise ValueError("Events should be in increasing order.")
@@ -829,10 +820,7 @@ def validate_frequencies(frequencies, max_freq, min_freq, allow_negatives=False)
         )
     # Make sure frequency values are 1-d np ndarrays
     if frequencies.ndim != 1:
-        raise ValueError(
-            "Frequencies should be 1-d numpy ndarray, "
-            f"but shape={frequencies.shape}"
-        )
+        raise ValueError(f"Frequencies should be 1-d numpy ndarray, but shape={frequencies.shape}")
 
 
 def has_kwargs(function):
@@ -880,9 +868,7 @@ def filter_kwargs(_function, *args, **kwargs):
     # Get the list of function parameters
     parameters = inspect.signature(_function).parameters
     # Construct a dict of those kwargs which appear in the function
-    filtered_kwargs = {
-        kwarg: value for kwarg, value in kwargs.items() if kwarg in parameters
-    }
+    filtered_kwargs = {kwarg: value for kwarg, value in kwargs.items() if kwarg in parameters}
     # Call the function with the supplied args and the filtered kwarg dict
     return _function(*args, **filtered_kwargs)
 

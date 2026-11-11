@@ -16,9 +16,7 @@ def test_interpolate_intervals():
     intervals = np.array([(n, n + 1.0) for n in range(len(labels))])
     time_points = [-1.0, 0.1, 0.9, 1.0, 2.3, 4.0]
     expected_ans = ["N", "a", "a", "b", "c", "N"]
-    assert (
-        util.interpolate_intervals(intervals, labels, time_points, "N") == expected_ans
-    )
+    assert util.interpolate_intervals(intervals, labels, time_points, "N") == expected_ans
 
 
 def test_interpolate_intervals_gap():
@@ -27,9 +25,7 @@ def test_interpolate_intervals_gap():
     intervals = np.array([[0.5, 1.0], [1.5, 2.0], [2.5, 3.0]])
     time_points = [0.0, 0.75, 1.25, 1.75, 2.25, 2.75, 3.5]
     expected_ans = ["N", "a", "N", "b", "N", "c", "N"]
-    assert (
-        util.interpolate_intervals(intervals, labels, time_points, "N") == expected_ans
-    )
+    assert util.interpolate_intervals(intervals, labels, time_points, "N") == expected_ans
 
 
 @pytest.mark.xfail(raises=ValueError)
@@ -52,17 +48,13 @@ def test_intervals_to_samples():
 
     expected_times = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5]
     expected_labels = ["a", "a", "b", "b", "c", "c"]
-    result = util.intervals_to_samples(
-        intervals, labels, offset=0, sample_size=0.5, fill_value="N"
-    )
+    result = util.intervals_to_samples(intervals, labels, offset=0, sample_size=0.5, fill_value="N")
     assert result[0] == expected_times
     assert result[1] == expected_labels
 
     expected_times = [0.25, 0.75, 1.25, 1.75, 2.25, 2.75]
     expected_labels = ["a", "a", "b", "b", "c", "c"]
-    result = util.intervals_to_samples(
-        intervals, labels, offset=0.25, sample_size=0.5, fill_value="N"
-    )
+    result = util.intervals_to_samples(intervals, labels, offset=0.25, sample_size=0.5, fill_value="N")
     assert result[0] == expected_times
     assert result[1] == expected_labels
 
@@ -96,9 +88,7 @@ def test_merge_labeled_intervals():
     ]
     expected_x_labels = ["A", "B", "B", "B", "C", "D", "D"]
     expected_y_labels = [0, 0, 1, 2, 2, 2, 3]
-    new_intvs, new_x_labels, new_y_labels = util.merge_labeled_intervals(
-        x_intvs, x_labels, y_intvs, y_labels
-    )
+    new_intvs, new_x_labels, new_y_labels = util.merge_labeled_intervals(x_intvs, x_labels, y_intvs, y_labels)
 
     assert new_x_labels == expected_x_labels
     assert new_y_labels == expected_y_labels
@@ -212,9 +202,7 @@ def test_match_events():
     ref = [1.0, 2.0, 3.0, 11.9]
     est = [1.1, 6.0, 1.9, 5.0, 10.0, 0.0]
     expected = [(0, 0), (1, 2), (3, 5)]
-    actual = mir_eval.util.match_events(
-        ref, est, 0.5, distance=mir_eval.util._outer_distance_mod_n
-    )
+    actual = mir_eval.util.match_events(ref, est, 0.5, distance=mir_eval.util._outer_distance_mod_n)
     assert actual == expected
 
 
@@ -395,4 +383,3 @@ def test_deprecated():
         res = dummy_func(2, y=3)
 
     assert res == 5
-

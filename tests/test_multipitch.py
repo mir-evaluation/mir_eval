@@ -93,9 +93,7 @@ def test_resample_multif0():
     actual_freqs1 = mir_eval.multipitch.resample_multipitch(times, freqs, target_times1)
     actual_freqs2 = mir_eval.multipitch.resample_multipitch(times, freqs, target_times2)
     actual_freqs3 = mir_eval.multipitch.resample_multipitch(times, freqs, target_times3)
-    actual_freqs4 = mir_eval.multipitch.resample_multipitch(
-        empty_times, empty_freqs, target_times1
-    )
+    actual_freqs4 = mir_eval.multipitch.resample_multipitch(empty_times, empty_freqs, target_times1)
 
     assert __frequencies_equal(actual_freqs1, expected_freqs1)
     assert __frequencies_equal(actual_freqs2, expected_freqs2)
@@ -183,9 +181,7 @@ def test_compute_num_true_positives():
         np.array([0.2, 11.5]),
     ]
     expected = np.array([1, 0, 0, 3, 2])
-    actual = mir_eval.multipitch.compute_num_true_positives(
-        ref_freqs_chroma, est_freqs_chroma, chroma=True
-    )
+    actual = mir_eval.multipitch.compute_num_true_positives(ref_freqs_chroma, est_freqs_chroma, chroma=True)
     assert np.allclose(actual, expected, atol=A_TOL)
 
 
@@ -328,8 +324,6 @@ def unit_test_metrics():
 def test_evaluate_regression(multipitch_data):
     ref_times, ref_freqs, est_times, est_freqs, expected_score = multipitch_data
 
-    actual_score = mir_eval.multipitch.evaluate(
-        ref_times, ref_freqs, est_times, est_freqs
-    )
+    actual_score = mir_eval.multipitch.evaluate(ref_times, ref_freqs, est_times, est_freqs)
 
     assert __scores_equal(actual_score, expected_score)

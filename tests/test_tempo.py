@@ -48,9 +48,7 @@ def test_zero_tolerance_pass():
     good_est = np.array([120, 180])
     zero_tol = 0.0
 
-    with pytest.warns(
-        UserWarning, match="A tolerance of 0.0 may not lead to the results you expect"
-    ):
+    with pytest.warns(UserWarning, match="A tolerance of 0.0 may not lead to the results you expect"):
         mir_eval.tempo.detection(good_ref, good_weight, good_est, tol=zero_tol)
 
 

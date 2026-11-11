@@ -124,3 +124,31 @@ jobs:
           fail_ci_if_error: false
           verbose: true
           name: codecov-umbrella
+
+  sdist:
+    name: "Build and verify sdist"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Build sdist
+        run: uv build --sdist
+
+      - name: Twine check
+        run: uvx twine check dist/*
+
+      - name: Test sdist install
+        run: |
+          uv venv .test_venv
+          uv pip install --python .test_venv dist/*.tar.gz
+          uv run --python .test_venv python -c "import mir_eval; print(mir_eval.__version__)"

@@ -94,9 +94,7 @@ def test_display_labeled_intervals_noextend():
     # Plot the chords with nothing fancy
     ax = plt.axes()
     ax.set_yticklabels([])
-    mir_eval.display.labeled_intervals(
-        intervals, labels, label_set=[], extend_labels=False, ax=ax
-    )
+    mir_eval.display.labeled_intervals(intervals, labels, label_set=[], extend_labels=False, ax=ax)
     return plt.gcf()
 
 
@@ -114,9 +112,7 @@ def test_display_labeled_intervals_compare():
     est_int, est_labels = load_labeled_intervals(d_path("chord", "est01.lab"))
 
     # Plot reference and estimates using label set extension
-    mir_eval.display.labeled_intervals(
-        ref_int, ref_labels, alpha=0.5, label="Reference"
-    )
+    mir_eval.display.labeled_intervals(ref_int, ref_labels, alpha=0.5, label="Reference")
     mir_eval.display.labeled_intervals(est_int, est_labels, alpha=0.5, label="Estimate")
 
     plt.legend(loc="upper right")
@@ -137,12 +133,8 @@ def test_display_labeled_intervals_compare_noextend():
     est_int, est_labels = load_labeled_intervals(d_path("chord", "est01.lab"))
 
     # Plot reference and estimate, but only use the reference labels
-    mir_eval.display.labeled_intervals(
-        ref_int, ref_labels, alpha=0.5, label="Reference"
-    )
-    mir_eval.display.labeled_intervals(
-        est_int, est_labels, extend_labels=False, alpha=0.5, label="Estimate"
-    )
+    mir_eval.display.labeled_intervals(ref_int, ref_labels, alpha=0.5, label="Reference")
+    mir_eval.display.labeled_intervals(est_int, est_labels, extend_labels=False, alpha=0.5, label="Estimate")
 
     plt.legend(loc="upper right")
     return plt.gcf()
@@ -164,12 +156,8 @@ def test_display_labeled_intervals_compare_common():
     label_set = list(sorted(set(ref_labels) | set(est_labels)))
 
     # Plot reference and estimate with a common label set
-    mir_eval.display.labeled_intervals(
-        ref_int, ref_labels, label_set=label_set, alpha=0.5, label="Reference"
-    )
-    mir_eval.display.labeled_intervals(
-        est_int, est_labels, label_set=label_set, alpha=0.5, label="Estimate"
-    )
+    mir_eval.display.labeled_intervals(ref_int, ref_labels, label_set=label_set, alpha=0.5, label="Reference")
+    mir_eval.display.labeled_intervals(est_int, est_labels, label_set=label_set, alpha=0.5, label="Estimate")
 
     plt.legend(loc="upper right")
     return plt.gcf()
@@ -332,9 +320,7 @@ def test_display_piano_roll():
     est_t, est_p = load_valued_intervals(d_path("transcription", "est04.txt"))
 
     mir_eval.display.piano_roll(ref_t, ref_p, label="Reference", alpha=0.5)
-    mir_eval.display.piano_roll(
-        est_t, est_p, label="Estimate", alpha=0.5, facecolor="r"
-    )
+    mir_eval.display.piano_roll(est_t, est_p, label="Estimate", alpha=0.5, facecolor="r")
 
     plt.legend(loc="upper right")
     return plt.gcf()
@@ -355,9 +341,7 @@ def test_display_piano_roll_midi():
     ref_midi = mir_eval.util.hz_to_midi(ref_p)
     est_midi = mir_eval.util.hz_to_midi(est_p)
     mir_eval.display.piano_roll(ref_t, midi=ref_midi, label="Reference", alpha=0.5)
-    mir_eval.display.piano_roll(
-        est_t, midi=est_midi, label="Estimate", alpha=0.5, facecolor="r"
-    )
+    mir_eval.display.piano_roll(est_t, midi=est_midi, label="Estimate", alpha=0.5, facecolor="r")
 
     plt.legend(loc="upper right")
     return plt.gcf()
@@ -469,13 +453,9 @@ def test_display_chord():
             else:
                 labels.append(q)
         # Draw it in fifths mode with patterns
-        mir_eval.display.chords(
-            intervals, labels, ax=ax[i, 0], cmap="fifths", pattern=True
-        )
+        mir_eval.display.chords(intervals, labels, ax=ax[i, 0], cmap="fifths", pattern=True)
         # And pitches mode without patterns
-        mir_eval.display.chords(
-            intervals, labels, ax=ax[i, 1], cmap="pitch", pattern=False
-        )
+        mir_eval.display.chords(intervals, labels, ax=ax[i, 1], cmap="pitch", pattern=False)
         ax[i, 0].set(yticks=[], ylabel=root)
         ax[i, 1].set(yticks=[], ylabel=root)
         ax[i, 1].yaxis.tick_right()
