@@ -47,7 +47,6 @@ References
 
 """
 
-from typing import Optional
 
 import numpy as np
 from scipy.stats import skewnorm
@@ -119,7 +118,7 @@ def absolute_error(reference_timestamps, estimated_timestamps):
     --------
     >>> reference_timestamps = mir_eval.io.load_events('reference.txt')
     >>> estimated_timestamps = mir_eval.io.load_events('estimated.txt')
-    >>> mae, aae = mir_eval.align.absolute_error(reference_onsets, estimated_timestamps)
+    >>> mae, aae = mir_eval.alignment.absolute_error(reference_timestamps, estimated_timestamps)
 
     Parameters
     ----------
@@ -149,7 +148,7 @@ def percentage_correct(reference_timestamps, estimated_timestamps, window=0.3):
     --------
     >>> reference_timestamps = mir_eval.io.load_events('reference.txt')
     >>> estimated_timestamps = mir_eval.io.load_events('estimated.txt')
-    >>> pc = mir_eval.align.percentage_correct(reference_onsets, estimated_timestamps, window=0.2)
+    >>> pc = mir_eval.alignment.percentage_correct(reference_timestamps, estimated_timestamps, window=0.2)
 
     Parameters
     ----------
@@ -172,7 +171,7 @@ def percentage_correct(reference_timestamps, estimated_timestamps, window=0.3):
 
 
 def percentage_correct_segments(
-    reference_timestamps, estimated_timestamps, duration: Optional[float] = None
+    reference_timestamps, estimated_timestamps, duration: float | None = None
 ):
     """Calculate the percentage of correct segments (PCS) metric.
 
@@ -203,7 +202,7 @@ def percentage_correct_segments(
     --------
     >>> reference_timestamps = mir_eval.io.load_events('reference.txt')
     >>> estimated_timestamps = mir_eval.io.load_events('estimated.txt')
-    >>> pcs = mir_eval.align.percentage_correct_segments(reference_timestamps, estimated_timestamps)
+    >>> pcs = mir_eval.alignment.percentage_correct_segments(reference_timestamps, estimated_timestamps)
 
     Parameters
     ----------
@@ -279,7 +278,7 @@ def karaoke_perceptual_metric(reference_timestamps, estimated_timestamps):
     --------
     >>> reference_timestamps = mir_eval.io.load_events('reference.txt')
     >>> estimated_timestamps = mir_eval.io.load_events('estimated.txt')
-    >>> score = mir_eval.align.karaoke_perceptual_metric(reference_onsets, estimated_timestamps)
+    >>> score = mir_eval.alignment.karaoke_perceptual_metric(reference_timestamps, estimated_timestamps)
 
     Parameters
     ----------
@@ -316,7 +315,7 @@ def evaluate(reference_timestamps, estimated_timestamps, **kwargs):
     >>> reference_timestamps = mir_eval.io.load_events('reference.txt')
     >>> estimated_timestamps = mir_eval.io.load_events('estimated.txt')
     >>> duration = max(np.max(reference_timestamps), np.max(estimated_timestamps)) + 10
-    >>> scores = mir_eval.align.evaluate(reference_onsets, estimated_timestamps, duration)
+    >>> scores = mir_eval.alignment.evaluate(reference_timestamps, estimated_timestamps, duration=duration)
 
     Parameters
     ----------

@@ -256,7 +256,7 @@ def deviation(reference_intervals, estimated_intervals, trim=False):
     --------
     >>> ref_intervals, _ = mir_eval.io.load_labeled_intervals('ref.lab')
     >>> est_intervals, _ = mir_eval.io.load_labeled_intervals('est.lab')
-    >>> r_to_e, e_to_r = mir_eval.boundary.deviation(ref_intervals,
+    >>> r_to_e, e_to_r = mir_eval.segment.deviation(ref_intervals,
     ...                                              est_intervals)
 
     Parameters
@@ -330,7 +330,7 @@ def pairwise(
     >>> (est_intervals,
     ...  est_labels) = mir_eval.util.adjust_intervals(
     ...     est_intervals, est_labels, t_min=0, t_max=ref_intervals.max())
-    >>> precision, recall, f = mir_eval.structure.pairwise(ref_intervals,
+    >>> precision, recall, f = mir_eval.segment.pairwise(ref_intervals,
     ...                                                    ref_labels,
     ...                                                    est_intervals,
     ...                                                    est_labels)
@@ -433,7 +433,7 @@ def rand_index(
     >>> (est_intervals,
     ...  est_labels) = mir_eval.util.adjust_intervals(
     ...     est_intervals, est_labels, t_min=0, t_max=ref_intervals.max())
-    >>> rand_index = mir_eval.structure.rand_index(ref_intervals,
+    >>> rand_index = mir_eval.segment.rand_index(ref_intervals,
     ...                                            ref_labels,
     ...                                            est_intervals,
     ...                                            est_labels)
@@ -608,7 +608,7 @@ def ari(
     >>> (est_intervals,
     ...  est_labels) = mir_eval.util.adjust_intervals(
     ...     est_intervals, est_labels, t_min=0, t_max=ref_intervals.max())
-    >>> ari_score = mir_eval.structure.ari(ref_intervals, ref_labels,
+    >>> ari_score = mir_eval.segment.ari(ref_intervals, ref_labels,
     ...                                    est_intervals, est_labels)
 
     Parameters
@@ -888,7 +888,7 @@ def mutual_information(
     >>> (est_intervals,
     ...  est_labels) = mir_eval.util.adjust_intervals(
     ...     est_intervals, est_labels, t_min=0, t_max=ref_intervals.max())
-    >>> mi, ami, nmi = mir_eval.structure.mutual_information(ref_intervals,
+    >>> mi, ami, nmi = mir_eval.segment.mutual_information(ref_intervals,
     ...                                                      ref_labels,
     ...                                                      est_intervals,
     ...                                                      est_labels)
@@ -984,7 +984,7 @@ def nce(
     >>> (est_intervals,
     ...  est_labels) = mir_eval.util.adjust_intervals(
     ...     est_intervals, est_labels, t_min=0, t_max=ref_intervals.max())
-    >>> S_over, S_under, S_F = mir_eval.structure.nce(ref_intervals,
+    >>> S_over, S_under, S_F = mir_eval.segment.nce(ref_intervals,
     ...                                               ref_labels,
     ...                                               est_intervals,
     ...                                               est_labels)
@@ -1125,7 +1125,7 @@ def vmeasure(
     >>> (est_intervals,
     ...  est_labels) = mir_eval.util.adjust_intervals(
     ...     est_intervals, est_labels, t_min=0, t_max=ref_intervals.max())
-    >>> V_precision, V_recall, V_F = mir_eval.structure.vmeasure(ref_intervals,
+    >>> V_precision, V_recall, V_F = mir_eval.segment.vmeasure(ref_intervals,
     ...                                                          ref_labels,
     ...                                                          est_intervals,
     ...                                                          est_labels)

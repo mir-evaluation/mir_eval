@@ -458,7 +458,7 @@ def validate_hier_intervals(intervals_hier):
 
         if boundaries - new_bounds:
             warnings.warn(
-                "Segment hierarchy is inconsistent " "at level {:d}".format(level)
+                "Segment hierarchy is inconsistent " f"at level {level:d}"
             )
         boundaries |= new_bounds
 
@@ -514,7 +514,7 @@ def tmeasure(
     # Compute the number of frames in the window
     if frame_size <= 0:
         raise ValueError(
-            "frame_size ({:.2f}) must be a positive " "number.".format(frame_size)
+            f"frame_size ({frame_size:.2f}) must be a positive " "number."
         )
 
     if window is None:
@@ -522,8 +522,8 @@ def tmeasure(
     else:
         if frame_size > window:
             raise ValueError(
-                "frame_size ({:.2f}) cannot exceed "
-                "window ({:.2f})".format(frame_size, window)
+                f"frame_size ({frame_size:.2f}) cannot exceed "
+                f"window ({window:.2f})"
             )
 
         window_frames = int(_round(window, frame_size) / frame_size)
@@ -596,7 +596,7 @@ def lmeasure(
     # Compute the number of frames in the window
     if frame_size <= 0:
         raise ValueError(
-            "frame_size ({:.2f}) must be a positive " "number.".format(frame_size)
+            f"frame_size ({frame_size:.2f}) must be a positive " "number."
         )
 
     # Validate the hierarchical segmentations

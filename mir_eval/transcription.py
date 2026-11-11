@@ -505,11 +505,13 @@ def precision_recall_f1_overlap(
     ...     'estimated.txt')
     >>> (precision,
     ...  recall,
-    ...  f_measure) = mir_eval.transcription.precision_recall_f1_overlap(
+    ...  f_measure,
+    ...  avg_overlap_ratio) = mir_eval.transcription.precision_recall_f1_overlap(
     ...      ref_intervals, ref_pitches, est_intervals, est_pitches)
     >>> (precision_no_offset,
     ...  recall_no_offset,
-    ...  f_measure_no_offset) = (
+    ...  f_measure_no_offset,
+    ...  avg_overlap_ratio_no_offset) = (
     ...      mir_eval.transcription.precision_recall_f1_overlap(
     ...          ref_intervals, ref_pitches, est_intervals, est_pitches,
     ...          offset_ratio=None))

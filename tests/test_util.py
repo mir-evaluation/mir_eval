@@ -322,6 +322,31 @@ def test_has_kwargs():
     assert mir_eval.util.has_kwargs(f5)
 
 
+def test_filter_kwargs():
+    import functools
+
+    def f1(a, b=2):
+        return a, b
+
+    assert mir_eval.util.filter_kwargs(f1, 1, b=3, c=4) == (1, 3)
+
+    # Keyword-only arguments
+    def f2(a, *, c=10):
+        return a, c
+
+    assert mir_eval.util.filter_kwargs(f2, 1, b=2, c=20) == (1, 20)
+
+    # functools.partial
+    f3 = functools.partial(f1, b=5)
+    assert mir_eval.util.filter_kwargs(f3, 1, b=7, extra=99) == (1, 7)
+
+    # Function with **kwargs
+    def f4(a, **kwargs):
+        return a, kwargs
+
+    assert mir_eval.util.filter_kwargs(f4, 1, b=2, c=3) == (1, {"b": 2, "c": 3})
+
+
 @pytest.mark.parametrize(
     "x,labels,x_true,lab_true",
     [

@@ -474,7 +474,7 @@ def three_layer_FPR(reference_patterns, estimated_patterns):
         F : F-measure for the given layer
         """
         if layer != 1 and layer != 2:
-            raise ValueError("Layer (%d) must be an integer between 1 and 2" % layer)
+            raise ValueError(f"Layer ({layer:d}) must be an integer between 1 and 2")
 
         nP = len(ref_elements)  # Number of elements in reference
         nQ = len(est_elements)  # Number of elements in estimation

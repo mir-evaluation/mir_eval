@@ -44,7 +44,7 @@ def validate_tempi(tempi, reference=True):
 
     if reference and np.all(tempi == 0):
         raise ValueError(
-            "reference tempi={} must have one" " value greater than zero".format(tempi)
+            f"reference tempi={tempi} must have one" " value greater than zero"
         )
 
 
@@ -110,7 +110,7 @@ def detection(reference_tempi, reference_weight, estimated_tempi, tol=0.08):
 
     if tol < 0 or tol > 1:
         raise ValueError(
-            "invalid tolerance {}: must lie in the range " "[0, 1]".format(tol)
+            f"invalid tolerance {tol}: must lie in the range " "[0, 1]"
         )
     if tol == 0.0:
         warnings.warn("A tolerance of 0.0 may not " "lead to the results you expect.")

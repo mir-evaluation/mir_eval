@@ -54,19 +54,19 @@ def validate_key(key):
         Key to verify
     """
     if len(key.split()) != 2 and not (len(key.split()) and key.lower() == "x"):
-        raise ValueError("'{}' is not in the form '(key) (mode)' " "or 'X'".format(key))
+        raise ValueError(f"'{key}' is not in the form '(key) (mode)' " "or 'X'")
     if key.lower() != "x":
         key, mode = key.split()
 
         if key.lower() == "x":
             raise ValueError(
-                "Mode {} is invalid; 'X' (Uncategorized) "
-                "doesn't have mode".format(mode)
+                f"Mode {mode} is invalid; 'X' (Uncategorized) "
+                "doesn't have mode"
             )
         if key.lower() not in KEY_TO_SEMITONE:
             raise ValueError(
-                "Key {} is invalid; should be e.g. D or C# or Eb or "
-                "X (Uncategorized)".format(key)
+                f"Key {key} is invalid; should be e.g. D or C# or Eb or "
+                "X (Uncategorized)"
             )
         if mode not in ["major", "minor", "other"]:
             raise ValueError(

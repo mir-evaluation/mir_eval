@@ -162,7 +162,7 @@ def pitch_class_to_semitone(pitch_class):
             semitone = PITCH_CLASSES.get(char)
         else:
             raise InvalidChordException(
-                "Pitch class improperly formed: %s" % pitch_class
+                f"Pitch class improperly formed: {pitch_class}"
             )
     return semitone % 12
 
@@ -200,9 +200,7 @@ def scale_degree_to_semitone(scale_degree):
     semitone = SCALE_DEGREES.get(scale_degree, None)
     if semitone is None:
         raise InvalidChordException(
-            "Scale degree improperly formed: {}, expected one of {}.".format(
-                scale_degree, list(SCALE_DEGREES.keys())
-            )
+            f"Scale degree improperly formed: {scale_degree}, expected one of {list(SCALE_DEGREES.keys())}."
         )
     return semitone + offset
 
@@ -288,8 +286,8 @@ def quality_to_bitmap(quality):
     """
     if quality not in QUALITIES:
         raise InvalidChordException(
-            "Unsupported chord quality shorthand: '%s' "
-            "Did you mean to reduce extended chords?" % quality
+            f"Unsupported chord quality shorthand: '{quality}' "
+            "Did you mean to reduce extended chords?"
         )
     return np.array(QUALITIES[quality])
 
@@ -353,7 +351,7 @@ def validate_chord_label(chord_label):
         Chord label to validate.
     """
     if not CHORD_RE.match(chord_label):
-        raise InvalidChordException("Invalid chord label: " "{}".format(chord_label))
+        raise InvalidChordException("Invalid chord label: " f"{chord_label}")
     pass
 
 
@@ -457,11 +455,11 @@ def join(chord_root, quality="", extensions=None, bass=""):
     """
     chord_label = chord_root
     if quality or extensions:
-        chord_label += ":%s" % quality
+        chord_label += f":{quality}"
     if extensions:
-        chord_label += "(%s)" % ",".join(extensions)
+        chord_label += f"({','.join(extensions)})"
     if bass and bass != "1":
-        chord_label += "/%s" % bass
+        chord_label += f"/{bass}"
     validate_chord_label(chord_label)
     return chord_label
 
@@ -511,7 +509,7 @@ def encode(chord_label, reduce_extended_chords=False, strict_bass_intervals=Fals
     semitone_bitmap = (semitone_bitmap > 0).astype(np.int64)
     if not semitone_bitmap[bass_number] and strict_bass_intervals:
         raise InvalidChordException(
-            "Given bass scale degree is absent from this chord: " "%s" % chord_label,
+            "Given bass scale degree is absent from this chord: " f"{chord_label}",
             chord_label,
         )
     else:
@@ -631,7 +629,7 @@ def validate(reference_labels, estimated_labels):
     if N != M:
         raise ValueError(
             "Chord comparison received different length lists: "
-            "len(reference)=%d\tlen(estimates)=%d" % (N, M)
+            f"len(reference)={N:d}\tlen(estimates)={M:d}"
         )
     for labels in [reference_labels, estimated_labels]:
         for chord_label in labels:
@@ -685,8 +683,8 @@ def weighted_accuracy(comparisons, weights):
     if weights.shape[0] != N:
         raise ValueError(
             "weights and comparisons should be of the same"
-            " length. len(weights) = {} but len(comparisons)"
-            " = {}".format(weights.shape[0], N)
+            f" length. len(weights) = {weights.shape[0]} but len(comparisons)"
+            f" = {N}"
         )
     if (weights < 0).any():
         raise ValueError("Weights should all be positive.")

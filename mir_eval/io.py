@@ -25,7 +25,7 @@ def _open(file_or_path, **kwargs):
             with open(file_or_path, **kwargs) as file_desc:
                 yield file_desc
         except TypeError as exc:
-            raise IOError(f"Invalid file-or-path object: {file_or_path}") from exc
+            raise OSError(f"Invalid file-or-path object: {file_or_path}") from exc
 
 
 def load_delimited(filename, converters, delimiter=r"\s+", comment="#"):
@@ -95,21 +95,19 @@ def load_delimited(filename, converters, delimiter=r"\s+", comment="#"):
             # Throw a helpful error if we got an unexpected # of columns
             if n_columns != len(data):
                 raise ValueError(
-                    "Expected {} columns, got {} at "
-                    "{}:{:d}:\n\t{}".format(n_columns, len(data), filename, row, line)
+                    f"Expected {n_columns} columns, got {len(data)} at "
+                    f"{filename}:{row:d}:\n\t{line}"
                 )
 
             for value, column, converter in zip(data, columns, converters):
                 # Try converting the value, throw a helpful error on failure
                 try:
                     converted_value = converter(value)
-                except Exception:
+                except Exception as exc:
                     raise ValueError(
-                        "Couldn't convert value {} using {} "
-                        "found at {}:{:d}:\n\t{}".format(
-                            value, converter.__name__, filename, row, line
-                        )
-                    )
+                        f"Couldn't convert value {value} using {converter.__name__} "
+                        f"found at {filename}:{row:d}:\n\t{line}"
+                    ) from exc
                 column.append(converted_value)
 
     # Sane output
@@ -628,10 +626,8 @@ def load_ragged_time_series(
                 converted_time = float(data[0])
             except (TypeError, ValueError) as exe:
                 raise ValueError(
-                    "Couldn't convert value {} using {} "
-                    "found at {}:{:d}:\n\t{}".format(
-                        data[0], float.__name__, filename, row, line
-                    )
+                    f"Couldn't convert value {data[0]} using {float.__name__} "
+                    f"found at {filename}:{row:d}:\n\t{line}"
                 ) from exe
             times.append(converted_time)
 
@@ -641,10 +637,8 @@ def load_ragged_time_series(
                 converted_value = np.array(data[1:], dtype=dtype)
             except (TypeError, ValueError) as exe:
                 raise ValueError(
-                    "Couldn't convert value {} using {} "
-                    "found at {}:{:d}:\n\t{}".format(
-                        data[1:], dtype.__name__, filename, row, line
-                    )
+                    f"Couldn't convert value {data[1:]} using {dtype.__name__} "
+                    f"found at {filename}:{row:d}:\n\t{line}"
                 ) from exe
             values.append(converted_value)
 

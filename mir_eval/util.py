@@ -403,7 +403,7 @@ def adjust_events(events, labels=None, t_min=0.0, t_max=None, label_prefix="__")
             # add a new boundary and label
             events = np.concatenate(([t_min], events))
             if labels is not None:
-                labels.insert(0, "%sT_MIN" % label_prefix)
+                labels.insert(0, f"{label_prefix}T_MIN")
 
     if t_max is not None:
         last_idx = np.argwhere(events > t_max)
@@ -419,7 +419,7 @@ def adjust_events(events, labels=None, t_min=0.0, t_max=None, label_prefix="__")
             # Last boundary is below t_max: add a new boundary and label
             events = np.concatenate((events, [t_max]))
             if labels is not None:
-                labels.append("%sT_MAX" % label_prefix)
+                labels.append(f"{label_prefix}T_MAX")
 
     return events, labels
 
@@ -430,13 +430,13 @@ def intersect_files(flist1, flist2):
 
     Examples
     --------
-     >>> flist1 = ['/a/b/abc.lab', '/c/d/123.lab', '/e/f/xyz.lab']
-     >>> flist2 = ['/g/h/xyz.npy', '/i/j/123.txt', '/k/l/456.lab']
-     >>> sublist1, sublist2 = mir_eval.util.intersect_files(flist1, flist2)
-     >>> print sublist1
-     ['/e/f/xyz.lab', '/c/d/123.lab']
-     >>> print sublist2
-     ['/g/h/xyz.npy', '/i/j/123.txt']
+    >>> flist1 = ['/a/b/abc.lab', '/c/d/123.lab', '/e/f/xyz.lab']
+    >>> flist2 = ['/g/h/xyz.npy', '/i/j/123.txt', '/k/l/456.lab']
+    >>> sublist1, sublist2 = mir_eval.util.intersect_files(flist1, flist2)
+    >>> print(sublist1)
+    ['/e/f/xyz.lab', '/c/d/123.lab']
+    >>> print(sublist2)
+    ['/g/h/xyz.npy', '/i/j/123.txt']
 
     Parameters
     ----------
@@ -748,7 +748,7 @@ def validate_intervals(intervals):
     if intervals.ndim != 2 or intervals.shape[1] != 2:
         raise ValueError(
             "Intervals should be n-by-2 numpy ndarray, "
-            "but shape={}".format(intervals.shape)
+            f"but shape={intervals.shape}"
         )
 
     # Make sure no times are negative
@@ -775,16 +775,16 @@ def validate_events(events, max_time=30000.0):
     # Make sure no event times are huge
     if (events > max_time).any():
         raise ValueError(
-            "An event at time {} was found which is greater than "
-            "the maximum allowable time of max_time = {} (did you"
+            f"An event at time {events.max()} was found which is greater than "
+            f"the maximum allowable time of max_time = {max_time} (did you"
             " supply event times in "
-            "seconds?)".format(events.max(), max_time)
+            "seconds?)"
         )
     # Make sure event locations are 1-d np ndarrays
     if events.ndim != 1:
         raise ValueError(
             "Event times should be 1-d numpy ndarray, "
-            "but shape={}".format(events.shape)
+            f"but shape={events.shape}"
         )
     # Make sure event times are increasing
     if (np.diff(events) < 0).any():
@@ -814,24 +814,24 @@ def validate_frequencies(frequencies, max_freq, min_freq, allow_negatives=False)
     # Make sure no frequency values are huge
     if (np.abs(frequencies) > max_freq).any():
         raise ValueError(
-            "A frequency of {} was found which is greater than "
-            "the maximum allowable value of max_freq = {} (did "
+            f"A frequency of {frequencies.max()} was found which is greater than "
+            f"the maximum allowable value of max_freq = {max_freq} (did "
             "you supply frequency values in "
-            "Hz?)".format(frequencies.max(), max_freq)
+            "Hz?)"
         )
     # Make sure no frequency values are tiny
     if (np.abs(frequencies) < min_freq).any():
         raise ValueError(
-            "A frequency of {} was found which is less than the "
-            "minimum allowable value of min_freq = {} (did you "
+            f"A frequency of {frequencies.min()} was found which is less than the "
+            f"minimum allowable value of min_freq = {min_freq} (did you "
             "supply frequency values in "
-            "Hz?)".format(frequencies.min(), min_freq)
+            "Hz?)"
         )
     # Make sure frequency values are 1-d np ndarrays
     if frequencies.ndim != 1:
         raise ValueError(
             "Frequencies should be 1-d numpy ndarray, "
-            "but shape={}".format(frequencies.shape)
+            f"but shape={frequencies.shape}"
         )
 
 
@@ -877,14 +877,12 @@ def filter_kwargs(_function, *args, **kwargs):
     if has_kwargs(_function):
         return _function(*args, **kwargs)
 
-    # Get the list of function arguments
-    func_code = _function.__code__
-    function_args = func_code.co_varnames[: func_code.co_argcount]
+    # Get the list of function parameters
+    parameters = inspect.signature(_function).parameters
     # Construct a dict of those kwargs which appear in the function
-    filtered_kwargs = {}
-    for kwarg, value in list(kwargs.items()):
-        if kwarg in function_args:
-            filtered_kwargs[kwarg] = value
+    filtered_kwargs = {
+        kwarg: value for kwarg, value in kwargs.items() if kwarg in parameters
+    }
     # Call the function with the supplied args and the filtered kwarg dict
     return _function(*args, **filtered_kwargs)
 
