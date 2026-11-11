@@ -47,7 +47,6 @@ References
 
 """
 
-import collections
 from typing import Optional
 
 import numpy as np
@@ -336,7 +335,7 @@ def evaluate(reference_timestamps, estimated_timestamps, **kwargs):
         the value is the (float) score achieved.
     """
     # Compute all metrics
-    scores = collections.OrderedDict()
+    scores = {}
 
     scores["pc"] = filter_kwargs(
         percentage_correct, reference_timestamps, estimated_timestamps, **kwargs

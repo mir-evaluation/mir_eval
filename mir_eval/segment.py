@@ -72,7 +72,6 @@ References
         In EMNLP-CoNLL (Vol. 7, pp. 410-420).
 """
 
-import collections
 import warnings
 
 import numpy as np
@@ -1224,7 +1223,7 @@ def evaluate(ref_intervals, ref_labels, est_intervals, est_labels, **kwargs):
     )
 
     # Now compute all the metrics
-    scores = collections.OrderedDict()
+    scores = {}
 
     # Boundary detection
     # Force these values for window

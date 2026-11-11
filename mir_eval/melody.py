@@ -69,7 +69,6 @@ Metrics
 
 import numpy as np
 import scipy.interpolate
-import collections
 import warnings
 from . import util
 
@@ -846,7 +845,7 @@ def evaluate(
     )
 
     # Compute metrics
-    scores = collections.OrderedDict()
+    scores = {}
 
     scores["Voicing Recall"] = util.filter_kwargs(
         voicing_recall, ref_voicing, est_voicing, **kwargs

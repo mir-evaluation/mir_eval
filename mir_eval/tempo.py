@@ -22,7 +22,6 @@ Metrics
 
 import warnings
 import numpy as np
-import collections
 from . import util
 
 
@@ -158,7 +157,7 @@ def evaluate(reference_tempi, reference_weight, estimated_tempi, **kwargs):
         the value is the (float) score achieved.
     """
     # Compute all metrics
-    scores = collections.OrderedDict()
+    scores = {}
 
     (
         scores["P-score"],

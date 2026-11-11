@@ -105,7 +105,6 @@ Metrics
 """
 
 import numpy as np
-import collections
 from . import util
 import warnings
 
@@ -814,7 +813,7 @@ def evaluate(ref_intervals, ref_pitches, est_intervals, est_pitches, **kwargs):
         the value is the (float) score achieved.
     """
     # Compute all the metrics
-    scores = collections.OrderedDict()
+    scores = {}
 
     # Precision, recall and f-measure taking note offsets into account
     kwargs.setdefault("offset_ratio", 0.2)

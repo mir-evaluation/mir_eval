@@ -18,7 +18,6 @@ Metrics
   keys.
 """
 
-import collections
 import warnings
 from . import util
 
@@ -237,7 +236,7 @@ def evaluate(reference_key, estimated_key, allow_descending_fifths=False, **kwar
         the value is the (float) score achieved.
     """
     # Compute all metrics
-    scores = collections.OrderedDict()
+    scores = {}
 
     scores["Weighted Score"] = util.filter_kwargs(
         weighted_score, reference_key, estimated_key, allow_descending_fifths

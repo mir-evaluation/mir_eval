@@ -42,7 +42,6 @@ Metrics
 """
 
 import numpy as np
-import collections
 from . import util
 import warnings
 
@@ -740,7 +739,7 @@ def evaluate(reference_beats, estimated_beats, **kwargs):
 
     # Now compute all the metrics
 
-    scores = collections.OrderedDict()
+    scores = {}
 
     # F-Measure
     scores["F-measure"] = util.filter_kwargs(

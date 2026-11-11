@@ -43,7 +43,6 @@ References
 """
 
 import numpy as np
-import collections
 import scipy.interpolate
 from . import util
 import warnings
@@ -508,7 +507,7 @@ def evaluate(ref_time, ref_freqs, est_time, est_freqs, **kwargs):
         the value is the (float) score achieved.
 
     """
-    scores = collections.OrderedDict()
+    scores = {}
 
     (
         scores["Precision"],

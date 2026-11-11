@@ -57,7 +57,6 @@ Metrics
 import numpy as np
 from . import util
 import warnings
-import collections
 
 
 def _n_onset_midi(patterns):
@@ -621,7 +620,7 @@ def evaluate(ref_patterns, est_patterns, **kwargs):
         the value is the (float) score achieved.
     """
     # Compute all the metrics
-    scores = collections.OrderedDict()
+    scores = {}
 
     # Standard scores
     scores["F"], scores["P"], scores["R"] = util.filter_kwargs(

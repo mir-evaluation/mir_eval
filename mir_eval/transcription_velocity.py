@@ -53,7 +53,6 @@ References
       Conference, 2018.
 """
 
-import collections
 import numpy as np
 from . import transcription
 from . import util
@@ -392,7 +391,7 @@ def evaluate(
         the value is the (float) score achieved.
     """
     # Compute all the metrics
-    scores = collections.OrderedDict()
+    scores = {}
 
     # Precision, recall and f-measure taking note offsets into account
     kwargs.setdefault("offset_ratio", 0.2)

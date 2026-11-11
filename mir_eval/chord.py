@@ -97,7 +97,6 @@ References
 
 import numpy as np
 import warnings
-import collections
 
 import re
 
@@ -1580,7 +1579,7 @@ def evaluate(ref_intervals, ref_labels, est_intervals, est_labels, **kwargs):
     durations = util.intervals_to_durations(intervals)
 
     # Store scores for each comparison function
-    scores = collections.OrderedDict()
+    scores = {}
 
     scores["thirds"] = weighted_accuracy(thirds(ref_labels, est_labels), durations)
     scores["thirds_inv"] = weighted_accuracy(

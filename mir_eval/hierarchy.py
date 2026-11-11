@@ -40,7 +40,7 @@ References
     Frontiers in Psychology, 2017.
 """
 
-import collections
+from collections import defaultdict
 import itertools
 import warnings
 
@@ -397,8 +397,8 @@ def _compare_frame_rankings(ref, est, transitive=False):
     positions = list(positions)
     positions.append(len(ref_sorted))
 
-    index = collections.defaultdict(lambda: slice(0))
-    ref_map = collections.defaultdict(lambda: 0)
+    index = defaultdict(lambda: slice(0))
+    ref_map = defaultdict(lambda: 0)
 
     for level, cnt, start, end in zip(levels, counts, positions[:-1], positions[1:]):
         index[level] = slice(start, end)
@@ -681,7 +681,7 @@ def evaluate(
 
     Returns
     -------
-    scores : OrderedDict
+    scores : dict
         Dictionary of scores, where the key is the metric name (str) and
         the value is the (float) score achieved.
 
@@ -706,7 +706,7 @@ def evaluate(
         est_intervals_hier, est_labels_hier, t_min=0.0, t_max=t_end
     )
 
-    scores = collections.OrderedDict()
+    scores = {}
 
     # Force the transitivity setting
     kwargs["transitive"] = False
