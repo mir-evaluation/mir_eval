@@ -156,8 +156,6 @@ def time_frequency(
     gram = gram[:, idx]
     times = np.clip(times[idx], 0, last_time_in_secs)
 
-    n_times = times.shape[0]
-
     # Threshold the tfgram to remove negative values
     gram = np.maximum(gram, 0)
 
@@ -175,22 +173,14 @@ def time_frequency(
     frequencies = frequencies[freq_keep]
 
     # Interpolate the values in gram over the time grid.
-    if n_times > 1:
-        interpolator = interp1d(
-            times[:, 0] * fs,
-            gram[:, :n_times],
-            kind="previous",
-            bounds_error=False,
-            fill_value=(gram[:, 0], gram[:, -1]),
-        )
-        signal = interpolator(np.arange(length))
-    else:
-        # NOTE: This is a special case where there is only one time interval.
-        # scipy 1.10 and above handle this case directly with the interp1d above,
-        # but older scipy's do not. This is a workaround for that.
-        #
-        # In the 0.9 release, we can bump the minimum scipy to 1.10 and remove this
-        signal = np.tile(gram[:, 0], (1, length))
+    interpolator = interp1d(
+        times[:, 0] * fs,
+        gram,
+        kind="previous",
+        bounds_error=False,
+        fill_value=(gram[:, 0], gram[:, -1]),
+    )
+    signal = interpolator(np.arange(length))
 
     for n, frequency in enumerate(frequencies):
         # Get a waveform of length samples at this frequency
