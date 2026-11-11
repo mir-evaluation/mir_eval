@@ -2,18 +2,20 @@
 Unit tests for mir_eval.segment
 """
 
-import numpy as np
-import json
-import mir_eval
 import glob
+import json
+import os
+import mir_eval
+import numpy as np
 import pytest
 
 A_TOL = 1e-12
 
 # Path to the fixture files
-REF_GLOB = "data/segment/ref*.lab"
-EST_GLOB = "data/segment/est*.lab"
-SCORES_GLOB = "data/segment/output*.json"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+REF_GLOB = os.path.join(DATA_DIR, "segment", "ref*.lab")
+EST_GLOB = os.path.join(DATA_DIR, "segment", "est*.lab")
+SCORES_GLOB = os.path.join(DATA_DIR, "segment", "output*.json")
 
 ref_files = sorted(glob.glob(REF_GLOB))
 est_files = sorted(glob.glob(EST_GLOB))

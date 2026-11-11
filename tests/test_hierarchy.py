@@ -3,9 +3,9 @@ Unit tests for mir_eval.hierarchy
 """
 
 import glob
-import re
-
 import json
+import os
+import re
 
 import numpy as np
 import scipy.sparse
@@ -170,7 +170,8 @@ def test_lmeasure_fail_frame_size(frame_size):
     mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab, frame_size=frame_size)
 
 
-SCORES_GLOB = "data/hierarchy/output*.json"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+SCORES_GLOB = os.path.join(DATA_DIR, "hierarchy", "output*.json")
 sco_files = sorted(glob.glob(SCORES_GLOB))
 
 
@@ -190,8 +191,8 @@ def test_hierarchy_regression(hierarchy_outcomes):
     expected_scores, window = hierarchy_outcomes
 
     # Hierarchy data is split across multiple lab files for these tests
-    ref_files = sorted(glob.glob("data/hierarchy/ref*.lab"))
-    est_files = sorted(glob.glob("data/hierarchy/est*.lab"))
+    ref_files = sorted(glob.glob(os.path.join(DATA_DIR, "hierarchy", "ref*.lab")))
+    est_files = sorted(glob.glob(os.path.join(DATA_DIR, "hierarchy", "est*.lab")))
 
     ref_hier = [mir_eval.io.load_labeled_intervals(_) for _ in ref_files]
     est_hier = [mir_eval.io.load_labeled_intervals(_) for _ in est_files]

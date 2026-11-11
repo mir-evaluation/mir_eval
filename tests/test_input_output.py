@@ -1,10 +1,13 @@
 """Unit tests for input/output functions"""
 
-import numpy as np
-import mir_eval
+import os
 import pathlib
 import tempfile
+import numpy as np
 import pytest
+import mir_eval
+
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 
 def test_load_delimited():
@@ -68,7 +71,11 @@ def test_load_delimited_nocomment():
 
 
 @pytest.mark.parametrize(
-    "file_or_path", ["data/beat/ref01.txt", pathlib.Path("data/beat/ref01.txt")]
+    "file_or_path",
+    [
+        os.path.join(DATA_DIR, "beat", "ref01.txt"),
+        pathlib.Path(DATA_DIR) / "beat" / "ref01.txt",
+    ],
 )
 def test_load_delimited_file_or_path(file_or_path):
     # Tests the load_delimited routine with either a string or a
@@ -194,7 +201,7 @@ def test_load_ragged_time_series():
 
 def test_load_tempo():
     # Test the tempo loader
-    tempi, weight = mir_eval.io.load_tempo("data/tempo/ref01.lab")
+    tempi, weight = mir_eval.io.load_tempo(os.path.join(DATA_DIR, "tempo", "ref01.lab"))
 
     assert np.allclose(tempi, [60, 120])
     assert weight == 0.5
@@ -202,14 +209,16 @@ def test_load_tempo():
 
 @pytest.mark.xfail(raises=ValueError)
 def test_load_tempo_multiline():
-    tempi, weight = mir_eval.io.load_tempo("data/tempo/bad00.lab")
+    tempi, weight = mir_eval.io.load_tempo(os.path.join(DATA_DIR, "tempo", "bad00.lab"))
 
 
 @pytest.mark.xfail(raises=ValueError)
 def test_load_tempo_badweight():
-    tempi, weight = mir_eval.io.load_tempo("data/tempo/bad01.lab")
+    tempi, weight = mir_eval.io.load_tempo(os.path.join(DATA_DIR, "tempo", "bad01.lab"))
 
 
 def test_load_bad_tempi():
     with pytest.warns(UserWarning, match="non-negative numbers"):
-        tempi, weight = mir_eval.io.load_tempo("data/tempo/bad02.lab")
+        tempi, weight = mir_eval.io.load_tempo(
+            os.path.join(DATA_DIR, "tempo", "bad02.lab")
+        )

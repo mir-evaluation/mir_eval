@@ -73,7 +73,8 @@ version = {attr = "mir_eval.__version__"}
 include = ["mir_eval*"]
 
 [tool.pytest.ini_options]
-addopts = "--cov-report term-missing --cov mir_eval --cov-report=xml --mpl-baseline-path=baseline_images/test_display"
+testpaths = ["tests"]
+addopts = "--cov-report term-missing --cov mir_eval --cov-report=xml --mpl-baseline-relative --mpl-baseline-path=baseline_images/test_display"
 
 [tool.coverage.report]
 show_missing = true

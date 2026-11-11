@@ -2,19 +2,21 @@
 Unit tests for mir_eval.multipitch
 """
 
-import numpy as np
-import json
-import mir_eval
 import glob
+import json
+import os
 import warnings
+import mir_eval
+import numpy as np
 import pytest
 
 A_TOL = 1e-12
 
 # Path to the fixture files
-REF_GLOB = "data/multipitch/ref*.txt"
-EST_GLOB = "data/multipitch/est*.txt"
-SCORES_GLOB = "data/multipitch/output*.json"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+REF_GLOB = os.path.join(DATA_DIR, "multipitch", "ref*.txt")
+EST_GLOB = os.path.join(DATA_DIR, "multipitch", "est*.txt")
+SCORES_GLOB = os.path.join(DATA_DIR, "multipitch", "output*.json")
 
 ref_files = sorted(glob.glob(REF_GLOB))
 est_files = sorted(glob.glob(EST_GLOB))

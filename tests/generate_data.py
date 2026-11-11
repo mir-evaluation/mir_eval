@@ -47,44 +47,57 @@ if __name__ == "__main__":
     # Whatever is passed in as argv will be grabbed from it and the data for
     # that task will be generated.
     tasks = {}
-    tasks["beat"] = (mir_eval.beat, mir_eval.io.load_events, "data/beat/{}*.txt")
+    DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+    tasks["beat"] = (
+        mir_eval.beat,
+        mir_eval.io.load_events,
+        os.path.join(DATA_DIR, "beat", "{}*.txt"),
+    )
     tasks["chord"] = (
         mir_eval.chord,
         mir_eval.io.load_labeled_intervals,
-        "data/chord/{}*.lab",
+        os.path.join(DATA_DIR, "chord", "{}*.lab"),
     )
     tasks["melody"] = (
         mir_eval.melody,
         mir_eval.io.load_time_series,
-        "data/melody/{}*.txt",
+        os.path.join(DATA_DIR, "melody", "{}*.txt"),
     )
     tasks["multipitch"] = (
         mir_eval.multipitch,
         mir_eval.io.load_ragged_time_series,
-        "data/multipitch/()*.txt",
+        os.path.join(DATA_DIR, "multipitch", "{}*.txt"),
     )
-    tasks["onset"] = (mir_eval.onset, mir_eval.io.load_events, "data/onset/{}*.txt")
+    tasks["onset"] = (
+        mir_eval.onset,
+        mir_eval.io.load_events,
+        os.path.join(DATA_DIR, "onset", "{}*.txt"),
+    )
     tasks["pattern"] = (
         mir_eval.pattern,
         mir_eval.io.load_patterns,
-        "data/pattern/{}*.txt",
+        os.path.join(DATA_DIR, "pattern", "{}*.txt"),
     )
     tasks["segment"] = (
         mir_eval.segment,
         mir_eval.io.load_labeled_intervals,
-        "data/segment/{}*.lab",
+        os.path.join(DATA_DIR, "segment", "{}*.lab"),
     )
     tasks["transcription"] = (
         mir_eval.transcription,
         mir_eval.io.load_valued_intervals,
-        "data/transcription/{}*.txt",
+        os.path.join(DATA_DIR, "transcription", "{}*.txt"),
     )
     tasks["transcription_velocity"] = (
         mir_eval.transcription_velocity,
         load_transcription_velocity,
-        "data/transcription_velocity/{}*.txt",
+        os.path.join(DATA_DIR, "transcription_velocity", "{}*.txt"),
     )
-    tasks["key"] = (mir_eval.key, mir_eval.io.load_key, "data/key/{}*.txt")
+    tasks["key"] = (
+        mir_eval.key,
+        mir_eval.io.load_key,
+        os.path.join(DATA_DIR, "key", "{}*.txt"),
+    )
     # Get task keys from argv
     for task in sys.argv[1:]:
         print(f"Generating data for {task}")

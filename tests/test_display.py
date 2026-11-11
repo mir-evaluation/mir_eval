@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """Unit tests for the display module"""
 
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -12,6 +14,13 @@ from mir_eval.io import load_labeled_intervals
 from mir_eval.io import load_valued_intervals
 from mir_eval.io import load_labeled_events
 from mir_eval.io import load_ragged_time_series
+
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+
+
+def d_path(*args):
+    return os.path.join(DATA_DIR, *args)
+
 
 STYLE = "default"
 
@@ -26,7 +35,7 @@ def test_display_segment():
     plt.figure()
 
     # Load some segment data
-    intervals, labels = load_labeled_intervals("data/segment/ref00.lab")
+    intervals, labels = load_labeled_intervals(d_path("segment", "ref00.lab"))
 
     # Plot the segments with no labels
     mir_eval.display.segments(intervals, labels, text=False)
@@ -46,7 +55,7 @@ def test_display_segment_text():
     plt.figure()
 
     # Load some segment data
-    intervals, labels = load_labeled_intervals("data/segment/ref00.lab")
+    intervals, labels = load_labeled_intervals(d_path("segment", "ref00.lab"))
 
     # Plot the segments with no labels
     mir_eval.display.segments(intervals, labels, text=True)
@@ -63,7 +72,7 @@ def test_display_labeled_intervals():
     plt.figure()
 
     # Load some chord data
-    intervals, labels = load_labeled_intervals("data/chord/ref01.lab")
+    intervals, labels = load_labeled_intervals(d_path("chord", "ref01.lab"))
 
     # Plot the chords with nothing fancy
     mir_eval.display.labeled_intervals(intervals, labels)
@@ -80,7 +89,7 @@ def test_display_labeled_intervals_noextend():
     plt.figure()
 
     # Load some chord data
-    intervals, labels = load_labeled_intervals("data/chord/ref01.lab")
+    intervals, labels = load_labeled_intervals(d_path("chord", "ref01.lab"))
 
     # Plot the chords with nothing fancy
     ax = plt.axes()
@@ -101,8 +110,8 @@ def test_display_labeled_intervals_compare():
     plt.figure()
 
     # Load some chord data
-    ref_int, ref_labels = load_labeled_intervals("data/chord/ref01.lab")
-    est_int, est_labels = load_labeled_intervals("data/chord/est01.lab")
+    ref_int, ref_labels = load_labeled_intervals(d_path("chord", "ref01.lab"))
+    est_int, est_labels = load_labeled_intervals(d_path("chord", "est01.lab"))
 
     # Plot reference and estimates using label set extension
     mir_eval.display.labeled_intervals(
@@ -124,8 +133,8 @@ def test_display_labeled_intervals_compare_noextend():
     plt.figure()
 
     # Load some chord data
-    ref_int, ref_labels = load_labeled_intervals("data/chord/ref01.lab")
-    est_int, est_labels = load_labeled_intervals("data/chord/est01.lab")
+    ref_int, ref_labels = load_labeled_intervals(d_path("chord", "ref01.lab"))
+    est_int, est_labels = load_labeled_intervals(d_path("chord", "est01.lab"))
 
     # Plot reference and estimate, but only use the reference labels
     mir_eval.display.labeled_intervals(
@@ -149,8 +158,8 @@ def test_display_labeled_intervals_compare_common():
     plt.figure()
 
     # Load some chord data
-    ref_int, ref_labels = load_labeled_intervals("data/chord/ref01.lab")
-    est_int, est_labels = load_labeled_intervals("data/chord/est01.lab")
+    ref_int, ref_labels = load_labeled_intervals(d_path("chord", "ref01.lab"))
+    est_int, est_labels = load_labeled_intervals(d_path("chord", "est01.lab"))
 
     label_set = list(sorted(set(ref_labels) | set(est_labels)))
 
@@ -176,8 +185,8 @@ def test_display_hierarchy_nolabel():
     plt.figure()
 
     # Load some chord data
-    int0, lab0 = load_labeled_intervals("data/hierarchy/ref00.lab")
-    int1, lab1 = load_labeled_intervals("data/hierarchy/ref01.lab")
+    int0, lab0 = load_labeled_intervals(d_path("hierarchy", "ref00.lab"))
+    int1, lab1 = load_labeled_intervals(d_path("hierarchy", "ref01.lab"))
 
     # Plot reference and estimate with a common label set
     mir_eval.display.hierarchy([int0, int1], [lab0, lab1])
@@ -196,8 +205,8 @@ def test_display_hierarchy_label():
     plt.figure()
 
     # Load some chord data
-    int0, lab0 = load_labeled_intervals("data/hierarchy/ref00.lab")
-    int1, lab1 = load_labeled_intervals("data/hierarchy/ref01.lab")
+    int0, lab0 = load_labeled_intervals(d_path("hierarchy", "ref00.lab"))
+    int1, lab1 = load_labeled_intervals(d_path("hierarchy", "ref01.lab"))
 
     # Plot reference and estimate with a common label set
     mir_eval.display.hierarchy([int0, int1], [lab0, lab1], levels=["Large", "Small"])
@@ -215,8 +224,8 @@ def test_display_hierarchy_label():
 def test_display_pitch_hz():
     plt.figure()
 
-    ref_times, ref_freqs = load_labeled_events("data/melody/ref00.txt")
-    est_times, est_freqs = load_labeled_events("data/melody/est00.txt")
+    ref_times, ref_freqs = load_labeled_events(d_path("melody", "ref00.txt"))
+    est_times, est_freqs = load_labeled_events(d_path("melody", "est00.txt"))
 
     # Plot pitches on a Hz scale
     mir_eval.display.pitch(ref_times, ref_freqs, unvoiced=True, label="Reference")
@@ -234,7 +243,7 @@ def test_display_pitch_hz():
 def test_display_pitch_midi():
     plt.figure()
 
-    times, freqs = load_labeled_events("data/melody/ref00.txt")
+    times, freqs = load_labeled_events(d_path("melody", "ref00.txt"))
 
     # Plot pitches on a midi scale with note tickers
     mir_eval.display.pitch(times, freqs, midi=True)
@@ -251,7 +260,7 @@ def test_display_pitch_midi():
 def test_display_pitch_midi_hz():
     plt.figure()
 
-    times, freqs = load_labeled_events("data/melody/ref00.txt")
+    times, freqs = load_labeled_events(d_path("melody", "ref00.txt"))
 
     # Plot pitches on a midi scale with note tickers
     mir_eval.display.pitch(times, freqs, midi=True)
@@ -268,7 +277,7 @@ def test_display_pitch_midi_hz():
 def test_display_multipitch_hz_unvoiced():
     plt.figure()
 
-    times, pitches = load_ragged_time_series("data/multipitch/est01.txt")
+    times, pitches = load_ragged_time_series(d_path("multipitch", "est01.txt"))
 
     # Plot pitches on a midi scale with note tickers
     mir_eval.display.multipitch(times, pitches, midi=False, unvoiced=True)
@@ -284,7 +293,7 @@ def test_display_multipitch_hz_unvoiced():
 def test_display_multipitch_hz_voiced():
     plt.figure()
 
-    times, pitches = load_ragged_time_series("data/multipitch/est01.txt")
+    times, pitches = load_ragged_time_series(d_path("multipitch", "est01.txt"))
 
     mir_eval.display.multipitch(times, pitches, midi=False, unvoiced=False)
     return plt.gcf()
@@ -299,8 +308,8 @@ def test_display_multipitch_hz_voiced():
 def test_display_multipitch_midi():
     plt.figure()
 
-    ref_t, ref_p = load_ragged_time_series("data/multipitch/ref01.txt")
-    est_t, est_p = load_ragged_time_series("data/multipitch/est01.txt")
+    ref_t, ref_p = load_ragged_time_series(d_path("multipitch", "ref01.txt"))
+    est_t, est_p = load_ragged_time_series(d_path("multipitch", "est01.txt"))
 
     # Plot pitches on a midi scale with note tickers
     mir_eval.display.multipitch(ref_t, ref_p, midi=True, alpha=0.5, label="Reference")
@@ -319,8 +328,8 @@ def test_display_multipitch_midi():
 def test_display_piano_roll():
     plt.figure()
 
-    ref_t, ref_p = load_valued_intervals("data/transcription/ref04.txt")
-    est_t, est_p = load_valued_intervals("data/transcription/est04.txt")
+    ref_t, ref_p = load_valued_intervals(d_path("transcription", "ref04.txt"))
+    est_t, est_p = load_valued_intervals(d_path("transcription", "est04.txt"))
 
     mir_eval.display.piano_roll(ref_t, ref_p, label="Reference", alpha=0.5)
     mir_eval.display.piano_roll(
@@ -340,8 +349,8 @@ def test_display_piano_roll():
 def test_display_piano_roll_midi():
     plt.figure()
 
-    ref_t, ref_p = load_valued_intervals("data/transcription/ref04.txt")
-    est_t, est_p = load_valued_intervals("data/transcription/est04.txt")
+    ref_t, ref_p = load_valued_intervals(d_path("transcription", "ref04.txt"))
+    est_t, est_p = load_valued_intervals(d_path("transcription", "est04.txt"))
 
     ref_midi = mir_eval.util.hz_to_midi(ref_p)
     est_midi = mir_eval.util.hz_to_midi(est_p)
@@ -378,8 +387,8 @@ def test_display_events():
     plt.figure()
 
     # Load some event data
-    beats_ref = mir_eval.io.load_events("data/beat/ref00.txt")[:30]
-    beats_est = mir_eval.io.load_events("data/beat/est00.txt")[:30]
+    beats_ref = mir_eval.io.load_events(d_path("beat", "ref00.txt"))[:30]
+    beats_est = mir_eval.io.load_events(d_path("beat", "est00.txt"))[:30]
 
     # Plot both with labels
     mir_eval.display.events(beats_ref, label="reference")
@@ -398,7 +407,7 @@ def test_display_labeled_events():
     plt.figure()
 
     # Load some event data
-    beats_ref = mir_eval.io.load_events("data/beat/ref00.txt")[:10]
+    beats_ref = mir_eval.io.load_events(d_path("beat", "ref00.txt"))[:10]
 
     labels = list("abcdefghijklmnop")
     # Plot both with labels

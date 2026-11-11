@@ -3,18 +3,19 @@
 Unit tests for mir_eval.tempo
 """
 
-import numpy as np
-import mir_eval
-import json
 import glob
+import json
+import os
+import mir_eval
+import numpy as np
 import pytest
 
 A_TOL = 1e-12
 
-
-REF_GLOB = "data/tempo/ref*.lab"
-EST_GLOB = "data/tempo/est*.lab"
-SCORES_GLOB = "data/tempo/output*.json"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+REF_GLOB = os.path.join(DATA_DIR, "tempo", "ref*.lab")
+EST_GLOB = os.path.join(DATA_DIR, "tempo", "est*.lab")
+SCORES_GLOB = os.path.join(DATA_DIR, "tempo", "output*.json")
 
 ref_files = sorted(glob.glob(REF_GLOB))
 est_files = sorted(glob.glob(EST_GLOB))

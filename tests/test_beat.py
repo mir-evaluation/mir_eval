@@ -2,18 +2,20 @@
 Unit tests for mir_eval.beat
 """
 
-import numpy as np
-import json
-import mir_eval
 import glob
+import json
+import os
+import numpy as np
 import pytest
+import mir_eval
 
 A_TOL = 1e-12
 
 # Path to the fixture files
-REF_GLOB = "data/beat/ref*.txt"
-EST_GLOB = "data/beat/est*.txt"
-SCORES_GLOB = "data/beat/output*.json"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+REF_GLOB = os.path.join(DATA_DIR, "beat", "ref*.txt")
+EST_GLOB = os.path.join(DATA_DIR, "beat", "est*.txt")
+SCORES_GLOB = os.path.join(DATA_DIR, "beat", "output*.json")
 
 ref_files = sorted(glob.glob(REF_GLOB))
 est_files = sorted(glob.glob(EST_GLOB))

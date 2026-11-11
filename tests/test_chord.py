@@ -2,18 +2,20 @@
 Unit tests for mir_eval.chord
 """
 
+import glob
+import json
+import os
 import mir_eval
 import numpy as np
 import pytest
-import glob
-import json
 
 A_TOL = 1e-12
 
 # Path to the fixture files
-REF_GLOB = "data/chord/ref*.lab"
-EST_GLOB = "data/chord/est*.lab"
-SCORES_GLOB = "data/chord/output*.json"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+REF_GLOB = os.path.join(DATA_DIR, "chord", "ref*.lab")
+EST_GLOB = os.path.join(DATA_DIR, "chord", "est*.lab")
+SCORES_GLOB = os.path.join(DATA_DIR, "chord", "output*.json")
 
 ref_files = sorted(glob.glob(REF_GLOB))
 est_files = sorted(glob.glob(EST_GLOB))

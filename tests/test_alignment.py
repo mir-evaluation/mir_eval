@@ -4,6 +4,7 @@ Unit tests for mir_eval.alignment
 
 import glob
 import json
+import os
 
 import pytest
 import numpy as np
@@ -13,9 +14,10 @@ import mir_eval
 A_TOL = 1e-12
 
 # Path to the fixture files
-REF_GLOB = "data/alignment/ref*.txt"
-EST_GLOB = "data/alignment/est*.txt"
-SCORES_GLOB = "data/alignment/output*.json"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+REF_GLOB = os.path.join(DATA_DIR, "alignment", "ref*.txt")
+EST_GLOB = os.path.join(DATA_DIR, "alignment", "est*.txt")
+SCORES_GLOB = os.path.join(DATA_DIR, "alignment", "output*.json")
 
 ref_files = sorted(glob.glob(REF_GLOB))
 est_files = sorted(glob.glob(EST_GLOB))

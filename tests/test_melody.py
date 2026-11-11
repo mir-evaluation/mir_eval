@@ -3,18 +3,20 @@
 Unit tests for mir_eval.melody
 """
 
-import numpy as np
-import json
-import mir_eval
 import glob
+import json
+import os
+import mir_eval
+import numpy as np
 import pytest
 
 A_TOL = 1e-12
 
 # Path to the fixture files
-REF_GLOB = "data/melody/ref*.txt"
-EST_GLOB = "data/melody/est*.txt"
-SCORES_GLOB = "data/melody/output*.json"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+REF_GLOB = os.path.join(DATA_DIR, "melody", "ref*.txt")
+EST_GLOB = os.path.join(DATA_DIR, "melody", "est*.txt")
+SCORES_GLOB = os.path.join(DATA_DIR, "melody", "output*.json")
 
 ref_files = sorted(glob.glob(REF_GLOB))
 est_files = sorted(glob.glob(EST_GLOB))
@@ -162,8 +164,8 @@ def test_to_cent_voicing():
 
     # Test custom voicings
     ref_time, ref_freq = mir_eval.io.load_time_series(ref_file)
-    _, ref_reward = mir_eval.io.load_time_series("data/melody/reward00.txt")
-    _, est_voicing = mir_eval.io.load_time_series("data/melody/voicingest00.txt")
+    _, ref_reward = mir_eval.io.load_time_series(os.path.join(DATA_DIR, "melody", "reward00.txt"))
+    _, est_voicing = mir_eval.io.load_time_series(os.path.join(DATA_DIR, "melody", "voicingest00.txt"))
     ref_v, ref_c, est_v, est_c = mir_eval.melody.to_cent_voicing(
         ref_time,
         ref_freq,

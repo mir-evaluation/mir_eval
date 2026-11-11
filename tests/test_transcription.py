@@ -1,17 +1,19 @@
 # CREATED: 2/9/16 2:27 PM by Justin Salamon <justin.salamon@nyu.edu>
 
-import mir_eval
-import numpy as np
 import glob
 import json
+import os
+import mir_eval
+import numpy as np
 import pytest
 
 A_TOL = 1e-12
 
 # Path to the fixture files
-REF_GLOB = "data/transcription/ref*.txt"
-EST_GLOB = "data/transcription/est*.txt"
-SCORES_GLOB = "data/transcription/output*.json"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+REF_GLOB = os.path.join(DATA_DIR, "transcription", "ref*.txt")
+EST_GLOB = os.path.join(DATA_DIR, "transcription", "est*.txt")
+SCORES_GLOB = os.path.join(DATA_DIR, "transcription", "output*.json")
 
 ref_files = sorted(glob.glob(REF_GLOB))
 est_files = sorted(glob.glob(EST_GLOB))

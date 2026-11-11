@@ -98,7 +98,6 @@ jobs:
           python -c "import scipy; scipy.show_config()"
 
       - name: Run unit tests
-        working-directory: tests
         run: |
           if [ "${{ matrix.python-version }}" == "3.15" ]; then
             pytest --mpl --mpl-results-path=mpl_image_results/
@@ -107,11 +106,11 @@ jobs:
           fi
 
       - name: Upload image comparison failures if any
-        if: failure() && hashFiles('tests/mpl_image_results/**') != ''
+        if: failure() && hashFiles('mpl_image_results/**') != ''
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: mpl-test-results-${{ runner.os }}--${{ runner.arch }}--${{ matrix.python-version }}
-          path: tests/mpl_image_results/
+          path: mpl_image_results/
           retention-days: 7
 
       - name: Upload coverage reports to Codecov
