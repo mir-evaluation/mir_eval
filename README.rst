@@ -28,7 +28,6 @@ Documentation, including installation and usage information: https://mir-evaluat
 Dependencies:
 
 * `Scipy/Numpy <http://www.scipy.org/>`_
-* `decorator <https://github.com/micheles/decorator>`_
 
 If you use mir_eval in a research project, please cite the following paper:
 

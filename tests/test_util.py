@@ -355,3 +355,19 @@ def test_sort_labeled_intervals_with_labels(x, labels, x_true, lab_true):
 def test_sort_labeled_intervals_without_labels(x, x_true):
     xs = mir_eval.util.sort_labeled_intervals(x)
     assert np.allclose(xs, x_true)
+
+
+def test_deprecated():
+    @mir_eval.util.deprecated(version="0.8.0", version_removed="0.9.0")
+    def dummy_func(x, y=1):
+        """Docstring for dummy_func."""
+        return x + y
+
+    assert dummy_func.__name__ == "dummy_func"
+    assert dummy_func.__doc__ == "Docstring for dummy_func."
+
+    with pytest.warns(FutureWarning, match=r"dummy_func\n\tDeprecated as of mir_eval version 0\.8\.0"):
+        res = dummy_func(2, y=3)
+
+    assert res == 5
+

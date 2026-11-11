@@ -25,7 +25,6 @@ classifiers = [
 dependencies = [
     "numpy>=2.1.0",
     "scipy>=1.15.0",
-    "decorator>=5.2.1",
 ]
 
 [project.optional-dependencies]

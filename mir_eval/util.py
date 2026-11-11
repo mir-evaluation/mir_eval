@@ -3,10 +3,10 @@ Useful functionality required across the task submodules,
 such as preprocessing, validation, and common computations.
 """
 
-import os
+import functools
 import inspect
+import os
 import warnings
-from decorator import decorator
 
 import numpy as np
 
@@ -949,14 +949,18 @@ def deprecated(*, version, version_removed):
     Using the decorated (old) function will result in a warning.
     """
 
-    def __wrapper(func, *args, **kwargs):
-        """Warn the user, and then proceed."""
-        warnings.warn(
-            f"{func.__module__}.{func.__name__}\n\tDeprecated as of mir_eval version {version}."
-            f"\n\tIt will be removed in mir_eval version {version_removed}.",
-            category=FutureWarning,
-            stacklevel=3,  # Would be 2, but the decorator adds a level
-        )
-        return func(*args, **kwargs)
+    def __decorator(func):
+        @functools.wraps(func)
+        def __wrapper(*args, **kwargs):
+            """Warn the user, and then proceed."""
+            warnings.warn(
+                f"{func.__module__}.{func.__name__}\n\tDeprecated as of mir_eval version {version}."
+                f"\n\tIt will be removed in mir_eval version {version_removed}.",
+                category=FutureWarning,
+                stacklevel=2,
+            )
+            return func(*args, **kwargs)
 
-    return decorator(__wrapper)
+        return __wrapper
+
+    return __decorator
