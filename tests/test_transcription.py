@@ -226,17 +226,16 @@ def test_regression(transcription_data):
         assert np.allclose(scores[metric], expected_scores[metric], atol=A_TOL)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "ref_pitch, est_pitch",
     [(np.array([-100]), np.array([100])), (np.array([100]), np.array([-100]))],
 )
 def test_invalid_pitch(ref_pitch, est_pitch):
     ref_int = np.array([[0, 1]])
-    mir_eval.transcription.validate(ref_int, ref_pitch, ref_int, est_pitch)
+    with pytest.raises(ValueError):
+        mir_eval.transcription.validate(ref_int, ref_pitch, ref_int, est_pitch)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "ref_int, est_int",
     [
@@ -246,7 +245,8 @@ def test_invalid_pitch(ref_pitch, est_pitch):
 )
 def test_inconsistent_int_pitch(ref_int, est_int):
     ref_pitch = np.array([100])
-    mir_eval.transcription.validate(ref_int, ref_pitch, est_int, ref_pitch)
+    with pytest.raises(ValueError):
+        mir_eval.transcription.validate(ref_int, ref_pitch, est_int, ref_pitch)
 
 
 def test_empty_ref():

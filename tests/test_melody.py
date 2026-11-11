@@ -352,10 +352,10 @@ def test_voicing_measures_unvoiced():
         assert str(w[-1].message) == "Estimated melody has no voiced frames."
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_melody_voicing_badlength():
     # ref and est voicings must be the same length
-    mir_eval.melody.voicing_measures(np.ones(10), np.ones(11))
+    with pytest.raises(ValueError):
+        mir_eval.melody.voicing_measures(np.ones(10), np.ones(11))
 
 
 @pytest.mark.parametrize(
@@ -389,7 +389,6 @@ def test_melody_function_empty(metric):
         assert str(w[-1].message) == "Estimated melody has no voiced frames."
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "metric",
     [
@@ -401,7 +400,8 @@ def test_melody_function_empty(metric):
 @pytest.mark.parametrize("ref_freq, est_freq", [(np.ones(11), np.ones(10)), (np.ones(10), np.ones(11))])
 def test_melody_badlength(metric, ref_freq, est_freq):
     # frequency and time must be the same length
-    metric(np.ones(10), ref_freq, np.ones(10), est_freq)
+    with pytest.raises(ValueError):
+        metric(np.ones(10), ref_freq, np.ones(10), est_freq)
 
 
 @pytest.mark.parametrize("melody_data", file_sets, indirect=True)

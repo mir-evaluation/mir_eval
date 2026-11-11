@@ -44,9 +44,9 @@ def test_pitch_class_to_semitone_valid(pitch, semitone):
 
 
 @pytest.mark.parametrize("pitch", ["Cab", "#C", "bG"])
-@pytest.mark.xfail(raises=mir_eval.chord.InvalidChordException)
 def test_pitch_class_to_semitone_fail(pitch):
-    mir_eval.chord.pitch_class_to_semitone(pitch)
+    with pytest.raises(mir_eval.chord.InvalidChordException):
+        mir_eval.chord.pitch_class_to_semitone(pitch)
 
 
 @pytest.mark.parametrize(
@@ -67,9 +67,9 @@ def test_scale_degree_to_semitone(degree, semitone):
 
 
 @pytest.mark.parametrize("degree", ["7b", "4#", "77", "15"])
-@pytest.mark.xfail(raises=mir_eval.chord.InvalidChordException)
 def test_scale_degree_to_semitone_fail(degree):
-    mir_eval.chord.scale_degree_to_semitone(degree)
+    with pytest.raises(mir_eval.chord.InvalidChordException):
+        mir_eval.chord.scale_degree_to_semitone(degree)
 
 
 @pytest.mark.parametrize(
@@ -97,9 +97,9 @@ def test_validate_chord_label(label):
 
 
 @pytest.mark.parametrize("label", ["C::maj", "C//5", "C((4)", "C5))", "C:maj(*3/3", "Cmaj*3/3)", "asdf"])
-@pytest.mark.xfail(raises=mir_eval.chord.InvalidChordException)
 def test_validate_bad_chord_label(label):
-    mir_eval.chord.validate_chord_label(label)
+    with pytest.raises(mir_eval.chord.InvalidChordException):
+        mir_eval.chord.validate_chord_label(label)
 
 
 @pytest.mark.parametrize(
@@ -125,11 +125,11 @@ def test_split_extended(label, split):
     mir_eval.chord.split(label, reduce_extended_chords=True) == split
 
 
-@pytest.mark.xfail(raises=mir_eval.chord.InvalidChordException)
 def test_split_fail():
     # Test that an exception is raised when a chord with an omission but no
     # quality is supplied
-    mir_eval.chord.split("C(*5)")
+    with pytest.raises(mir_eval.chord.InvalidChordException):
+        mir_eval.chord.split("C(*5)")
 
 
 # Arguments are root, quality, extensions, bass
@@ -186,11 +186,11 @@ def test_chord_encode(label, e_root, e_interval, e_bass, reduce, strict):
     assert bass == e_bass, (bass, e_bass)
 
 
-@pytest.mark.xfail(raises=mir_eval.chord.InvalidChordException)
 def test_chord_encode_fail():
     # Non-chord bass notes *must* be explicitly named as extensions when
     #   strict_bass_intervals == True
-    mir_eval.chord.encode("G:dim(4)/6", reduce_extended_chords=False, strict_bass_intervals=True)
+    with pytest.raises(mir_eval.chord.InvalidChordException):
+        mir_eval.chord.encode("G:dim(4)/6", reduce_extended_chords=False, strict_bass_intervals=True)
 
 
 def test_encode_many():
@@ -596,11 +596,11 @@ def test_quality_to_bitmap():
     assert np.all(mir_eval.chord.quality_to_bitmap("maj") == np.array([1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]))
 
 
-@pytest.mark.xfail(raises=mir_eval.chord.InvalidChordException)
 @pytest.mark.parametrize("quality", ["maj5", "2", "#7"])
 def test_quality_to_bitmap_fail(quality):
     # Check exceptions for qualities not in the QUALITIES list
-    mir_eval.chord.quality_to_bitmap(quality)
+    with pytest.raises(mir_eval.chord.InvalidChordException):
+        mir_eval.chord.quality_to_bitmap(quality)
 
 
 def test_validate():

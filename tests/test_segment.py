@@ -55,7 +55,6 @@ def test_segment_boundary_empty(metric):
             assert np.all(np.isnan(metric(empty_intervals, empty_intervals)))
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize("metric", [mir_eval.segment.detection, mir_eval.segment.deviation])
 @pytest.mark.parametrize(
     "intervals",
@@ -69,7 +68,8 @@ def test_segment_boundary_empty(metric):
     ],
 )
 def test_segment_boundary_errors(metric, intervals):
-    metric(intervals, intervals)
+    with pytest.raises(ValueError):
+        metric(intervals, intervals)
 
 
 def test_segment_boundary_detection_perfect():
@@ -105,7 +105,6 @@ def test_segment_structure_empty(metric):
         assert np.allclose(metric(empty_intervals, [], empty_intervals, []), 0)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "metric",
     [
@@ -135,10 +134,10 @@ def test_segment_structure_empty(metric):
     ],
 )
 def test_segment_structure_fail(metric, intervals, labels):
-    metric(intervals, labels, intervals, labels)
+    with pytest.raises(ValueError):
+        metric(intervals, labels, intervals, labels)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "metric",
     [
@@ -154,7 +153,8 @@ def test_segment_structure_end_mismatch(metric):
     reference_intervals = np.array([[0, 1], [1, 2]])
     estimated_intervals = np.array([[0, 1], [1, 3]])
     labels = ["a", "b"]
-    metric(reference_intervals, labels, estimated_intervals, labels)
+    with pytest.raises(ValueError):
+        metric(reference_intervals, labels, estimated_intervals, labels)
 
 
 @pytest.mark.parametrize(

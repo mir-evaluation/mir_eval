@@ -79,9 +79,9 @@ def test_pattern_empty(metric):
         [[[(100, 20, 3)]]],  # (onset, midi) tuple must contain 2 elements
     ],
 )
-@pytest.mark.xfail(raises=ValueError)
 def test_pattern_failure(metric, patterns):
-    metric(patterns, patterns)
+    with pytest.raises(ValueError):
+        metric(patterns, patterns)
 
 
 @pytest.mark.parametrize(

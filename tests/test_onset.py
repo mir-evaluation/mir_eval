@@ -49,7 +49,6 @@ def test_onset_empty_warnings():
         assert np.allclose(mir_eval.onset.f_measure(np.array([]), np.array([])), 0)
 
 
-@pytest.mark.xfail(raisses=ValueError)
 @pytest.mark.parametrize(
     "onsets",
     [
@@ -59,7 +58,8 @@ def test_onset_empty_warnings():
     ],
 )
 def test_onset_fail(onsets):
-    mir_eval.onset.f_measure(onsets, onsets)
+    with pytest.raises(ValueError):
+        mir_eval.onset.f_measure(onsets, onsets)
 
 
 def test_onset_match():

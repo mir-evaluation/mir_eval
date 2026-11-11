@@ -199,14 +199,14 @@ def test_load_tempo():
     assert weight == 0.5
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_load_tempo_multiline():
-    tempi, weight = mir_eval.io.load_tempo(os.path.join(DATA_DIR, "tempo", "bad00.lab"))
+    with pytest.raises(ValueError):
+        tempi, weight = mir_eval.io.load_tempo(os.path.join(DATA_DIR, "tempo", "bad00.lab"))
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_load_tempo_badweight():
-    tempi, weight = mir_eval.io.load_tempo(os.path.join(DATA_DIR, "tempo", "bad01.lab"))
+    with pytest.raises(ValueError):
+        tempi, weight = mir_eval.io.load_tempo(os.path.join(DATA_DIR, "tempo", "bad01.lab"))
 
 
 def test_load_bad_tempi():

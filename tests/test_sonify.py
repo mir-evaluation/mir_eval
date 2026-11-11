@@ -87,31 +87,31 @@ def test_time_frequency_offset():
     assert np.allclose(signal, 0)
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_time_frequency_badtime():
     fs = 8000
     gram = np.ones((10, 20))
     times = np.arange(10)
 
-    mir_eval.sonify.time_frequency(gram, np.arange(1, 11), times, fs)
+    with pytest.raises(ValueError):
+        mir_eval.sonify.time_frequency(gram, np.arange(1, 11), times, fs)
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_time_frequency_badintervals():
     fs = 8000
     gram = np.ones((10, 20))
     times = np.ones((11, 2))
 
-    mir_eval.sonify.time_frequency(gram, np.arange(1, 11), times, fs)
+    with pytest.raises(ValueError):
+        mir_eval.sonify.time_frequency(gram, np.arange(1, 11), times, fs)
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_time_frequency_frequency():
     fs = 8000
     gram = np.ones((10, 20))
     times = np.arange(20)
 
-    mir_eval.sonify.time_frequency(gram, np.arange(1, 8), times, fs)
+    with pytest.raises(ValueError):
+        mir_eval.sonify.time_frequency(gram, np.arange(1, 8), times, fs)
 
 
 @pytest.mark.parametrize("fs", [8000, 44100])

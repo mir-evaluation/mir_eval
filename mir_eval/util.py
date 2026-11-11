@@ -802,6 +802,8 @@ def validate_frequencies(frequencies, max_freq, min_freq, allow_negatives=False)
     # If flag is true, map frequencies to their absolute value.
     if allow_negatives:
         frequencies = np.abs(frequencies)
+    elif (frequencies < 0).any():
+        raise ValueError(f"A negative frequency was found and allow_negatives is {allow_negatives}")
     # Make sure no frequency values are huge
     if (np.abs(frequencies) > max_freq).any():
         raise ValueError(

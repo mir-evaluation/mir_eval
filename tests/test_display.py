@@ -399,10 +399,10 @@ def test_display_labeled_events():
     return plt.gcf()
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_display_pianoroll_nopitch_nomidi():
     # Issue 214
-    mir_eval.display.piano_roll([[0, 1]])
+    with pytest.raises(ValueError):
+        mir_eval.display.piano_roll([[0, 1]])
 
 
 @pytest.mark.mpl_image_compare(

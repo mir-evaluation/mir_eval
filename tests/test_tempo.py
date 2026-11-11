@@ -66,27 +66,26 @@ def test_tempo_pass():
     mir_eval.tempo.detection(good_ref, good_weight, np.array([0, 0]), good_tol)
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_tempo_zero_ref():
     # Both references cannot be zero
-    mir_eval.tempo.detection(np.array([0.0, 0.0]), 0.5, np.array([60, 120]))
+    with pytest.raises(ValueError):
+        mir_eval.tempo.detection(np.array([0.0, 0.0]), 0.5, np.array([60, 120]))
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize("weight", [-1, 1.5])
 def test_tempo_weight_range(weight):
     # Weight needs to be in the range [0, 1]
-    mir_eval.tempo.detection(np.array([60, 120]), weight, np.array([120, 180]))
+    with pytest.raises(ValueError):
+        mir_eval.tempo.detection(np.array([60, 120]), weight, np.array([120, 180]))
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize("tol", [-1, 1.5])
 def test_tempo_tol_range(tol):
     # Weight needs to be in the range [0, 1]
-    mir_eval.tempo.detection(np.array([60, 120]), 0.5, np.array([120, 180]), tol=tol)
+    with pytest.raises(ValueError):
+        mir_eval.tempo.detection(np.array([60, 120]), 0.5, np.array([120, 180]), tol=tol)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "bad_tempo",
     [
@@ -100,10 +99,10 @@ def test_tempo_tol_range(tol):
 def test_tempo_fail_bad_reftempo(bad_tempo):
     good_est = np.array([120, 180])
 
-    mir_eval.tempo.detection(bad_tempo, 0.5, good_est, 0.08)
+    with pytest.raises(ValueError):
+        mir_eval.tempo.detection(bad_tempo, 0.5, good_est, 0.08)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "bad_tempo",
     [
@@ -117,7 +116,8 @@ def test_tempo_fail_bad_reftempo(bad_tempo):
 def test_tempo_fail_bad_esttempo(bad_tempo):
     good_ref = np.array([60, 120])
 
-    mir_eval.tempo.detection(good_ref, 0.5, bad_tempo, 0.08)
+    with pytest.raises(ValueError):
+        mir_eval.tempo.detection(good_ref, 0.5, bad_tempo, 0.08)
 
 
 @pytest.mark.parametrize("tempo_data", file_sets, indirect=True)

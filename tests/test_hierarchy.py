@@ -75,7 +75,6 @@ def test_tmeasure_fail_span():
         mir_eval.hierarchy.tmeasure(ref, est)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "window, frame_size",
     [(None, -1), (None, 0), (15, -1), (15, 0), (15, 30), (30, -1), (30, 0), (30, 60)],
@@ -84,7 +83,8 @@ def test_tmeasure_fail_frame_size(window, frame_size):
     ref = [[[0, 60]], [[0, 30], [30, 60]]]
     ref = [np.asarray(_) for _ in ref]
 
-    mir_eval.hierarchy.tmeasure(ref, ref, window=window, frame_size=frame_size)
+    with pytest.raises(ValueError):
+        mir_eval.hierarchy.tmeasure(ref, ref, window=window, frame_size=frame_size)
 
 
 @pytest.mark.parametrize("frame_size", [0.1, 0.5, 1.0])
@@ -152,14 +152,14 @@ def test_lmeasure_fail_span():
         mir_eval.hierarchy.lmeasure(ref, ref_lab, est, ref_lab)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize("frame_size", [-1, 0])
 def test_lmeasure_fail_frame_size(frame_size):
     ref = [[[0, 60]], [[0, 30], [30, 60]]]
     ref = [np.asarray(_) for _ in ref]
     ref_lab = [["A"], ["a", "b"]]
 
-    mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab, frame_size=frame_size)
+    with pytest.raises(ValueError):
+        mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab, frame_size=frame_size)
 
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")

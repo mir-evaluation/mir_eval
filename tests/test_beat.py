@@ -84,9 +84,9 @@ def test_beat_empty_warnings(metric):
         np.array([2.0, 1.0]),  # must be sorted
     ],
 )
-@pytest.mark.xfail(raises=ValueError)
 def test_beat_fail(metric, beats):
-    metric(beats, beats)
+    with pytest.raises(ValueError):
+        metric(beats, beats)
 
 
 @pytest.mark.parametrize(

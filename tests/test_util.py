@@ -28,7 +28,6 @@ def test_interpolate_intervals_gap():
     assert util.interpolate_intervals(intervals, labels, time_points, "N") == expected_ans
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_interpolate_intervals_badtime():
     """Check that interpolate_intervals throws an exception if
     input is unordered.
@@ -36,7 +35,8 @@ def test_interpolate_intervals_badtime():
     labels = list("abc")
     intervals = np.array([(n, n + 1.0) for n in range(len(labels))])
     time_points = [-1.0, 0.1, 0.9, 0.8, 2.3, 4.0]
-    mir_eval.util.interpolate_intervals(intervals, labels, time_points)
+    with pytest.raises(ValueError):
+        mir_eval.util.interpolate_intervals(intervals, labels, time_points)
 
 
 def test_intervals_to_samples():
@@ -217,7 +217,6 @@ def test_fast_hit_windows():
     assert np.all(est_fast == est_slow)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "intervals",
     [
@@ -232,10 +231,10 @@ def test_fast_hit_windows():
     ],
 )
 def test_validate_intervals(intervals):
-    mir_eval.util.validate_intervals(intervals)
+    with pytest.raises(ValueError):
+        mir_eval.util.validate_intervals(intervals)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "events",
     [
@@ -248,10 +247,10 @@ def test_validate_intervals(intervals):
     ],
 )
 def test_validate_events(events):
-    mir_eval.util.validate_events(events)
+    with pytest.raises(ValueError):
+        mir_eval.util.validate_events(events)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "freqs",
     [
@@ -267,10 +266,10 @@ def test_validate_events(events):
     ],
 )
 def test_validate_frequencies(freqs):
-    mir_eval.util.validate_frequencies(freqs, 5000, 20, allow_negatives=False)
+    with pytest.raises(ValueError):
+        mir_eval.util.validate_frequencies(freqs, 5000, 20, allow_negatives=False)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "freqs",
     [
@@ -281,7 +280,8 @@ def test_validate_frequencies(freqs):
     ],
 )
 def test_validate_frequencies_negative(freqs):
-    mir_eval.util.validate_frequencies(freqs, 5000, 20, allow_negatives=True)
+    with pytest.raises(ValueError):
+        mir_eval.util.validate_frequencies(freqs, 5000, 20, allow_negatives=True)
 
 
 def test_has_kwargs():

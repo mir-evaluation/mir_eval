@@ -28,7 +28,6 @@ assert len(ref_files) == len(est_files) == len(sco_files) > 0
 file_sets = list(zip(ref_files, est_files, sco_files))
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "metric",
     [
@@ -62,7 +61,8 @@ file_sets = list(zip(ref_files, est_files, sco_files))
     ],
 )
 def test_alignment_functions_fail(metric, est_alignment, pred_alignment):
-    metric(est_alignment, pred_alignment)
+    with pytest.raises(ValueError):
+        metric(est_alignment, pred_alignment)
 
 
 @pytest.fixture
