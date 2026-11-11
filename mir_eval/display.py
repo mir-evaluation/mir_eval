@@ -124,8 +124,9 @@ def register_colormap(name, cmap):
 
 # Register the colormaps with matplotlib
 for name in __COLORMAPS__:
-    _cmap = ListedColormap(__COLORMAPS__[name], name=name)
-    _cmap.set_extremes(under=(0.75, 0.75, 0.75), over=(0.75, 0.75, 0.75))
+    _cmap = ListedColormap(__COLORMAPS__[name], name=name).with_extremes(
+        under=(0.75, 0.75, 0.75), over=(0.75, 0.75, 0.75)
+    )
     register_colormap(name=name, cmap=_cmap)
 
 del name, _cmap
