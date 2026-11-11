@@ -27,23 +27,6 @@ import os
 import sys
 
 
-def load_separation_data(folder):
-    """
-    Loads in a stacked matrix of the .wavs in the provided folder.
-    We need this because there's no specialized loader in .io for it.
-    """
-    data = []
-    global_fs = None
-    # Load in each reference file in the supplied dir
-    for reference_file in glob.glob(os.path.join(folder, "*.wav")):
-        audio_data, fs = mir_eval.io.load_wav(reference_file)
-        # Make sure fs is the same for all files
-        assert global_fs is None or fs == global_fs
-        global_fs = fs
-        data.append(audio_data)
-    return np.vstack(data)
-
-
 def load_transcription_velocity(filename):
     """Loader for data in the format start, end, pitch, velocity."""
     starts, ends, pitches, velocities = mir_eval.io.load_delimited(
@@ -90,11 +73,6 @@ if __name__ == "__main__":
         mir_eval.segment,
         mir_eval.io.load_labeled_intervals,
         "data/segment/{}*.lab",
-    )
-    tasks["separation"] = (
-        mir_eval.separation,
-        load_separation_data,
-        "data/separation/{}*",
     )
     tasks["transcription"] = (
         mir_eval.transcription,

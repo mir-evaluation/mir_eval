@@ -12,7 +12,6 @@ from mir_eval.io import load_labeled_intervals
 from mir_eval.io import load_valued_intervals
 from mir_eval.io import load_labeled_events
 from mir_eval.io import load_ragged_time_series
-from mir_eval.io import load_wav
 
 STYLE = "default"
 
@@ -366,44 +365,6 @@ def test_display_ticker_midi_zoom():
 
     plt.plot(np.arange(3))
     mir_eval.display.ticker_notes()
-    return plt.gcf()
-
-
-@pytest.mark.mpl_image_compare(
-    baseline_images=["test_display_separation"],
-    extensions=["png"],
-    style=STYLE,
-    tolerance=6,
-)
-@pytest.mark.skip()
-def test_display_separation():
-    plt.figure()
-
-    x0, fs = load_wav("data/separation/ref05/0.wav")
-    x1, fs = load_wav("data/separation/ref05/1.wav")
-    x2, fs = load_wav("data/separation/ref05/2.wav")
-
-    mir_eval.display.separation([x0, x1, x2], fs=fs)
-    return plt.gcf()
-
-
-@pytest.mark.mpl_image_compare(
-    baseline_images=["test_display_separation_label"],
-    extensions=["png"],
-    style=STYLE,
-    tolerance=6,
-)
-@pytest.mark.skip()
-def test_display_separation_label():
-    plt.figure()
-
-    x0, fs = load_wav("data/separation/ref05/0.wav")
-    x1, fs = load_wav("data/separation/ref05/1.wav")
-    x2, fs = load_wav("data/separation/ref05/2.wav")
-
-    mir_eval.display.separation([x0, x1, x2], fs=fs, labels=["Alice", "Bob", "Carol"])
-
-    plt.legend(loc="upper right")
     return plt.gcf()
 
 

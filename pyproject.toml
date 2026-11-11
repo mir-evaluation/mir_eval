@@ -79,11 +79,6 @@ addopts = "--cov-report term-missing --cov mir_eval --cov-report=xml --mpl-basel
 [tool.coverage.report]
 show_missing = true
 
-[tool.coverage.run]
-omit = [
-    "mir_eval/separation.py",
-]
-
 [tool.codespell]
 ignore-words-list = "nce,fpr,shepard,dum,theis"
 skip = "./tests,./docs,./.git,./coverage.xml"
