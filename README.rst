@@ -4,14 +4,18 @@
 .. image:: https://img.shields.io/pypi/v/mir_eval.svg
     :target: https://pypi.python.org/pypi/mir_eval
 
-.. image:: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml/badge.svg
-    :target: https://github.com/mir-evaluation/mir_eval/actions/workflows/test.yml
+.. image:: https://github.com/mir-evaluation/mir_eval/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/mir-evaluation/mir_eval/actions/workflows/ci.yml
 
 .. image:: https://codecov.io/gh/mir-evaluation/mir_eval/graph/badge.svg?token=OzRL3aW7TX 
     :target: https://codecov.io/gh/mir-evaluation/mir_eval
 
 .. image:: https://img.shields.io/pypi/l/mir_eval.svg
     :target: https://github.com/mir-evaluation/mir_eval/blob/main/LICENSE.txt
+
+.. image:: https://img.shields.io/badge/SPEC-0-green?labelColor=%23004811&color=%235CA038
+    :target: https://scientific-python.org/specs/spec-0000/
+    :alt: SPEC 0 — Minimum Supported Dependencies
 
 
 mir_eval
@@ -24,7 +28,6 @@ Documentation, including installation and usage information: https://mir-evaluat
 Dependencies:
 
 * `Scipy/Numpy <http://www.scipy.org/>`_
-* `decorator <https://github.com/micheles/decorator>`_
 
 If you use mir_eval in a research project, please cite the following paper:
 

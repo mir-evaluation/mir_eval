@@ -57,7 +57,6 @@ Metrics
 import numpy as np
 from . import util
 import warnings
-import collections
 
 
 def _n_onset_midi(patterns):
@@ -98,16 +97,11 @@ def validate(reference_patterns, estimated_patterns):
     for patterns in [reference_patterns, estimated_patterns]:
         for pattern in patterns:
             if len(pattern) <= 0:
-                raise ValueError(
-                    "Each pattern must contain at least one " "occurrence."
-                )
+                raise ValueError("Each pattern must contain at least one occurrence.")
             for occurrence in pattern:
                 for onset_midi in occurrence:
                     if len(onset_midi) != 2:
-                        raise ValueError(
-                            "The (onset, midi) tuple must "
-                            "contain exactly 2 elements."
-                        )
+                        raise ValueError("The (onset, midi) tuple must contain exactly 2 elements.")
 
 
 def _occurrence_intersection(occ_P, occ_Q):
@@ -162,9 +156,7 @@ def _compute_score_matrix(P, Q, similarity_metric="cardinality_score"):
                 sm[iP, iQ] = len(_occurrence_intersection(occ_P, occ_Q)) / denom
             # TODO: More scores: 'normalised matching socre'
             else:
-                raise ValueError(
-                    "The similarity metric (%s) can only be: " "'cardinality_score'."
-                )
+                raise ValueError("The similarity metric (%s) can only be: 'cardinality_score'.")
     return sm
 
 
@@ -235,9 +227,7 @@ def standard_FPR(reference_patterns, estimated_patterns, tol=1e-5):
     return f_measure, precision, recall
 
 
-def establishment_FPR(
-    reference_patterns, estimated_patterns, similarity_metric="cardinality_score"
-):
+def establishment_FPR(reference_patterns, estimated_patterns, similarity_metric="cardinality_score"):
     """Compute the establishment F1 Score, Precision and Recall.
 
     Examples
@@ -475,7 +465,7 @@ def three_layer_FPR(reference_patterns, estimated_patterns):
         F : F-measure for the given layer
         """
         if layer != 1 and layer != 2:
-            raise ValueError("Layer (%d) must be an integer between 1 and 2" % layer)
+            raise ValueError(f"Layer ({layer:d}) must be an integer between 1 and 2")
 
         nP = len(ref_elements)  # Number of elements in reference
         nQ = len(est_elements)  # Number of elements in estimation
@@ -621,12 +611,10 @@ def evaluate(ref_patterns, est_patterns, **kwargs):
         the value is the (float) score achieved.
     """
     # Compute all the metrics
-    scores = collections.OrderedDict()
+    scores = {}
 
     # Standard scores
-    scores["F"], scores["P"], scores["R"] = util.filter_kwargs(
-        standard_FPR, ref_patterns, est_patterns, **kwargs
-    )
+    scores["F"], scores["P"], scores["R"] = util.filter_kwargs(standard_FPR, ref_patterns, est_patterns, **kwargs)
 
     # Establishment scores
     scores["F_est"], scores["P_est"], scores["R_est"] = util.filter_kwargs(
@@ -653,11 +641,7 @@ def evaluate(ref_patterns, est_patterns, **kwargs):
     # Set default value of n
     if "n" not in kwargs:
         kwargs["n"] = 5
-    scores["FFP"] = util.filter_kwargs(
-        first_n_three_layer_P, ref_patterns, est_patterns, **kwargs
-    )
-    scores["FFTP_est"] = util.filter_kwargs(
-        first_n_target_proportion_R, ref_patterns, est_patterns, **kwargs
-    )
+    scores["FFP"] = util.filter_kwargs(first_n_three_layer_P, ref_patterns, est_patterns, **kwargs)
+    scores["FFTP_est"] = util.filter_kwargs(first_n_target_proportion_R, ref_patterns, est_patterns, **kwargs)
 
     return scores

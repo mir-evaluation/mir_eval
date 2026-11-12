@@ -53,7 +53,6 @@ References
       Conference, 2018.
 """
 
-import collections
 import numpy as np
 from . import transcription
 from . import util
@@ -88,15 +87,9 @@ def validate(
     transcription.validate(ref_intervals, ref_pitches, est_intervals, est_pitches)
     # Check that velocities have the same length as intervals/pitches
     if not ref_velocities.shape[0] == ref_pitches.shape[0]:
-        raise ValueError(
-            "Reference velocities must have the same length as "
-            "pitches and intervals."
-        )
+        raise ValueError("Reference velocities must have the same length as pitches and intervals.")
     if not est_velocities.shape[0] == est_pitches.shape[0]:
-        raise ValueError(
-            "Estimated velocities must have the same length as "
-            "pitches and intervals."
-        )
+        raise ValueError("Estimated velocities must have the same length as pitches and intervals.")
     # Check that the velocities are positive
     if ref_velocities.size > 0 and np.min(ref_velocities) < 0:
         raise ValueError("Reference velocities must be positive.")
@@ -259,9 +252,25 @@ def precision_recall_f1_overlap(
     4. If ``offset_ratio`` is ``None``, note offsets are ignored in the
        comparison. Otherwise, on top of the above requirements, a correct
        returned note is required to have an offset value within
-       `offset_ratio`` (default 20%) of the reference note's duration around
+       ``offset_ratio`` (default 20%) of the reference note's duration around
        the reference note's offset, or within ``offset_min_tolerance``
        (default 50 ms), whichever is larger.
+
+    Examples
+    --------
+    >>> ref_starts, ref_ends, ref_pitches, ref_velocities = mir_eval.io.load_delimited(
+    ...     'reference.txt', [float, float, float, float])
+    >>> ref_intervals = np.column_stack([ref_starts, ref_ends])
+    >>> est_starts, est_ends, est_pitches, est_velocities = mir_eval.io.load_delimited(
+    ...     'estimated.txt', [float, float, float, float])
+    >>> est_intervals = np.column_stack([est_starts, est_ends])
+    >>> (precision,
+    ...  recall,
+    ...  f_measure,
+    ...  avg_overlap_ratio) = (
+    ...      mir_eval.transcription_velocity.precision_recall_f1_overlap(
+    ...          ref_intervals, ref_pitches, ref_velocities,
+    ...          est_intervals, est_pitches, est_velocities))
 
     Parameters
     ----------
@@ -349,23 +358,25 @@ def precision_recall_f1_overlap(
     recall = float(len(matching)) / len(ref_pitches)
     f_measure = util.f_measure(precision, recall, beta=beta)
 
-    avg_overlap_ratio = transcription.average_overlap_ratio(
-        ref_intervals, est_intervals, matching
-    )
+    avg_overlap_ratio = transcription.average_overlap_ratio(ref_intervals, est_intervals, matching)
 
     return precision, recall, f_measure, avg_overlap_ratio
 
 
-def evaluate(
-    ref_intervals,
-    ref_pitches,
-    ref_velocities,
-    est_intervals,
-    est_pitches,
-    est_velocities,
-    **kwargs
-):
+def evaluate(ref_intervals, ref_pitches, ref_velocities, est_intervals, est_pitches, est_velocities, **kwargs):
     """Compute all metrics for the given reference and estimated annotations.
+
+    Examples
+    --------
+    >>> ref_starts, ref_ends, ref_pitches, ref_velocities = mir_eval.io.load_delimited(
+    ...     'reference.txt', [float, float, float, float])
+    >>> ref_intervals = np.column_stack([ref_starts, ref_ends])
+    >>> est_starts, est_ends, est_pitches, est_velocities = mir_eval.io.load_delimited(
+    ...     'estimated.txt', [float, float, float, float])
+    >>> est_intervals = np.column_stack([est_starts, est_ends])
+    >>> scores = mir_eval.transcription_velocity.evaluate(
+    ...     ref_intervals, ref_pitches, ref_velocities,
+    ...     est_intervals, est_pitches, est_velocities)
 
     Parameters
     ----------
@@ -379,7 +390,7 @@ def evaluate(
         Array of estimated notes time intervals (onset and offset times)
     est_pitches : np.ndarray, shape=(m,)
         Array of estimated pitch values in Hertz
-    est_velocities : np.ndarray, shape=(n,)
+    est_velocities : np.ndarray, shape=(m,)
         Array of MIDI velocities (i.e. between 0 and 127) of estimated notes
     **kwargs
         Additional keyword arguments which will be passed to the
@@ -392,7 +403,7 @@ def evaluate(
         the value is the (float) score achieved.
     """
     # Compute all the metrics
-    scores = collections.OrderedDict()
+    scores = {}
 
     # Precision, recall and f-measure taking note offsets into account
     kwargs.setdefault("offset_ratio", 0.2)
@@ -410,7 +421,7 @@ def evaluate(
             est_intervals,
             est_pitches,
             est_velocities,
-            **kwargs
+            **kwargs,
         )
 
     # Precision, recall and f-measure NOT taking note offsets into account
@@ -428,7 +439,7 @@ def evaluate(
         est_intervals,
         est_pitches,
         est_velocities,
-        **kwargs
+        **kwargs,
     )
 
     return scores

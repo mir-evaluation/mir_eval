@@ -43,7 +43,6 @@ References
 """
 
 import numpy as np
-import collections
 import scipy.interpolate
 from . import util
 import warnings
@@ -83,19 +82,15 @@ def validate(ref_time, ref_freqs, est_time, est_freqs):
     if len(est_freqs) == 0:
         warnings.warn("Estimated frequencies are empty.")
     if ref_time.size != len(ref_freqs):
-        raise ValueError("Reference times and frequencies have unequal " "lengths.")
+        raise ValueError("Reference times and frequencies have unequal lengths.")
     if est_time.size != len(est_freqs):
-        raise ValueError("Estimate times and frequencies have unequal " "lengths.")
+        raise ValueError("Estimate times and frequencies have unequal lengths.")
 
     for freq in ref_freqs:
-        util.validate_frequencies(
-            freq, max_freq=MAX_FREQ, min_freq=MIN_FREQ, allow_negatives=False
-        )
+        util.validate_frequencies(freq, max_freq=MAX_FREQ, min_freq=MIN_FREQ, allow_negatives=False)
 
     for freq in est_freqs:
-        util.validate_frequencies(
-            freq, max_freq=MAX_FREQ, min_freq=MIN_FREQ, allow_negatives=False
-        )
+        util.validate_frequencies(freq, max_freq=MAX_FREQ, min_freq=MIN_FREQ, allow_negatives=False)
 
 
 def resample_multipitch(times, frequencies, target_times):
@@ -233,9 +228,7 @@ def compute_num_true_positives(ref_freqs, est_freqs, window=0.5, chroma=False):
     for i, (ref_frame, est_frame) in enumerate(zip(ref_freqs, est_freqs)):
         if chroma:
             # match chroma-wrapped frequency events
-            matching = util.match_events(
-                ref_frame, est_frame, window, distance=util._outer_distance_mod_n
-            )
+            matching = util.match_events(ref_frame, est_frame, window, distance=util._outer_distance_mod_n)
         else:
             # match frequency events within tolerance window in semitones
             matching = util.match_events(ref_frame, est_frame, window)
@@ -409,10 +402,7 @@ def metrics(ref_time, ref_freqs, est_time, est_freqs, **kwargs):
 
     # resample est_freqs if est_times is different from ref_times
     if est_time.size != ref_time.size or not np.allclose(est_time, ref_time):
-        warnings.warn(
-            "Estimate times not equal to reference times. "
-            "Resampling to common time base."
-        )
+        warnings.warn("Estimate times not equal to reference times. Resampling to common time base.")
         est_freqs = resample_multipitch(est_time, est_freqs, ref_time)
 
     # convert frequencies from Hz to continuous midi note number
@@ -428,17 +418,11 @@ def metrics(ref_time, ref_freqs, est_time, est_freqs, **kwargs):
     n_est = compute_num_freqs(est_freqs_midi)
 
     # compute the number of true positives
-    true_positives = util.filter_kwargs(
-        compute_num_true_positives, ref_freqs_midi, est_freqs_midi, **kwargs
-    )
+    true_positives = util.filter_kwargs(compute_num_true_positives, ref_freqs_midi, est_freqs_midi, **kwargs)
 
     # compute the number of true positives ignoring octave mistakes
     true_positives_chroma = util.filter_kwargs(
-        compute_num_true_positives,
-        ref_freqs_chroma,
-        est_freqs_chroma,
-        chroma=True,
-        **kwargs
+        compute_num_true_positives, ref_freqs_chroma, est_freqs_chroma, chroma=True, **kwargs
     )
 
     # compute accuracy metrics
@@ -448,14 +432,10 @@ def metrics(ref_time, ref_freqs, est_time, est_freqs, **kwargs):
     e_sub, e_miss, e_fa, e_tot = compute_err_score(true_positives, n_ref, n_est)
 
     # compute accuracy metrics ignoring octave mistakes
-    precision_chroma, recall_chroma, accuracy_chroma = compute_accuracy(
-        true_positives_chroma, n_ref, n_est
-    )
+    precision_chroma, recall_chroma, accuracy_chroma = compute_accuracy(true_positives_chroma, n_ref, n_est)
 
     # compute error metrics ignoring octave mistakes
-    e_sub_chroma, e_miss_chroma, e_fa_chroma, e_tot_chroma = compute_err_score(
-        true_positives_chroma, n_ref, n_est
-    )
+    e_sub_chroma, e_miss_chroma, e_fa_chroma, e_tot_chroma = compute_err_score(true_positives_chroma, n_ref, n_est)
 
     return (
         precision,
@@ -508,7 +488,7 @@ def evaluate(ref_time, ref_freqs, est_time, est_freqs, **kwargs):
         the value is the (float) score achieved.
 
     """
-    scores = collections.OrderedDict()
+    scores = {}
 
     (
         scores["Precision"],

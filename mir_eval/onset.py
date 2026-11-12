@@ -23,7 +23,6 @@ Metrics
   reference onsets.
 """
 
-import collections
 from . import util
 import warnings
 
@@ -125,7 +124,7 @@ def evaluate(reference_onsets, estimated_onsets, **kwargs):
 
     """
     # Compute all metrics
-    scores = collections.OrderedDict()
+    scores = {}
 
     scores["F-measure"], scores["Precision"], scores["Recall"] = util.filter_kwargs(
         f_measure, reference_onsets, estimated_onsets, **kwargs

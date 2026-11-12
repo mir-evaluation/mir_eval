@@ -2,19 +2,20 @@
 Unit tests for mir_eval.onset
 """
 
+import glob
+import json
+import os
+import mir_eval
 import numpy as np
 import pytest
-import json
-import mir_eval
-import glob
-import warnings
 
 A_TOL = 1e-12
 
 # Path to the fixture files
-REF_GLOB = "data/onset/ref*.txt"
-EST_GLOB = "data/onset/est*.txt"
-SCORES_GLOB = "data/onset/output*.json"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+REF_GLOB = os.path.join(DATA_DIR, "onset", "ref*.txt")
+EST_GLOB = os.path.join(DATA_DIR, "onset", "est*.txt")
+SCORES_GLOB = os.path.join(DATA_DIR, "onset", "output*.json")
 
 ref_files = sorted(glob.glob(REF_GLOB))
 est_files = sorted(glob.glob(EST_GLOB))
@@ -48,7 +49,6 @@ def test_onset_empty_warnings():
         assert np.allclose(mir_eval.onset.f_measure(np.array([]), np.array([])), 0)
 
 
-@pytest.mark.xfail(raisses=ValueError)
 @pytest.mark.parametrize(
     "onsets",
     [
@@ -58,7 +58,8 @@ def test_onset_empty_warnings():
     ],
 )
 def test_onset_fail(onsets):
-    mir_eval.onset.f_measure(onsets, onsets)
+    with pytest.raises(ValueError):
+        mir_eval.onset.f_measure(onsets, onsets)
 
 
 def test_onset_match():

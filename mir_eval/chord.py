@@ -97,7 +97,6 @@ References
 
 import numpy as np
 import warnings
-import collections
 
 import re
 
@@ -162,9 +161,7 @@ def pitch_class_to_semitone(pitch_class):
         elif idx == 0:
             semitone = PITCH_CLASSES.get(char)
         else:
-            raise InvalidChordException(
-                "Pitch class improperly formed: %s" % pitch_class
-            )
+            raise InvalidChordException(f"Pitch class improperly formed: {pitch_class}")
     return semitone % 12
 
 
@@ -201,9 +198,7 @@ def scale_degree_to_semitone(scale_degree):
     semitone = SCALE_DEGREES.get(scale_degree, None)
     if semitone is None:
         raise InvalidChordException(
-            "Scale degree improperly formed: {}, expected one of {}.".format(
-                scale_degree, list(SCALE_DEGREES.keys())
-            )
+            f"Scale degree improperly formed: {scale_degree}, expected one of {list(SCALE_DEGREES.keys())}."
         )
     return semitone + offset
 
@@ -289,8 +284,7 @@ def quality_to_bitmap(quality):
     """
     if quality not in QUALITIES:
         raise InvalidChordException(
-            "Unsupported chord quality shorthand: '%s' "
-            "Did you mean to reduce extended chords?" % quality
+            f"Unsupported chord quality shorthand: '{quality}' Did you mean to reduce extended chords?"
         )
     return np.array(QUALITIES[quality])
 
@@ -354,7 +348,7 @@ def validate_chord_label(chord_label):
         Chord label to validate.
     """
     if not CHORD_RE.match(chord_label):
-        raise InvalidChordException("Invalid chord label: " "{}".format(chord_label))
+        raise InvalidChordException(f"Invalid chord label: {chord_label}")
     pass
 
 
@@ -413,9 +407,7 @@ def split(chord_label, reduce_extended_chords=False):
     #     empty.
     #   Intervals specifying omissions MUST have a quality.
     if omission and ":" not in chord_label:
-        raise InvalidChordException(
-            "Intervals specifying omissions MUST have a quality."
-        )
+        raise InvalidChordException("Intervals specifying omissions MUST have a quality.")
     quality = "" if scale_degrees else "maj"
     if ":" in chord_label:
         chord_root, quality_name = chord_label.split(":")
@@ -458,11 +450,11 @@ def join(chord_root, quality="", extensions=None, bass=""):
     """
     chord_label = chord_root
     if quality or extensions:
-        chord_label += ":%s" % quality
+        chord_label += f":{quality}"
     if extensions:
-        chord_label += "(%s)" % ",".join(extensions)
+        chord_label += f"({','.join(extensions)})"
     if bass and bass != "1":
-        chord_label += "/%s" % bass
+        chord_label += f"/{bass}"
     validate_chord_label(chord_label)
     return chord_label
 
@@ -496,9 +488,7 @@ def encode(chord_label, reduce_extended_chords=False, strict_bass_intervals=Fals
         return NO_CHORD_ENCODED
     if chord_label == X_CHORD:
         return X_CHORD_ENCODED
-    chord_root, quality, scale_degrees, bass = split(
-        chord_label, reduce_extended_chords=reduce_extended_chords
-    )
+    chord_root, quality, scale_degrees, bass = split(chord_label, reduce_extended_chords=reduce_extended_chords)
 
     root_number = pitch_class_to_semitone(chord_root)
     bass_number = scale_degree_to_semitone(bass) % 12
@@ -512,7 +502,7 @@ def encode(chord_label, reduce_extended_chords=False, strict_bass_intervals=Fals
     semitone_bitmap = (semitone_bitmap > 0).astype(np.int64)
     if not semitone_bitmap[bass_number] and strict_bass_intervals:
         raise InvalidChordException(
-            "Given bass scale degree is absent from this chord: " "%s" % chord_label,
+            f"Given bass scale degree is absent from this chord: {chord_label}",
             chord_label,
         )
     else:
@@ -631,8 +621,7 @@ def validate(reference_labels, estimated_labels):
     M = len(estimated_labels)
     if N != M:
         raise ValueError(
-            "Chord comparison received different length lists: "
-            "len(reference)=%d\tlen(estimates)=%d" % (N, M)
+            f"Chord comparison received different length lists: len(reference)={N:d}\tlen(estimates)={M:d}"
         )
     for labels in [reference_labels, estimated_labels]:
         for chord_label in labels:
@@ -686,8 +675,8 @@ def weighted_accuracy(comparisons, weights):
     if weights.shape[0] != N:
         raise ValueError(
             "weights and comparisons should be of the same"
-            " length. len(weights) = {} but len(comparisons)"
-            " = {}".format(weights.shape[0], N)
+            f" length. len(weights) = {weights.shape[0]} but len(comparisons)"
+            f" = {N}"
         )
     if (weights < 0).any():
         raise ValueError("Weights should all be positive.")
@@ -698,9 +687,7 @@ def weighted_accuracy(comparisons, weights):
     valid_idx = comparisons >= 0
     # If no comparable chords were provided, warn and return 0
     if valid_idx.sum() == 0:
-        warnings.warn(
-            "No reference chords were comparable " "to estimated chords, returning 0."
-        )
+        warnings.warn("No reference chords were comparable to estimated chords, returning 0.")
         return 0
     # Remove any uncomparable labels
     comparisons = comparisons[valid_idx]
@@ -1095,9 +1082,7 @@ def mirex(reference_labels, estimated_labels):
     # Skip chords where the number of active semitones `n` is
     #   0 < n < `min_intersection`.
     ref_semitone_count = (ref_data[1] > 0).sum(axis=1)
-    skip_idx = np.logical_and(
-        ref_semitone_count > 0, ref_semitone_count < min_intersection
-    )
+    skip_idx = np.logical_and(ref_semitone_count > 0, ref_semitone_count < min_intersection)
     # Also ignore 'X' chords.
     np.logical_or(skip_idx, np.any(ref_data[1] < 0, axis=1), skip_idx)
     comparison_scores[skip_idx] = -1.0
@@ -1281,12 +1266,7 @@ def sevenths(reference_labels, estimated_labels):
     comparison_scores = (eq_root * eq_semitones).astype(np.float64)
 
     # Test for reference chord inclusion
-    is_valid = np.array(
-        [
-            np.all(np.equal(ref_semitones, semitones), axis=1)
-            for semitones in valid_semitones
-        ]
-    )
+    is_valid = np.array([np.all(np.equal(ref_semitones, semitones), axis=1) for semitones in valid_semitones])
     # Drop if NOR
     comparison_scores[np.sum(is_valid, axis=0) == 0] = -1
     return comparison_scores
@@ -1340,12 +1320,7 @@ def sevenths_inv(reference_labels, estimated_labels):
     comparison_scores = (eq_roots_basses * eq_semitones).astype(np.float64)
 
     # Test for Major / Minor / No-chord
-    is_valid = np.array(
-        [
-            np.all(np.equal(ref_semitones, semitones), axis=1)
-            for semitones in valid_semitones
-        ]
-    )
+    is_valid = np.array([np.all(np.equal(ref_semitones, semitones), axis=1) for semitones in valid_semitones])
     comparison_scores[np.sum(is_valid, axis=0) == 0] = -1
 
     # Disable inversions that are not part of the quality
@@ -1390,10 +1365,7 @@ def directional_hamming_distance(reference_intervals, estimated_intervals):
     util.validate_intervals(reference_intervals)
 
     # make sure chord intervals do not overlap
-    if (
-        len(reference_intervals) > 1
-        and (reference_intervals[:-1, 1] > reference_intervals[1:, 0]).any()
-    ):
+    if len(reference_intervals) > 1 and (reference_intervals[:-1, 1] > reference_intervals[1:, 0]).any():
         raise ValueError("Chord Intervals must not overlap")
 
     est_ts = np.unique(estimated_intervals.flatten())
@@ -1511,9 +1483,7 @@ def merge_chord_intervals(intervals, labels):
     prev_rt = None
     prev_st = None
     prev_ba = None
-    for s, e, rt, st, ba in zip(
-        intervals[:, 0], intervals[:, 1], roots, semitones, basses
-    ):
+    for s, e, rt, st, ba in zip(intervals[:, 0], intervals[:, 1], roots, semitones, basses):
         if rt != prev_rt or (st != prev_st).any() or ba != prev_ba:
             prev_rt, prev_st, prev_ba = rt, st, ba
             merged_ivs.append([s, e])
@@ -1580,30 +1550,20 @@ def evaluate(ref_intervals, ref_labels, est_intervals, est_labels, **kwargs):
     durations = util.intervals_to_durations(intervals)
 
     # Store scores for each comparison function
-    scores = collections.OrderedDict()
+    scores = {}
 
     scores["thirds"] = weighted_accuracy(thirds(ref_labels, est_labels), durations)
-    scores["thirds_inv"] = weighted_accuracy(
-        thirds_inv(ref_labels, est_labels), durations
-    )
+    scores["thirds_inv"] = weighted_accuracy(thirds_inv(ref_labels, est_labels), durations)
     scores["triads"] = weighted_accuracy(triads(ref_labels, est_labels), durations)
-    scores["triads_inv"] = weighted_accuracy(
-        triads_inv(ref_labels, est_labels), durations
-    )
+    scores["triads_inv"] = weighted_accuracy(triads_inv(ref_labels, est_labels), durations)
     scores["tetrads"] = weighted_accuracy(tetrads(ref_labels, est_labels), durations)
-    scores["tetrads_inv"] = weighted_accuracy(
-        tetrads_inv(ref_labels, est_labels), durations
-    )
+    scores["tetrads_inv"] = weighted_accuracy(tetrads_inv(ref_labels, est_labels), durations)
     scores["root"] = weighted_accuracy(root(ref_labels, est_labels), durations)
     scores["mirex"] = weighted_accuracy(mirex(ref_labels, est_labels), durations)
     scores["majmin"] = weighted_accuracy(majmin(ref_labels, est_labels), durations)
-    scores["majmin_inv"] = weighted_accuracy(
-        majmin_inv(ref_labels, est_labels), durations
-    )
+    scores["majmin_inv"] = weighted_accuracy(majmin_inv(ref_labels, est_labels), durations)
     scores["sevenths"] = weighted_accuracy(sevenths(ref_labels, est_labels), durations)
-    scores["sevenths_inv"] = weighted_accuracy(
-        sevenths_inv(ref_labels, est_labels), durations
-    )
+    scores["sevenths_inv"] = weighted_accuracy(sevenths_inv(ref_labels, est_labels), durations)
     scores["underseg"] = underseg(merged_ref_intervals, merged_est_intervals)
     scores["overseg"] = overseg(merged_ref_intervals, merged_est_intervals)
     scores["seg"] = min(scores["overseg"], scores["underseg"])

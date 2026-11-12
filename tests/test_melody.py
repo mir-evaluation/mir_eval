@@ -3,18 +3,20 @@
 Unit tests for mir_eval.melody
 """
 
-import numpy as np
-import json
-import mir_eval
 import glob
+import json
+import os
+import mir_eval
+import numpy as np
 import pytest
 
 A_TOL = 1e-12
 
 # Path to the fixture files
-REF_GLOB = "data/melody/ref*.txt"
-EST_GLOB = "data/melody/est*.txt"
-SCORES_GLOB = "data/melody/output*.json"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+REF_GLOB = os.path.join(DATA_DIR, "melody", "ref*.txt")
+EST_GLOB = os.path.join(DATA_DIR, "melody", "est*.txt")
+SCORES_GLOB = os.path.join(DATA_DIR, "melody", "output*.json")
 
 ref_files = sorted(glob.glob(REF_GLOB))
 est_files = sorted(glob.glob(EST_GLOB))
@@ -82,9 +84,7 @@ def test_resample_melody_series():
     times_new = np.linspace(0, 0.08, 9)
     expected_cents = np.array([2.0, 2.0, 2.0, 0.0, 0.0, 0.0, -0.8, -0.1, 0.6])
     expected_voicing = np.array([1, 1, 1, 0, 0, 0, 1, 1, 1])
-    res_cents, res_voicing = mir_eval.melody.resample_melody_series(
-        times, cents, voicing, times_new
-    )
+    res_cents, res_voicing = mir_eval.melody.resample_melody_series(times, cents, voicing, times_new)
     assert np.allclose(res_cents, expected_cents)
     assert np.allclose(res_voicing, expected_voicing)
 
@@ -95,9 +95,7 @@ def test_resample_melody_series():
     times_new = np.linspace(0, 0.08, 9)
     expected_cents = np.array([2.0, 2.0, 2.0, 0.0, 0.0, 0.0, -0.8, -0.1, 0.6])
     expected_voicing = np.array([0.8, 0.52, 0.24, 0.01, 0.08, 0.15, 0.28, 0.56, 0.84])
-    res_cents, res_voicing = mir_eval.melody.resample_melody_series(
-        times, cents, voicing, times_new
-    )
+    res_cents, res_voicing = mir_eval.melody.resample_melody_series(times, cents, voicing, times_new)
     assert np.allclose(res_cents, expected_cents)
     assert np.allclose(res_voicing, expected_voicing)
 
@@ -110,9 +108,7 @@ def test_resample_melody_series_same_times():
     voicing = np.array([0, 0, 1, 1])
     expected_cents = np.array([2.0, 0.0, -1.0, 1.0])
     expected_voicing = np.array([False, False, True, True])
-    res_cents, res_voicing = mir_eval.melody.resample_melody_series(
-        times, cents, voicing, times_new
-    )
+    res_cents, res_voicing = mir_eval.melody.resample_melody_series(times, cents, voicing, times_new)
     assert np.allclose(res_cents, expected_cents)
     assert np.allclose(res_voicing, expected_voicing)
 
@@ -123,9 +119,7 @@ def test_resample_melody_series_same_times():
     voicing = np.array([0.5, 0.8, 0.9, 1.0])
     expected_cents = np.array([2.0, 0.0, -1.0, 1.0])
     expected_voicing = np.array([0.5, 0.8, 0.9, 1.0])
-    res_cents, res_voicing = mir_eval.melody.resample_melody_series(
-        times, cents, voicing, times_new
-    )
+    res_cents, res_voicing = mir_eval.melody.resample_melody_series(times, cents, voicing, times_new)
     assert np.allclose(res_cents, expected_cents)
     assert np.allclose(res_voicing, expected_voicing)
 
@@ -136,9 +130,7 @@ def test_to_cent_voicing():
     ref_time, ref_freq = mir_eval.io.load_time_series(ref_file)
     est_file = sorted(glob.glob(EST_GLOB))[0]
     est_time, est_freq = mir_eval.io.load_time_series(est_file)
-    ref_v, ref_c, est_v, est_c = mir_eval.melody.to_cent_voicing(
-        ref_time, ref_freq, est_time, est_freq
-    )
+    ref_v, ref_c, est_v, est_c = mir_eval.melody.to_cent_voicing(ref_time, ref_freq, est_time, est_freq)
     # Expected values
     test_range = np.arange(220, 225)
     expected_ref_v = np.array([False, False, False, True, True])
@@ -162,8 +154,8 @@ def test_to_cent_voicing():
 
     # Test custom voicings
     ref_time, ref_freq = mir_eval.io.load_time_series(ref_file)
-    _, ref_reward = mir_eval.io.load_time_series("data/melody/reward00.txt")
-    _, est_voicing = mir_eval.io.load_time_series("data/melody/voicingest00.txt")
+    _, ref_reward = mir_eval.io.load_time_series(os.path.join(DATA_DIR, "melody", "reward00.txt"))
+    _, est_voicing = mir_eval.io.load_time_series(os.path.join(DATA_DIR, "melody", "voicingest00.txt"))
     ref_v, ref_c, est_v, est_c = mir_eval.melody.to_cent_voicing(
         ref_time,
         ref_freq,
@@ -246,9 +238,7 @@ def test_continuous_voicing_metrics():
     ]
 
     for est_voicing, expected_scores in zip(all_est_voicing, all_expected):
-        actual_scores = mir_eval.melody.evaluate(
-            ref_time, ref_freq, est_time, est_freq, est_voicing=est_voicing
-        )
+        actual_scores = mir_eval.melody.evaluate(ref_time, ref_freq, est_time, est_freq, est_voicing=est_voicing)
         for metric in actual_scores:
             assert np.isclose(actual_scores[metric], expected_scores[metric])
 
@@ -362,10 +352,10 @@ def test_voicing_measures_unvoiced():
         assert str(w[-1].message) == "Estimated melody has no voiced frames."
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_melody_voicing_badlength():
     # ref and est voicings must be the same length
-    mir_eval.melody.voicing_measures(np.ones(10), np.ones(11))
+    with pytest.raises(ValueError):
+        mir_eval.melody.voicing_measures(np.ones(10), np.ones(11))
 
 
 @pytest.mark.parametrize(
@@ -399,7 +389,6 @@ def test_melody_function_empty(metric):
         assert str(w[-1].message) == "Estimated melody has no voiced frames."
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "metric",
     [
@@ -408,12 +397,11 @@ def test_melody_function_empty(metric):
         mir_eval.melody.overall_accuracy,
     ],
 )
-@pytest.mark.parametrize(
-    "ref_freq, est_freq", [(np.ones(11), np.ones(10)), (np.ones(10), np.ones(11))]
-)
+@pytest.mark.parametrize("ref_freq, est_freq", [(np.ones(11), np.ones(10)), (np.ones(10), np.ones(11))])
 def test_melody_badlength(metric, ref_freq, est_freq):
     # frequency and time must be the same length
-    metric(np.ones(10), ref_freq, np.ones(10), est_freq)
+    with pytest.raises(ValueError):
+        metric(np.ones(10), ref_freq, np.ones(10), est_freq)
 
 
 @pytest.mark.parametrize("melody_data", file_sets, indirect=True)

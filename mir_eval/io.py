@@ -4,7 +4,6 @@ import contextlib
 import numpy as np
 import re
 import warnings
-import scipy.io.wavfile
 
 from . import util
 from . import key
@@ -26,7 +25,7 @@ def _open(file_or_path, **kwargs):
             with open(file_or_path, **kwargs) as file_desc:
                 yield file_desc
         except TypeError as exc:
-            raise IOError(f"Invalid file-or-path object: {file_or_path}") from exc
+            raise OSError(f"Invalid file-or-path object: {file_or_path}") from exc
 
 
 def load_delimited(filename, converters, delimiter=r"\s+", comment="#"):
@@ -95,22 +94,17 @@ def load_delimited(filename, converters, delimiter=r"\s+", comment="#"):
 
             # Throw a helpful error if we got an unexpected # of columns
             if n_columns != len(data):
-                raise ValueError(
-                    "Expected {} columns, got {} at "
-                    "{}:{:d}:\n\t{}".format(n_columns, len(data), filename, row, line)
-                )
+                raise ValueError(f"Expected {n_columns} columns, got {len(data)} at {filename}:{row:d}:\n\t{line}")
 
             for value, column, converter in zip(data, columns, converters):
                 # Try converting the value, throw a helpful error on failure
                 try:
                     converted_value = converter(value)
-                except:
+                except Exception as exc:
                     raise ValueError(
-                        "Couldn't convert value {} using {} "
-                        "found at {}:{:d}:\n\t{}".format(
-                            value, converter.__name__, filename, row, line
-                        )
-                    )
+                        f"Couldn't convert value {value} using {converter.__name__} "
+                        f"found at {filename}:{row:d}:\n\t{line}"
+                    ) from exc
                 column.append(converted_value)
 
     # Sane output
@@ -190,9 +184,7 @@ def load_labeled_events(filename, delimiter=r"\s+", comment="#"):
 
     """
     # Use our universal function to load in the events
-    events, labels = load_delimited(
-        filename, [float, str], delimiter=delimiter, comment=comment
-    )
+    events, labels = load_delimited(filename, [float, str], delimiter=delimiter, comment=comment)
     events = np.array(events)
     # Validate them, but throw a warning in place of an error
     try:
@@ -231,9 +223,7 @@ def load_intervals(filename, delimiter=r"\s+", comment="#"):
 
     """
     # Use our universal function to load in the events
-    starts, ends = load_delimited(
-        filename, [float, float], delimiter=delimiter, comment=comment
-    )
+    starts, ends = load_delimited(filename, [float, float], delimiter=delimiter, comment=comment)
     # Stack into an interval matrix
     intervals = np.array([starts, ends]).T
     # Validate them, but throw a warning in place of an error
@@ -276,9 +266,7 @@ def load_labeled_intervals(filename, delimiter=r"\s+", comment="#"):
 
     """
     # Use our universal function to load in the events
-    starts, ends, labels = load_delimited(
-        filename, [float, float, str], delimiter=delimiter, comment=comment
-    )
+    starts, ends, labels = load_delimited(filename, [float, float, str], delimiter=delimiter, comment=comment)
     # Stack into an interval matrix
     intervals = np.array([starts, ends]).T
     # Validate them, but throw a warning in place of an error
@@ -319,9 +307,7 @@ def load_time_series(filename, delimiter=r"\s+", comment="#"):
 
     """
     # Use our universal function to load in the events
-    times, values = load_delimited(
-        filename, [float, float], delimiter=delimiter, comment=comment
-    )
+    times, values = load_delimited(filename, [float, float], delimiter=delimiter, comment=comment)
     times = np.array(times)
     values = np.array(values)
 
@@ -405,46 +391,6 @@ def load_patterns(filename):
     return pattern_list
 
 
-@util.deprecated(version="0.8.1", version_removed="0.9.0")
-def load_wav(path, mono=True):
-    """Load a .wav file as a numpy array using ``scipy.io.wavfile``.
-
-    .. warning:: This function is deprecatred in mir_eval 0.8.1
-        and will be removed in 0.9.0.
-        We recommend using a dedicated audio IO library such as
-        `soundfile` instead.
-
-    Parameters
-    ----------
-    path : str or `os.Pathlike`
-        Path to a .wav file
-    mono : bool
-        If the provided .wav has more than one channel, it will be
-        converted to mono if ``mono=True``. (Default value = True)
-
-    Returns
-    -------
-    audio_data : np.ndarray
-        Array of audio samples, normalized to the range [-1., 1.]
-    fs : int
-        Sampling rate of the audio data
-    """
-    fs, audio_data = scipy.io.wavfile.read(path)
-    # Make float in range [-1, 1]
-    if audio_data.dtype == "int8":
-        audio_data = audio_data / float(2**8)
-    elif audio_data.dtype == "int16":
-        audio_data = audio_data / float(2**16)
-    elif audio_data.dtype == "int32":
-        audio_data = audio_data / float(2**24)
-    else:
-        raise ValueError("Got unexpected .wav data type " "{}".format(audio_data.dtype))
-    # Optionally convert to mono
-    if mono and audio_data.ndim != 1:
-        audio_data = audio_data.mean(axis=1)
-    return audio_data, fs
-
-
 def load_valued_intervals(filename, delimiter=r"\s+", comment="#"):
     r"""Import valued intervals from an annotation file. The file should
     consist of three columns: Two consisting of numeric values corresponding to
@@ -477,9 +423,7 @@ def load_valued_intervals(filename, delimiter=r"\s+", comment="#"):
 
     """
     # Use our universal function to load in the events
-    starts, ends, values = load_delimited(
-        filename, [float, float, float], delimiter=delimiter, comment=comment
-    )
+    starts, ends, values = load_delimited(filename, [float, float, float], delimiter=delimiter, comment=comment)
     # Stack into an interval matrix
     intervals = np.array([starts, ends]).T
     # Validate them, but throw a warning in place of an error
@@ -522,9 +466,7 @@ def load_key(filename, delimiter=r"\s+", comment="#"):
 
     """
     # Use our universal function to load the key and mode strings
-    scale, mode = load_delimited(
-        filename, [str, str], delimiter=delimiter, comment=comment
-    )
+    scale, mode = load_delimited(filename, [str, str], delimiter=delimiter, comment=comment)
     if len(scale) != 1:
         raise ValueError("Key file should contain only one line.")
     scale, mode = scale[0], mode[0]
@@ -569,9 +511,7 @@ def load_tempo(filename, delimiter=r"\s+", comment="#"):
         The relative importance of ``tempi[0]`` compared to ``tempi[1]``
     """
     # Use our universal function to load the key and mode strings
-    t1, t2, weight = load_delimited(
-        filename, [float, float, float], delimiter=delimiter, comment=comment
-    )
+    t1, t2, weight = load_delimited(filename, [float, float, float], delimiter=delimiter, comment=comment)
 
     weight = weight[0]
     tempi = np.concatenate([t1, t2])
@@ -591,9 +531,7 @@ def load_tempo(filename, delimiter=r"\s+", comment="#"):
     return tempi, weight
 
 
-def load_ragged_time_series(
-    filename, dtype=float, delimiter=r"\s+", header=False, comment="#"
-):
+def load_ragged_time_series(filename, dtype=float, delimiter=r"\s+", header=False, comment="#"):
     r"""Load data from a delimited time series annotation file with
     a variable number of columns.
 
@@ -669,10 +607,7 @@ def load_ragged_time_series(
                 converted_time = float(data[0])
             except (TypeError, ValueError) as exe:
                 raise ValueError(
-                    "Couldn't convert value {} using {} "
-                    "found at {}:{:d}:\n\t{}".format(
-                        data[0], float.__name__, filename, row, line
-                    )
+                    f"Couldn't convert value {data[0]} using {float.__name__} found at {filename}:{row:d}:\n\t{line}"
                 ) from exe
             times.append(converted_time)
 
@@ -682,10 +617,7 @@ def load_ragged_time_series(
                 converted_value = np.array(data[1:], dtype=dtype)
             except (TypeError, ValueError) as exe:
                 raise ValueError(
-                    "Couldn't convert value {} using {} "
-                    "found at {}:{:d}:\n\t{}".format(
-                        data[1:], dtype.__name__, filename, row, line
-                    )
+                    f"Couldn't convert value {data[1:]} using {dtype.__name__} found at {filename}:{row:d}:\n\t{line}"
                 ) from exe
             values.append(converted_value)
 

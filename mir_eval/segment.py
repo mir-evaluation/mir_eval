@@ -72,7 +72,6 @@ References
         In EMNLP-CoNLL (Vol. 7, pp. 410-420).
 """
 
-import collections
 import warnings
 
 import numpy as np
@@ -118,9 +117,7 @@ def validate_boundary(reference_intervals, estimated_intervals, trim):
         util.validate_intervals(intervals)
 
 
-def validate_structure(
-    reference_intervals, reference_labels, estimated_intervals, estimated_labels
-):
+def validate_structure(reference_intervals, reference_labels, estimated_intervals, estimated_labels):
     """Check that the input annotations to a structure estimation metric (i.e.
     one that takes in both segment boundaries and their labels) look like valid
     segment times and labels, and throws helpful errors if not.
@@ -147,7 +144,7 @@ def validate_structure(
     ]:
         util.validate_intervals(intervals)
         if intervals.shape[0] != len(labels):
-            raise ValueError("Number of intervals does not match number " "of labels")
+            raise ValueError("Number of intervals does not match number of labels")
 
         # Check only when intervals are non-empty
         if intervals.size > 0:
@@ -165,9 +162,7 @@ def validate_structure(
             raise ValueError("End times do not match")
 
 
-def detection(
-    reference_intervals, estimated_intervals, window=0.5, beta=1.0, trim=False
-):
+def detection(reference_intervals, estimated_intervals, window=0.5, beta=1.0, trim=False):
     """Boundary detection hit-rate.
 
     A hit is counted whenever an reference boundary is within ``window`` of a
@@ -257,7 +252,7 @@ def deviation(reference_intervals, estimated_intervals, trim=False):
     --------
     >>> ref_intervals, _ = mir_eval.io.load_labeled_intervals('ref.lab')
     >>> est_intervals, _ = mir_eval.io.load_labeled_intervals('est.lab')
-    >>> r_to_e, e_to_r = mir_eval.boundary.deviation(ref_intervals,
+    >>> r_to_e, e_to_r = mir_eval.segment.deviation(ref_intervals,
     ...                                              est_intervals)
 
     Parameters
@@ -331,7 +326,7 @@ def pairwise(
     >>> (est_intervals,
     ...  est_labels) = mir_eval.util.adjust_intervals(
     ...     est_intervals, est_labels, t_min=0, t_max=ref_intervals.max())
-    >>> precision, recall, f = mir_eval.structure.pairwise(ref_intervals,
+    >>> precision, recall, f = mir_eval.segment.pairwise(ref_intervals,
     ...                                                    ref_labels,
     ...                                                    est_intervals,
     ...                                                    est_labels)
@@ -367,9 +362,7 @@ def pairwise(
         F-measure of detecting whether frames belong in the same cluster
 
     """
-    validate_structure(
-        reference_intervals, reference_labels, estimated_intervals, estimated_labels
-    )
+    validate_structure(reference_intervals, reference_labels, estimated_intervals, estimated_labels)
 
     # Check for empty annotations.  Don't need to check labels because
     # validate_structure makes sure they're the same size as intervals
@@ -377,16 +370,12 @@ def pairwise(
         return 0.0, 0.0, 0.0
 
     # Generate the cluster labels
-    y_ref = util.intervals_to_samples(
-        reference_intervals, reference_labels, sample_size=frame_size
-    )[-1]
+    y_ref = util.intervals_to_samples(reference_intervals, reference_labels, sample_size=frame_size)[-1]
 
     y_ref = util.index_labels(y_ref)[0]
 
     # Map to index space
-    y_est = util.intervals_to_samples(
-        estimated_intervals, estimated_labels, sample_size=frame_size
-    )[-1]
+    y_est = util.intervals_to_samples(estimated_intervals, estimated_labels, sample_size=frame_size)[-1]
 
     y_est = util.index_labels(y_est)[0]
 
@@ -434,7 +423,7 @@ def rand_index(
     >>> (est_intervals,
     ...  est_labels) = mir_eval.util.adjust_intervals(
     ...     est_intervals, est_labels, t_min=0, t_max=ref_intervals.max())
-    >>> rand_index = mir_eval.structure.rand_index(ref_intervals,
+    >>> rand_index = mir_eval.segment.rand_index(ref_intervals,
     ...                                            ref_labels,
     ...                                            est_intervals,
     ...                                            est_labels)
@@ -465,9 +454,7 @@ def rand_index(
     rand_index : float > 0
         Rand index
     """
-    validate_structure(
-        reference_intervals, reference_labels, estimated_intervals, estimated_labels
-    )
+    validate_structure(reference_intervals, reference_labels, estimated_intervals, estimated_labels)
 
     # Check for empty annotations.  Don't need to check labels because
     # validate_structure makes sure they're the same size as intervals
@@ -475,16 +462,12 @@ def rand_index(
         return 0.0, 0.0, 0.0
 
     # Generate the cluster labels
-    y_ref = util.intervals_to_samples(
-        reference_intervals, reference_labels, sample_size=frame_size
-    )[-1]
+    y_ref = util.intervals_to_samples(reference_intervals, reference_labels, sample_size=frame_size)[-1]
 
     y_ref = util.index_labels(y_ref)[0]
 
     # Map to index space
-    y_est = util.intervals_to_samples(
-        estimated_intervals, estimated_labels, sample_size=frame_size
-    )[-1]
+    y_est = util.intervals_to_samples(estimated_intervals, estimated_labels, sample_size=frame_size)[-1]
 
     y_est = util.index_labels(y_est)[0]
 
@@ -571,16 +554,10 @@ def _adjusted_rand_index(reference_indices, estimated_indices):
     contingency = _contingency_matrix(reference_indices, estimated_indices)
 
     # Compute the ARI using the contingency data
-    sum_comb_c = sum(
-        scipy.special.comb(n_c, 2, exact=1) for n_c in contingency.sum(axis=1)
-    )
-    sum_comb_k = sum(
-        scipy.special.comb(n_k, 2, exact=1) for n_k in contingency.sum(axis=0)
-    )
+    sum_comb_c = sum(scipy.special.comb(n_c, 2, exact=1) for n_c in contingency.sum(axis=1))
+    sum_comb_k = sum(scipy.special.comb(n_k, 2, exact=1) for n_k in contingency.sum(axis=0))
 
-    sum_comb = sum(
-        scipy.special.comb(n_ij, 2, exact=1) for n_ij in contingency.flatten()
-    )
+    sum_comb = sum(scipy.special.comb(n_ij, 2, exact=1) for n_ij in contingency.flatten())
     prod_comb = (sum_comb_c * sum_comb_k) / float(scipy.special.comb(n_samples, 2))
     mean_comb = (sum_comb_k + sum_comb_c) / 2.0
     return (sum_comb - prod_comb) / (mean_comb - prod_comb)
@@ -609,7 +586,7 @@ def ari(
     >>> (est_intervals,
     ...  est_labels) = mir_eval.util.adjust_intervals(
     ...     est_intervals, est_labels, t_min=0, t_max=ref_intervals.max())
-    >>> ari_score = mir_eval.structure.ari(ref_intervals, ref_labels,
+    >>> ari_score = mir_eval.segment.ari(ref_intervals, ref_labels,
     ...                                    est_intervals, est_labels)
 
     Parameters
@@ -636,9 +613,7 @@ def ari(
         Adjusted Rand index between segmentations.
 
     """
-    validate_structure(
-        reference_intervals, reference_labels, estimated_intervals, estimated_labels
-    )
+    validate_structure(reference_intervals, reference_labels, estimated_intervals, estimated_labels)
 
     # Check for empty annotations.  Don't need to check labels because
     # validate_structure makes sure they're the same size as intervals
@@ -646,16 +621,12 @@ def ari(
         return 0.0, 0.0, 0.0
 
     # Generate the cluster labels
-    y_ref = util.intervals_to_samples(
-        reference_intervals, reference_labels, sample_size=frame_size
-    )[-1]
+    y_ref = util.intervals_to_samples(reference_intervals, reference_labels, sample_size=frame_size)[-1]
 
     y_ref = util.index_labels(y_ref)[0]
 
     # Map to index space
-    y_est = util.intervals_to_samples(
-        estimated_intervals, estimated_labels, sample_size=frame_size
-    )[-1]
+    y_est = util.intervals_to_samples(estimated_intervals, estimated_labels, sample_size=frame_size)[-1]
 
     y_est = util.index_labels(y_est)[0]
 
@@ -683,9 +654,7 @@ def _mutual_info_score(reference_indices, estimated_indices, contingency=None):
 
     """
     if contingency is None:
-        contingency = _contingency_matrix(reference_indices, estimated_indices).astype(
-            float
-        )
+        contingency = _contingency_matrix(reference_indices, estimated_indices).astype(float)
     contingency_sum = np.sum(contingency)
     pi = np.sum(contingency, axis=1)
     pj = np.sum(contingency, axis=0)
@@ -698,10 +667,7 @@ def _mutual_info_score(reference_indices, estimated_indices, contingency=None):
     # log(a / b) should be calculated as log(a) - log(b) for
     # possible loss of precision
     log_outer = -np.log(outer[nnz]) + np.log(pi.sum()) + np.log(pj.sum())
-    mi = (
-        contingency_nm * (log_contingency_nm - np.log(contingency_sum))
-        + contingency_nm * log_outer
-    )
+    mi = contingency_nm * (log_contingency_nm - np.log(contingency_sum)) + contingency_nm * log_outer
     return mi.sum()
 
 
@@ -755,18 +721,11 @@ def _adjusted_mutual_info_score(reference_indices, estimated_indices):
     est_classes = np.unique(estimated_indices)
     # Special limit cases: no clustering since the data is not split.
     # This is a perfect match hence return 1.0.
-    if (
-        ref_classes.shape[0] == est_classes.shape[0] == 1
-        or ref_classes.shape[0] == est_classes.shape[0] == 0
-    ):
+    if ref_classes.shape[0] == est_classes.shape[0] == 1 or ref_classes.shape[0] == est_classes.shape[0] == 0:
         return 1.0
-    contingency = _contingency_matrix(reference_indices, estimated_indices).astype(
-        float
-    )
+    contingency = _contingency_matrix(reference_indices, estimated_indices).astype(float)
     # Calculate the MI for the two clusterings
-    mi = _mutual_info_score(
-        reference_indices, estimated_indices, contingency=contingency
-    )
+    mi = _mutual_info_score(reference_indices, estimated_indices, contingency=contingency)
     # The following code is based on
     # sklearn.metrics.cluster.expected_mutual_information
     R, C = contingency.shape
@@ -846,19 +805,12 @@ def _normalized_mutual_info_score(reference_indices, estimated_indices):
     est_classes = np.unique(estimated_indices)
     # Special limit cases: no clustering since the data is not split.
     # This is a perfect match hence return 1.0.
-    if (
-        ref_classes.shape[0] == est_classes.shape[0] == 1
-        or ref_classes.shape[0] == est_classes.shape[0] == 0
-    ):
+    if ref_classes.shape[0] == est_classes.shape[0] == 1 or ref_classes.shape[0] == est_classes.shape[0] == 0:
         return 1.0
-    contingency = _contingency_matrix(reference_indices, estimated_indices).astype(
-        float
-    )
+    contingency = _contingency_matrix(reference_indices, estimated_indices).astype(float)
     contingency = np.array(contingency, dtype="float")
     # Calculate the MI for the two clusterings
-    mi = _mutual_info_score(
-        reference_indices, estimated_indices, contingency=contingency
-    )
+    mi = _mutual_info_score(reference_indices, estimated_indices, contingency=contingency)
     # Calculate the expected value for the mutual information
     # Calculate entropy for each labeling
     h_true, h_pred = _entropy(reference_indices), _entropy(estimated_indices)
@@ -889,7 +841,7 @@ def mutual_information(
     >>> (est_intervals,
     ...  est_labels) = mir_eval.util.adjust_intervals(
     ...     est_intervals, est_labels, t_min=0, t_max=ref_intervals.max())
-    >>> mi, ami, nmi = mir_eval.structure.mutual_information(ref_intervals,
+    >>> mi, ami, nmi = mir_eval.segment.mutual_information(ref_intervals,
     ...                                                      ref_labels,
     ...                                                      est_intervals,
     ...                                                      est_labels)
@@ -922,9 +874,7 @@ def mutual_information(
         Normalize mutual information between segmentations
 
     """
-    validate_structure(
-        reference_intervals, reference_labels, estimated_intervals, estimated_labels
-    )
+    validate_structure(reference_intervals, reference_labels, estimated_intervals, estimated_labels)
 
     # Check for empty annotations.  Don't need to check labels because
     # validate_structure makes sure they're the same size as intervals
@@ -932,16 +882,12 @@ def mutual_information(
         return 0.0, 0.0, 0.0
 
     # Generate the cluster labels
-    y_ref = util.intervals_to_samples(
-        reference_intervals, reference_labels, sample_size=frame_size
-    )[-1]
+    y_ref = util.intervals_to_samples(reference_intervals, reference_labels, sample_size=frame_size)[-1]
 
     y_ref = util.index_labels(y_ref)[0]
 
     # Map to index space
-    y_est = util.intervals_to_samples(
-        estimated_intervals, estimated_labels, sample_size=frame_size
-    )[-1]
+    y_est = util.intervals_to_samples(estimated_intervals, estimated_labels, sample_size=frame_size)[-1]
 
     y_est = util.index_labels(y_est)[0]
 
@@ -985,7 +931,7 @@ def nce(
     >>> (est_intervals,
     ...  est_labels) = mir_eval.util.adjust_intervals(
     ...     est_intervals, est_labels, t_min=0, t_max=ref_intervals.max())
-    >>> S_over, S_under, S_F = mir_eval.structure.nce(ref_intervals,
+    >>> S_over, S_under, S_F = mir_eval.segment.nce(ref_intervals,
     ...                                               ref_labels,
     ...                                               est_intervals,
     ...                                               est_labels)
@@ -1036,9 +982,7 @@ def nce(
     S_F
         F-measure for (S_over, S_under)
     """
-    validate_structure(
-        reference_intervals, reference_labels, estimated_intervals, estimated_labels
-    )
+    validate_structure(reference_intervals, reference_labels, estimated_intervals, estimated_labels)
 
     # Check for empty annotations.  Don't need to check labels because
     # validate_structure makes sure they're the same size as intervals
@@ -1046,16 +990,12 @@ def nce(
         return 0.0, 0.0, 0.0
 
     # Generate the cluster labels
-    y_ref = util.intervals_to_samples(
-        reference_intervals, reference_labels, sample_size=frame_size
-    )[-1]
+    y_ref = util.intervals_to_samples(reference_intervals, reference_labels, sample_size=frame_size)[-1]
 
     y_ref = util.index_labels(y_ref)[0]
 
     # Map to index space
-    y_est = util.intervals_to_samples(
-        estimated_intervals, estimated_labels, sample_size=frame_size
-    )[-1]
+    y_est = util.intervals_to_samples(estimated_intervals, estimated_labels, sample_size=frame_size)[-1]
 
     y_est = util.index_labels(y_est)[0]
 
@@ -1126,7 +1066,7 @@ def vmeasure(
     >>> (est_intervals,
     ...  est_labels) = mir_eval.util.adjust_intervals(
     ...     est_intervals, est_labels, t_min=0, t_max=ref_intervals.max())
-    >>> V_precision, V_recall, V_F = mir_eval.structure.vmeasure(ref_intervals,
+    >>> V_precision, V_recall, V_F = mir_eval.segment.vmeasure(ref_intervals,
     ...                                                          ref_labels,
     ...                                                          est_intervals,
     ...                                                          est_labels)
@@ -1215,16 +1155,14 @@ def evaluate(ref_intervals, ref_labels, est_intervals, est_labels, **kwargs):
         the value is the (float) score achieved.
     """
     # Adjust timespan of estimations relative to ground truth
-    ref_intervals, ref_labels = util.adjust_intervals(
-        ref_intervals, labels=ref_labels, t_min=0.0
-    )
+    ref_intervals, ref_labels = util.adjust_intervals(ref_intervals, labels=ref_labels, t_min=0.0)
 
     est_intervals, est_labels = util.adjust_intervals(
         est_intervals, labels=est_labels, t_min=0.0, t_max=ref_intervals.max()
     )
 
     # Now compute all the metrics
-    scores = collections.OrderedDict()
+    scores = {}
 
     # Boundary detection
     # Force these values for window
@@ -1252,9 +1190,7 @@ def evaluate(ref_intervals, ref_labels, est_intervals, est_labels, **kwargs):
         scores["Pairwise Precision"],
         scores["Pairwise Recall"],
         scores["Pairwise F-measure"],
-    ) = util.filter_kwargs(
-        pairwise, ref_intervals, ref_labels, est_intervals, est_labels, **kwargs
-    )
+    ) = util.filter_kwargs(pairwise, ref_intervals, ref_labels, est_intervals, est_labels, **kwargs)
 
     # Rand index
     scores["Rand Index"] = util.filter_kwargs(
@@ -1270,23 +1206,14 @@ def evaluate(ref_intervals, ref_labels, est_intervals, est_labels, **kwargs):
         scores["Mutual Information"],
         scores["Adjusted Mutual Information"],
         scores["Normalized Mutual Information"],
-    ) = util.filter_kwargs(
-        mutual_information,
-        ref_intervals,
-        ref_labels,
-        est_intervals,
-        est_labels,
-        **kwargs
-    )
+    ) = util.filter_kwargs(mutual_information, ref_intervals, ref_labels, est_intervals, est_labels, **kwargs)
 
     # Conditional entropy metrics
     (
         scores["NCE Over"],
         scores["NCE Under"],
         scores["NCE F-measure"],
-    ) = util.filter_kwargs(
-        nce, ref_intervals, ref_labels, est_intervals, est_labels, **kwargs
-    )
+    ) = util.filter_kwargs(nce, ref_intervals, ref_labels, est_intervals, est_labels, **kwargs)
 
     # V-measure metrics
     scores["V Precision"], scores["V Recall"], scores["V-measure"] = util.filter_kwargs(

@@ -87,38 +87,36 @@ def test_time_frequency_offset():
     assert np.allclose(signal, 0)
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_time_frequency_badtime():
     fs = 8000
     gram = np.ones((10, 20))
     times = np.arange(10)
 
-    mir_eval.sonify.time_frequency(gram, np.arange(1, 11), times, fs)
+    with pytest.raises(ValueError):
+        mir_eval.sonify.time_frequency(gram, np.arange(1, 11), times, fs)
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_time_frequency_badintervals():
     fs = 8000
     gram = np.ones((10, 20))
     times = np.ones((11, 2))
 
-    mir_eval.sonify.time_frequency(gram, np.arange(1, 11), times, fs)
+    with pytest.raises(ValueError):
+        mir_eval.sonify.time_frequency(gram, np.arange(1, 11), times, fs)
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_time_frequency_frequency():
     fs = 8000
     gram = np.ones((10, 20))
     times = np.arange(20)
 
-    mir_eval.sonify.time_frequency(gram, np.arange(1, 8), times, fs)
+    with pytest.raises(ValueError):
+        mir_eval.sonify.time_frequency(gram, np.arange(1, 8), times, fs)
 
 
 @pytest.mark.parametrize("fs", [8000, 44100])
 def test_chroma(fs):
-    signal = mir_eval.sonify.chroma(
-        np.random.standard_normal((12, 1000)), np.linspace(0, 10, 1000), fs
-    )
+    signal = mir_eval.sonify.chroma(np.random.standard_normal((12, 1000)), np.linspace(0, 10, 1000), fs)
     assert len(signal) == 10 * fs
     signal = mir_eval.sonify.chroma(
         np.random.standard_normal((12, 1000)),
@@ -132,9 +130,7 @@ def test_chroma(fs):
 @pytest.mark.parametrize("fs", [8000, 44100])
 def test_chords(fs):
     intervals = np.array([np.arange(10), np.arange(1, 11)]).T
-    signal = mir_eval.sonify.chords(
-        ["C", "C:maj", "D:min7", "E:min", "C#", "C", "C", "C", "C", "C"], intervals, fs
-    )
+    signal = mir_eval.sonify.chords(["C", "C:maj", "D:min7", "E:min", "C#", "C", "C", "C", "C", "C"], intervals, fs)
     assert len(signal) == 10 * fs
     signal = mir_eval.sonify.chords(
         ["C", "C:maj", "D:min7", "E:min", "C#", "C", "C", "C", "C", "C"],
