@@ -213,9 +213,7 @@ def test_frameless_pairwise():
     est_intervals = np.array([[0, 2], [2, 3]])
     est_labels = ["a", "b"]
 
-    score = mir_eval.segment.pairwise(
-        ref_intervals, ref_labels, est_intervals, est_labels, frame_size=None
-    )
+    score = mir_eval.segment.pairwise(ref_intervals, ref_labels, est_intervals, est_labels, frame_size=None)
     assert np.allclose(score, (0.6, 0.6, 0.6), atol=A_TOL)
 
 
@@ -226,7 +224,5 @@ def test_frameless_nce():
     est_intervals = np.array([[0, 2], [2, 3]])
     est_labels = ["a", "b"]
 
-    score = mir_eval.segment.nce(
-        ref_intervals, ref_labels, est_intervals, est_labels, frame_size=None
-    )
+    score = mir_eval.segment.nce(ref_intervals, ref_labels, est_intervals, est_labels, frame_size=None)
     assert np.allclose(score, (1 / 3, 1 / 3, 1 / 3), atol=A_TOL)

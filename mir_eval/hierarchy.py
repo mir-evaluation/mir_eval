@@ -231,11 +231,7 @@ def _meet(intervals_hier, labels_hier, frame_size):
 def _common_intervals(*intervals_hiers):
     """Construct atomic intervals from all hierarchy boundaries."""
     all_boundaries = np.concatenate(
-        [
-            util.intervals_to_boundaries(intervals)
-            for intervals_hier in intervals_hiers
-            for intervals in intervals_hier
-        ]
+        [util.intervals_to_boundaries(intervals) for intervals_hier in intervals_hiers for intervals in intervals_hier]
     )
 
     return util.boundaries_to_intervals(np.unique(all_boundaries))
@@ -508,9 +504,7 @@ def _compare_frame_rankings(ref, est, transitive=False, index_weights=None):
 
     for level_1, level_2 in level_pairs:
         if index_weights is None:
-            inversions += _count_inversions(
-                est_sorted[index[level_1]], est_sorted[index[level_2]]
-            )
+            inversions += _count_inversions(est_sorted[index[level_1]], est_sorted[index[level_2]])
         else:
             inversions += _count_inversions(
                 est_sorted[index[level_1]],
@@ -682,9 +676,7 @@ def lmeasure(
     """
     # Compute the number of frames in the window
     if frame_size is not None and frame_size <= 0:
-        raise ValueError(
-            "frame_size ({:.2f}) must be a positive number or None.".format(frame_size)
-        )
+        raise ValueError(f"frame_size ({frame_size:.2f}) must be a positive number or None.")
 
     # Validate the hierarchical segmentations
     validate_hier_intervals(reference_intervals_hier)
@@ -694,22 +686,14 @@ def lmeasure(
         ref_end = _hierarchy_bounds(reference_intervals_hier)[1]
         est_end = _hierarchy_bounds(estimated_intervals_hier)[1]
         if not np.allclose(ref_end, est_end):
-            raise ValueError(
-                "Reference and estimated hierarchies must have the same duration."
-            )
-        atomic_intervals = _common_intervals(
-            reference_intervals_hier, estimated_intervals_hier
-        )
+            raise ValueError("Reference and estimated hierarchies must have the same duration.")
+        atomic_intervals = _common_intervals(reference_intervals_hier, estimated_intervals_hier)
         seg_durations = util.intervals_to_durations(atomic_intervals)
 
         # build meet matrix at atomic interval midpoints
         query_time = np.mean(atomic_intervals, axis=1)
-        ref_meet = _meet_at_times(
-            reference_intervals_hier, reference_labels_hier, query_time
-        )
-        est_meet = _meet_at_times(
-            estimated_intervals_hier, estimated_labels_hier, query_time
-        )
+        ref_meet = _meet_at_times(reference_intervals_hier, reference_labels_hier, query_time)
+        est_meet = _meet_at_times(estimated_intervals_hier, estimated_labels_hier, query_time)
 
         l_recall = _gauc_frameless(ref_meet, est_meet, seg_durations, True)
         l_precision = _gauc_frameless(est_meet, ref_meet, seg_durations, True)

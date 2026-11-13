@@ -434,17 +434,15 @@ def test_lmeasure_frameless_simple():
         ["c", "d"],
     ]
 
-    score = mir_eval.hierarchy.lmeasure(
-        ref_itvls, ref_labels, est_itvls, est_labels, frame_size=None
-    )
+    score = mir_eval.hierarchy.lmeasure(ref_itvls, ref_labels, est_itvls, est_labels, frame_size=None)
     assert np.allclose(score, (1 / 3, 1 / 3, 1 / 3), atol=A_TOL)
 
 
 def test_lmeasure_frameless_against_framed():
 
     # Hierarchy data is split across multiple lab files for these tests
-    ref_files = sorted(glob.glob("data/hierarchy/ref*.lab"))
-    est_files = sorted(glob.glob("data/hierarchy/est*.lab"))
+    ref_files = sorted(glob.glob(os.path.join(DATA_DIR, "hierarchy", "ref*.lab")))
+    est_files = sorted(glob.glob(os.path.join(DATA_DIR, "hierarchy", "est*.lab")))
 
     ref_hier = [mir_eval.io.load_labeled_intervals(_) for _ in ref_files]
     est_hier = [mir_eval.io.load_labeled_intervals(_) for _ in est_files]
@@ -458,17 +456,12 @@ def test_lmeasure_frameless_against_framed():
     for i in range(len(est_ints)):
         est_ints[i][-1][-1] = ref_ints[-1][-1][-1]
 
-    framed_outputs = mir_eval.hierarchy.lmeasure(
-        ref_ints, ref_labs, est_ints, est_labs, frame_size=0.1
-    )
-    frameless_outputs = mir_eval.hierarchy.lmeasure(
-        ref_ints, ref_labs, est_ints, est_labs, frame_size=None
-    )
+    framed_outputs = mir_eval.hierarchy.lmeasure(ref_ints, ref_labs, est_ints, est_labs, frame_size=0.1)
+    frameless_outputs = mir_eval.hierarchy.lmeasure(ref_ints, ref_labs, est_ints, est_labs, frame_size=None)
 
     assert np.allclose(framed_outputs, frameless_outputs, atol=0.01)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize("frame_size", [None, 0.1])
 def test_lmeasure_fail_length_mismatch(frame_size):
     ref_itvls = [
@@ -489,6 +482,5 @@ def test_lmeasure_fail_length_mismatch(frame_size):
         ["c", "d"],
     ]
 
-    mir_eval.hierarchy.lmeasure(
-        ref_itvls, ref_labels, est_itvls, est_labels, frame_size=frame_size
-    )
+    with pytest.raises(ValueError):
+        mir_eval.hierarchy.lmeasure(ref_itvls, ref_labels, est_itvls, est_labels, frame_size=frame_size)

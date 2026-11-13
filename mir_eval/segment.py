@@ -372,30 +372,20 @@ def pairwise(
 
     if frame_size is None:
         # Use the union of segment boundaries and exact segment duration
-        union_boundaries = util.intervals_to_boundaries(
-            np.vstack([reference_intervals, estimated_intervals])
-        )
+        union_boundaries = util.intervals_to_boundaries(np.vstack([reference_intervals, estimated_intervals]))
         common_itvl = util.boundaries_to_intervals(union_boundaries)
         itvl_mid_points = np.mean(common_itvl, axis=1)
         common_itvl_duration = util.intervals_to_durations(common_itvl)
         itvl_dur_meet = np.outer(common_itvl_duration, common_itvl_duration)
 
         # Get the labels of the mid points of common intervals
-        y_ref = util.interpolate_intervals(
-            reference_intervals, reference_labels, itvl_mid_points
-        )
-        y_est = util.interpolate_intervals(
-            estimated_intervals, estimated_labels, itvl_mid_points
-        )
+        y_ref = util.interpolate_intervals(reference_intervals, reference_labels, itvl_mid_points)
+        y_est = util.interpolate_intervals(estimated_intervals, estimated_labels, itvl_mid_points)
     else:
         # Generate the cluster labels by uniformly sampling
-        y_ref = util.intervals_to_samples(
-            reference_intervals, reference_labels, sample_size=frame_size
-        )[-1]
+        y_ref = util.intervals_to_samples(reference_intervals, reference_labels, sample_size=frame_size)[-1]
 
-        y_est = util.intervals_to_samples(
-            estimated_intervals, estimated_labels, sample_size=frame_size
-        )[-1]
+        y_est = util.intervals_to_samples(estimated_intervals, estimated_labels, sample_size=frame_size)[-1]
 
     # Map to index space
     y_ref = util.index_labels(y_ref)[0]
@@ -1036,29 +1026,19 @@ def nce(
 
     if frame_size is None:
         # Use the union of segment boundaries and exact segment duration
-        union_boundaries = util.intervals_to_boundaries(
-            np.vstack([reference_intervals, estimated_intervals])
-        )
+        union_boundaries = util.intervals_to_boundaries(np.vstack([reference_intervals, estimated_intervals]))
         common_itvl = util.boundaries_to_intervals(union_boundaries)
         itvl_mid_points = np.mean(common_itvl, axis=1)
         common_itvl_duration = util.intervals_to_durations(common_itvl)
 
         # Get the labels of the mid points of common intervals
-        y_ref = util.interpolate_intervals(
-            reference_intervals, reference_labels, itvl_mid_points
-        )
-        y_est = util.interpolate_intervals(
-            estimated_intervals, estimated_labels, itvl_mid_points
-        )
+        y_ref = util.interpolate_intervals(reference_intervals, reference_labels, itvl_mid_points)
+        y_est = util.interpolate_intervals(estimated_intervals, estimated_labels, itvl_mid_points)
     else:
         # Generate the cluster labels by uniformly sampling
-        y_ref = util.intervals_to_samples(
-            reference_intervals, reference_labels, sample_size=frame_size
-        )[-1]
+        y_ref = util.intervals_to_samples(reference_intervals, reference_labels, sample_size=frame_size)[-1]
 
-        y_est = util.intervals_to_samples(
-            estimated_intervals, estimated_labels, sample_size=frame_size
-        )[-1]
+        y_est = util.intervals_to_samples(estimated_intervals, estimated_labels, sample_size=frame_size)[-1]
 
         common_itvl_duration = None
 
@@ -1067,9 +1047,7 @@ def nce(
     y_est = util.index_labels(y_est)[0]
 
     # Make the contingency table: shape = (n_ref, n_est)
-    contingency = _contingency_matrix(
-        y_ref, y_est, seg_durations=common_itvl_duration
-    ).astype(float)
+    contingency = _contingency_matrix(y_ref, y_est, seg_durations=common_itvl_duration).astype(float)
 
     if frame_size is not None:
         # Normalize by the number of frames
