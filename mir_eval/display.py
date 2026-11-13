@@ -16,7 +16,6 @@ from matplotlib.colors import (
     LogNorm,
     ColorConverter,
 )
-from matplotlib.transforms import Bbox, TransformedBbox
 
 from .melody import freq_to_voicing
 from .util import midi_to_hz, hz_to_midi
@@ -125,8 +124,9 @@ def register_colormap(name, cmap):
 
 # Register the colormaps with matplotlib
 for name in __COLORMAPS__:
-    _cmap = ListedColormap(__COLORMAPS__[name], name=name)
-    _cmap.set_extremes(under=(0.75, 0.75, 0.75), over=(0.75, 0.75, 0.75))
+    _cmap = ListedColormap(__COLORMAPS__[name], name=name).with_extremes(
+        under=(0.75, 0.75, 0.75), over=(0.75, 0.75, 0.75)
+    )
     register_colormap(name=name, cmap=_cmap)
 
 del name, _cmap
@@ -278,11 +278,7 @@ def segments(
             __AXMAP[ax]["prop_iter"] = prop_iter
             properties = next(prop_iter)
 
-        style = {
-            k: v
-            for k, v in properties.items()
-            if k in ["color", "facecolor", "edgecolor", "linewidth"]
-        }
+        style = {k: v for k, v in properties.items() if k in ["color", "facecolor", "edgecolor", "linewidth"]}
         # Swap color -> facecolor here so we preserve edgecolor on rects
         style.setdefault("facecolor", style["color"])
         style.pop("color", None)
@@ -426,11 +422,7 @@ def labeled_intervals(
         __AXMAP[ax]["prop_iter"] = prop_iter
         properties = next(prop_iter)
 
-    style = {
-        k: v
-        for k, v in properties.items()
-        if k in ["color", "facecolor", "edgecolor", "linewidth"]
-    }
+    style = {k: v for k, v in properties.items() if k in ["color", "facecolor", "edgecolor", "linewidth"]}
     # Swap color -> facecolor here so we preserve edgecolor on rects
     style.setdefault("facecolor", style["color"])
     style.pop("color", None)
@@ -531,9 +523,6 @@ def hierarchy(intervals_hier, labels_hier, levels=None, ax=None, **kwargs):
     # Get the axes handle
     ax, _ = __get_axes(ax=ax)
 
-    # Count the pre-existing patches
-    n_patches = len(ax.patches)
-
     for ints, labs, key in zip(intervals_hier[::-1], labels_hier[::-1], levels[::-1]):
         labeled_intervals(ints, labs, label=key, ax=ax, **kwargs)
 
@@ -628,9 +617,7 @@ def events(
         __AXMAP[ax]["prop_iter"] = prop_iter
         properties = next(prop_iter)
 
-    style = {
-        k: v for k, v in properties.items() if k in ["color", "linestyle", "linewidth"]
-    }
+    style = {k: v for k, v in properties.items() if k in ["color", "linestyle", "linewidth"]}
     style.update(kwargs)
 
     # If the user provided 'colors', don't override it with 'color'
@@ -656,9 +643,7 @@ def events(
     return ax
 
 
-def pitch(
-    times, frequencies, midi=False, unvoiced=False, ax=None, prop_cycle=None, **kwargs
-):
+def pitch(times, frequencies, midi=False, unvoiced=False, ax=None, prop_cycle=None, **kwargs):
     """Visualize pitch contours
 
     Parameters
@@ -759,9 +744,7 @@ def pitch(
     return ax
 
 
-def multipitch(
-    times, frequencies, midi=False, unvoiced=False, ax=None, prop_cycle=None, **kwargs
-):
+def multipitch(times, frequencies, midi=False, unvoiced=False, ax=None, prop_cycle=None, **kwargs):
     """Visualize multiple f0 measurements
 
     Parameters
@@ -900,7 +883,7 @@ def piano_roll(intervals, pitches=None, midi=None, ax=None, **kwargs):
     """
     if midi is None:
         if pitches is None:
-            raise ValueError("At least one of `midi` or `pitches` " "must be provided.")
+            raise ValueError("At least one of `midi` or `pitches` must be provided.")
 
         midi = hz_to_midi(pitches)
 
@@ -1019,9 +1002,7 @@ def separation(
             properties = next(prop_iter)
 
         color = color_conv.to_rgba(properties["color"], alpha=alpha)
-        cmap = LinearSegmentedColormap.from_list(
-            labels[i], [(1.0, 1.0, 1.0, 0.0), color]
-        )
+        cmap = LinearSegmentedColormap.from_list(labels[i], [(1.0, 1.0, 1.0, 0.0), color])
 
         ax.pcolormesh(
             times,
@@ -1036,9 +1017,7 @@ def separation(
 
         # Attach a 0x0 rect to the axis with the corresponding label
         # This way, it will show up in the legend
-        ax.add_patch(
-            Rectangle((times.min(), freqs.min()), 0, 0, color=color, label=labels[i])
-        )
+        ax.add_patch(Rectangle((times.min(), freqs.min()), 0, 0, color=color, label=labels[i]))
 
     return ax
 
@@ -1273,7 +1252,6 @@ def chords(
     seg_map = dict()
 
     for lab in labels:
-
         if lab in seg_map:
             continue
 
@@ -1287,9 +1265,7 @@ def chords(
 
             style["hatch"] = __CHORD_HATCHES__.get(quality, "")
             # Use a hatch color to complement the major/minor quality for this root
-            style["edgecolor"] = __chord_to_color(
-                lab, cmap_other, cmap_other, cmap_other
-            )
+            style["edgecolor"] = __chord_to_color(lab, cmap_other, cmap_other, cmap_other)
         style["fill"] = True
 
         # Swap color -> facecolor here so we preserve edgecolor on rects

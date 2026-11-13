@@ -16,7 +16,6 @@ Below is the reference documentation for all **mir_eval** submodules:
    pattern
    segment
    hierarchy
-   separation
    tempo
    transcription
    transcription_velocity

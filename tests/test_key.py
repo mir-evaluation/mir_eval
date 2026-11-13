@@ -2,18 +2,20 @@
 Tests for mir_eval.key
 """
 
-import mir_eval
-import pytest
 import glob
 import json
+import os
+import mir_eval
 import numpy as np
+import pytest
 
 A_TOL = 1e-12
 
 # Path to the fixture files
-REF_GLOB = "data/key/ref*.txt"
-EST_GLOB = "data/key/est*.txt"
-SCORES_GLOB = "data/key/output*.json"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+REF_GLOB = os.path.join(DATA_DIR, "key", "ref*.txt")
+EST_GLOB = os.path.join(DATA_DIR, "key", "est*.txt")
+SCORES_GLOB = os.path.join(DATA_DIR, "key", "output*.json")
 
 ref_files = sorted(glob.glob(REF_GLOB))
 est_files = sorted(glob.glob(EST_GLOB))
@@ -27,9 +29,7 @@ file_sets = list(zip(ref_files, est_files, sco_files))
     "good_key",
     ["C major", "c major", "C# major", "Bb minor", "db minor", "X", "x", "C other"],
 )
-@pytest.mark.parametrize(
-    "bad_key", ["C maj", "Cb major", "C", "K major", "F## minor" "X other", "x minor"]
-)
+@pytest.mark.parametrize("bad_key", ["C maj", "Cb major", "C", "K major", "F## minorX other", "x minor"])
 def test_key_function_fail(good_key, bad_key):
     score = mir_eval.key.weighted_score(good_key, good_key)
     assert score == 1.0

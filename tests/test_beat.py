@@ -2,18 +2,20 @@
 Unit tests for mir_eval.beat
 """
 
-import numpy as np
-import json
-import mir_eval
 import glob
+import json
+import os
+import numpy as np
 import pytest
+import mir_eval
 
 A_TOL = 1e-12
 
 # Path to the fixture files
-REF_GLOB = "data/beat/ref*.txt"
-EST_GLOB = "data/beat/est*.txt"
-SCORES_GLOB = "data/beat/output*.json"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+REF_GLOB = os.path.join(DATA_DIR, "beat", "ref*.txt")
+EST_GLOB = os.path.join(DATA_DIR, "beat", "est*.txt")
+SCORES_GLOB = os.path.join(DATA_DIR, "beat", "output*.json")
 
 ref_files = sorted(glob.glob(REF_GLOB))
 est_files = sorted(glob.glob(EST_GLOB))
@@ -82,9 +84,9 @@ def test_beat_empty_warnings(metric):
         np.array([2.0, 1.0]),  # must be sorted
     ],
 )
-@pytest.mark.xfail(raises=ValueError)
 def test_beat_fail(metric, beats):
-    metric(beats, beats)
+    with pytest.raises(ValueError):
+        metric(beats, beats)
 
 
 @pytest.mark.parametrize(
@@ -119,9 +121,7 @@ def test_beat_functions(beat_data):
 def test_goto_proportion_correct():
     # This covers the case when over 75% of the beat tracking is correct, and
     # more than 3 beats are incorrect
-    assert mir_eval.beat.goto(
-        np.arange(100), np.append(np.arange(80), np.arange(80, 100) + 0.2)
-    )
+    assert mir_eval.beat.goto(np.arange(100), np.append(np.arange(80), np.arange(80, 100) + 0.2))
 
 
 @pytest.mark.parametrize(
@@ -140,9 +140,5 @@ def test_warning_on_one_beat(metric):
 
 def test_continuity_edge_cases():
     # There is some special-case logic for when there are few beats
-    assert np.allclose(
-        mir_eval.beat.continuity(np.array([6.0, 6.0]), np.array([6.0, 7.0])), 0.0
-    )
-    assert np.allclose(
-        mir_eval.beat.continuity(np.array([6.0, 6.0]), np.array([6.5, 7.0])), 0.0
-    )
+    assert np.allclose(mir_eval.beat.continuity(np.array([6.0, 6.0]), np.array([6.0, 7.0])), 0.0)
+    assert np.allclose(mir_eval.beat.continuity(np.array([6.0, 6.0]), np.array([6.5, 7.0])), 0.0)

@@ -3,9 +3,9 @@ Unit tests for mir_eval.hierarchy
 """
 
 import glob
-import re
-
 import json
+import os
+import re
 
 import numpy as np
 import scipy.sparse
@@ -44,9 +44,7 @@ def test_tmeasure_warning():
 
     ref = [np.asarray(_) for _ in ref]
 
-    with pytest.warns(
-        UserWarning, match="Segment hierarchy is inconsistent at level 1"
-    ):
+    with pytest.warns(UserWarning, match="Segment hierarchy is inconsistent at level 1"):
         mir_eval.hierarchy.tmeasure(ref, ref)
 
 
@@ -77,7 +75,6 @@ def test_tmeasure_fail_span():
         mir_eval.hierarchy.tmeasure(ref, est)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "window, frame_size",
     [(None, -1), (None, 0), (15, -1), (15, 0), (15, 30), (30, -1), (30, 0), (30, 60)],
@@ -86,7 +83,8 @@ def test_tmeasure_fail_frame_size(window, frame_size):
     ref = [[[0, 60]], [[0, 30], [30, 60]]]
     ref = [np.asarray(_) for _ in ref]
 
-    mir_eval.hierarchy.tmeasure(ref, ref, window=window, frame_size=frame_size)
+    with pytest.raises(ValueError):
+        mir_eval.hierarchy.tmeasure(ref, ref, window=window, frame_size=frame_size)
 
 
 @pytest.mark.parametrize("frame_size", [0.1, 0.5, 1.0, None])
@@ -102,17 +100,13 @@ def test_lmeasure_pass(frame_size):
     est_lab = ref_lab[:1]
 
     # The estimate should get 0 score here
-    scores = mir_eval.hierarchy.lmeasure(
-        ref, ref_lab, est, est_lab, frame_size=frame_size
-    )
+    scores = mir_eval.hierarchy.lmeasure(ref, ref_lab, est, est_lab, frame_size=frame_size)
 
     for k in scores:
         assert k == 0.0
 
     # The reference should get a perfect score here
-    scores = mir_eval.hierarchy.lmeasure(
-        ref, ref_lab, ref, ref_lab, frame_size=frame_size
-    )
+    scores = mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab, frame_size=frame_size)
 
     for k in scores:
         assert k == 1.0
@@ -125,9 +119,7 @@ def test_lmeasure_warning():
     ref = [np.asarray(_) for _ in ref]
     ref_lab = [["a", "b"], ["A"]]
 
-    with pytest.warns(
-        UserWarning, match="Segment hierarchy is inconsistent at level 1"
-    ):
+    with pytest.warns(UserWarning, match="Segment hierarchy is inconsistent at level 1"):
         mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab)
 
 
@@ -160,17 +152,18 @@ def test_lmeasure_fail_span():
         mir_eval.hierarchy.lmeasure(ref, ref_lab, est, ref_lab)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize("frame_size", [-1, 0])
 def test_lmeasure_fail_frame_size(frame_size):
     ref = [[[0, 60]], [[0, 30], [30, 60]]]
     ref = [np.asarray(_) for _ in ref]
     ref_lab = [["A"], ["a", "b"]]
 
-    mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab, frame_size=frame_size)
+    with pytest.raises(ValueError):
+        mir_eval.hierarchy.lmeasure(ref, ref_lab, ref, ref_lab, frame_size=frame_size)
 
 
-SCORES_GLOB = "data/hierarchy/output*.json"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+SCORES_GLOB = os.path.join(DATA_DIR, "hierarchy", "output*.json")
 sco_files = sorted(glob.glob(SCORES_GLOB))
 
 
@@ -190,8 +183,8 @@ def test_hierarchy_regression(hierarchy_outcomes):
     expected_scores, window = hierarchy_outcomes
 
     # Hierarchy data is split across multiple lab files for these tests
-    ref_files = sorted(glob.glob("data/hierarchy/ref*.lab"))
-    est_files = sorted(glob.glob("data/hierarchy/est*.lab"))
+    ref_files = sorted(glob.glob(os.path.join(DATA_DIR, "hierarchy", "ref*.lab")))
+    est_files = sorted(glob.glob(os.path.join(DATA_DIR, "hierarchy", "est*.lab")))
 
     ref_hier = [mir_eval.io.load_labeled_intervals(_) for _ in ref_files]
     est_hier = [mir_eval.io.load_labeled_intervals(_) for _ in est_files]
@@ -201,9 +194,7 @@ def test_hierarchy_regression(hierarchy_outcomes):
     est_ints = [seg[0] for seg in est_hier]
     est_labs = [seg[1] for seg in est_hier]
 
-    outputs = mir_eval.hierarchy.evaluate(
-        ref_ints, ref_labs, est_ints, est_labs, window=window
-    )
+    outputs = mir_eval.hierarchy.evaluate(ref_ints, ref_labs, est_ints, est_labs, window=window)
 
     assert outputs.keys() == expected_scores.keys()
     for key in expected_scores:

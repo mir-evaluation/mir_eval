@@ -16,9 +16,7 @@ def test_interpolate_intervals():
     intervals = np.array([(n, n + 1.0) for n in range(len(labels))])
     time_points = [-1.0, 0.1, 0.9, 1.0, 2.3, 4.0]
     expected_ans = ["N", "a", "a", "b", "c", "N"]
-    assert (
-        util.interpolate_intervals(intervals, labels, time_points, "N") == expected_ans
-    )
+    assert util.interpolate_intervals(intervals, labels, time_points, "N") == expected_ans
 
 
 def test_interpolate_intervals_gap():
@@ -27,12 +25,9 @@ def test_interpolate_intervals_gap():
     intervals = np.array([[0.5, 1.0], [1.5, 2.0], [2.5, 3.0]])
     time_points = [0.0, 0.75, 1.25, 1.75, 2.25, 2.75, 3.5]
     expected_ans = ["N", "a", "N", "b", "N", "c", "N"]
-    assert (
-        util.interpolate_intervals(intervals, labels, time_points, "N") == expected_ans
-    )
+    assert util.interpolate_intervals(intervals, labels, time_points, "N") == expected_ans
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_interpolate_intervals_badtime():
     """Check that interpolate_intervals throws an exception if
     input is unordered.
@@ -40,7 +35,8 @@ def test_interpolate_intervals_badtime():
     labels = list("abc")
     intervals = np.array([(n, n + 1.0) for n in range(len(labels))])
     time_points = [-1.0, 0.1, 0.9, 0.8, 2.3, 4.0]
-    mir_eval.util.interpolate_intervals(intervals, labels, time_points)
+    with pytest.raises(ValueError):
+        mir_eval.util.interpolate_intervals(intervals, labels, time_points)
 
 
 def test_intervals_to_samples():
@@ -52,17 +48,13 @@ def test_intervals_to_samples():
 
     expected_times = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5]
     expected_labels = ["a", "a", "b", "b", "c", "c"]
-    result = util.intervals_to_samples(
-        intervals, labels, offset=0, sample_size=0.5, fill_value="N"
-    )
+    result = util.intervals_to_samples(intervals, labels, offset=0, sample_size=0.5, fill_value="N")
     assert result[0] == expected_times
     assert result[1] == expected_labels
 
     expected_times = [0.25, 0.75, 1.25, 1.75, 2.25, 2.75]
     expected_labels = ["a", "a", "b", "b", "c", "c"]
-    result = util.intervals_to_samples(
-        intervals, labels, offset=0.25, sample_size=0.5, fill_value="N"
-    )
+    result = util.intervals_to_samples(intervals, labels, offset=0.25, sample_size=0.5, fill_value="N")
     assert result[0] == expected_times
     assert result[1] == expected_labels
 
@@ -96,9 +88,7 @@ def test_merge_labeled_intervals():
     ]
     expected_x_labels = ["A", "B", "B", "B", "C", "D", "D"]
     expected_y_labels = [0, 0, 1, 2, 2, 2, 3]
-    new_intvs, new_x_labels, new_y_labels = util.merge_labeled_intervals(
-        x_intvs, x_labels, y_intvs, y_labels
-    )
+    new_intvs, new_x_labels, new_y_labels = util.merge_labeled_intervals(x_intvs, x_labels, y_intvs, y_labels)
 
     assert new_x_labels == expected_x_labels
     assert new_y_labels == expected_y_labels
@@ -212,9 +202,7 @@ def test_match_events():
     ref = [1.0, 2.0, 3.0, 11.9]
     est = [1.1, 6.0, 1.9, 5.0, 10.0, 0.0]
     expected = [(0, 0), (1, 2), (3, 5)]
-    actual = mir_eval.util.match_events(
-        ref, est, 0.5, distance=mir_eval.util._outer_distance_mod_n
-    )
+    actual = mir_eval.util.match_events(ref, est, 0.5, distance=mir_eval.util._outer_distance_mod_n)
     assert actual == expected
 
 
@@ -229,7 +217,6 @@ def test_fast_hit_windows():
     assert np.all(est_fast == est_slow)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "intervals",
     [
@@ -244,10 +231,10 @@ def test_fast_hit_windows():
     ],
 )
 def test_validate_intervals(intervals):
-    mir_eval.util.validate_intervals(intervals)
+    with pytest.raises(ValueError):
+        mir_eval.util.validate_intervals(intervals)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "events",
     [
@@ -260,10 +247,10 @@ def test_validate_intervals(intervals):
     ],
 )
 def test_validate_events(events):
-    mir_eval.util.validate_events(events)
+    with pytest.raises(ValueError):
+        mir_eval.util.validate_events(events)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "freqs",
     [
@@ -279,10 +266,10 @@ def test_validate_events(events):
     ],
 )
 def test_validate_frequencies(freqs):
-    mir_eval.util.validate_frequencies(freqs, 5000, 20, allow_negatives=False)
+    with pytest.raises(ValueError):
+        mir_eval.util.validate_frequencies(freqs, 5000, 20, allow_negatives=False)
 
 
-@pytest.mark.xfail(raises=ValueError)
 @pytest.mark.parametrize(
     "freqs",
     [
@@ -293,7 +280,8 @@ def test_validate_frequencies(freqs):
     ],
 )
 def test_validate_frequencies_negative(freqs):
-    mir_eval.util.validate_frequencies(freqs, 5000, 20, allow_negatives=True)
+    with pytest.raises(ValueError):
+        mir_eval.util.validate_frequencies(freqs, 5000, 20, allow_negatives=True)
 
 
 def test_has_kwargs():
@@ -320,6 +308,31 @@ def test_has_kwargs():
     assert not mir_eval.util.has_kwargs(f3)
     assert mir_eval.util.has_kwargs(f4)
     assert mir_eval.util.has_kwargs(f5)
+
+
+def test_filter_kwargs():
+    import functools
+
+    def f1(a, b=2):
+        return a, b
+
+    assert mir_eval.util.filter_kwargs(f1, 1, b=3, c=4) == (1, 3)
+
+    # Keyword-only arguments
+    def f2(a, *, c=10):
+        return a, c
+
+    assert mir_eval.util.filter_kwargs(f2, 1, b=2, c=20) == (1, 20)
+
+    # functools.partial
+    f3 = functools.partial(f1, b=5)
+    assert mir_eval.util.filter_kwargs(f3, 1, b=7, extra=99) == (1, 7)
+
+    # Function with **kwargs
+    def f4(a, **kwargs):
+        return a, kwargs
+
+    assert mir_eval.util.filter_kwargs(f4, 1, b=2, c=3) == (1, {"b": 2, "c": 3})
 
 
 @pytest.mark.parametrize(
@@ -355,3 +368,18 @@ def test_sort_labeled_intervals_with_labels(x, labels, x_true, lab_true):
 def test_sort_labeled_intervals_without_labels(x, x_true):
     xs = mir_eval.util.sort_labeled_intervals(x)
     assert np.allclose(xs, x_true)
+
+
+def test_deprecated():
+    @mir_eval.util.deprecated(version="0.8.0", version_removed="0.9.0")
+    def dummy_func(x, y=1):
+        """Docstring for dummy_func."""
+        return x + y
+
+    assert dummy_func.__name__ == "dummy_func"
+    assert dummy_func.__doc__ == "Docstring for dummy_func."
+
+    with pytest.warns(FutureWarning, match=r"dummy_func\n\tDeprecated as of mir_eval version 0\.8\.0"):
+        res = dummy_func(2, y=3)
+
+    assert res == 5

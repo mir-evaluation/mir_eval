@@ -27,28 +27,9 @@ import os
 import sys
 
 
-def load_separation_data(folder):
-    """
-    Loads in a stacked matrix of the .wavs in the provided folder.
-    We need this because there's no specialized loader in .io for it.
-    """
-    data = []
-    global_fs = None
-    # Load in each reference file in the supplied dir
-    for reference_file in glob.glob(os.path.join(folder, "*.wav")):
-        audio_data, fs = mir_eval.io.load_wav(reference_file)
-        # Make sure fs is the same for all files
-        assert global_fs is None or fs == global_fs
-        global_fs = fs
-        data.append(audio_data)
-    return np.vstack(data)
-
-
 def load_transcription_velocity(filename):
     """Loader for data in the format start, end, pitch, velocity."""
-    starts, ends, pitches, velocities = mir_eval.io.load_delimited(
-        filename, [float, float, int, int]
-    )
+    starts, ends, pitches, velocities = mir_eval.io.load_delimited(filename, [float, float, int, int])
     # Stack into an interval matrix
     intervals = np.array([starts, ends]).T
     # return pitches and velocities as np.ndarray
@@ -64,49 +45,57 @@ if __name__ == "__main__":
     # Whatever is passed in as argv will be grabbed from it and the data for
     # that task will be generated.
     tasks = {}
-    tasks["beat"] = (mir_eval.beat, mir_eval.io.load_events, "data/beat/{}*.txt")
+    DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+    tasks["beat"] = (
+        mir_eval.beat,
+        mir_eval.io.load_events,
+        os.path.join(DATA_DIR, "beat", "{}*.txt"),
+    )
     tasks["chord"] = (
         mir_eval.chord,
         mir_eval.io.load_labeled_intervals,
-        "data/chord/{}*.lab",
+        os.path.join(DATA_DIR, "chord", "{}*.lab"),
     )
     tasks["melody"] = (
         mir_eval.melody,
         mir_eval.io.load_time_series,
-        "data/melody/{}*.txt",
+        os.path.join(DATA_DIR, "melody", "{}*.txt"),
     )
     tasks["multipitch"] = (
         mir_eval.multipitch,
         mir_eval.io.load_ragged_time_series,
-        "data/multipitch/()*.txt",
+        os.path.join(DATA_DIR, "multipitch", "{}*.txt"),
     )
-    tasks["onset"] = (mir_eval.onset, mir_eval.io.load_events, "data/onset/{}*.txt")
+    tasks["onset"] = (
+        mir_eval.onset,
+        mir_eval.io.load_events,
+        os.path.join(DATA_DIR, "onset", "{}*.txt"),
+    )
     tasks["pattern"] = (
         mir_eval.pattern,
         mir_eval.io.load_patterns,
-        "data/pattern/{}*.txt",
+        os.path.join(DATA_DIR, "pattern", "{}*.txt"),
     )
     tasks["segment"] = (
         mir_eval.segment,
         mir_eval.io.load_labeled_intervals,
-        "data/segment/{}*.lab",
-    )
-    tasks["separation"] = (
-        mir_eval.separation,
-        load_separation_data,
-        "data/separation/{}*",
+        os.path.join(DATA_DIR, "segment", "{}*.lab"),
     )
     tasks["transcription"] = (
         mir_eval.transcription,
         mir_eval.io.load_valued_intervals,
-        "data/transcription/{}*.txt",
+        os.path.join(DATA_DIR, "transcription", "{}*.txt"),
     )
     tasks["transcription_velocity"] = (
         mir_eval.transcription_velocity,
         load_transcription_velocity,
-        "data/transcription_velocity/{}*.txt",
+        os.path.join(DATA_DIR, "transcription_velocity", "{}*.txt"),
     )
-    tasks["key"] = (mir_eval.key, mir_eval.io.load_key, "data/key/{}*.txt")
+    tasks["key"] = (
+        mir_eval.key,
+        mir_eval.io.load_key,
+        os.path.join(DATA_DIR, "key", "{}*.txt"),
+    )
     # Get task keys from argv
     for task in sys.argv[1:]:
         print(f"Generating data for {task}")
@@ -119,7 +108,7 @@ if __name__ == "__main__":
             ref_data = loader(ref_file)
             est_data = loader(est_file)
             # Some loaders return tuples, others don't
-            if type(ref_data) == tuple:
+            if isinstance(ref_data, tuple):
                 scores = submodule.evaluate(*(ref_data + est_data))
             else:
                 scores = submodule.evaluate(ref_data, est_data)

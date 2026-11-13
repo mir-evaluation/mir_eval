@@ -46,7 +46,16 @@ docs/_build/*
 
 # matplotlib tests
 tests/result_images/*
+tests/mpl_image_results/*
 
 # coverage
 coverage.xml
+
+# caches and virtual environments
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.benchmarks/
+.venv/
+uv.lock
 

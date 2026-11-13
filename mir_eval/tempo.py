@@ -22,7 +22,6 @@ Metrics
 
 import warnings
 import numpy as np
-import collections
 from . import util
 
 
@@ -44,9 +43,7 @@ def validate_tempi(tempi, reference=True):
         raise ValueError(f"tempi={tempi} must be non-negative numbers")
 
     if reference and np.all(tempi == 0):
-        raise ValueError(
-            "reference tempi={} must have one" " value greater than zero".format(tempi)
-        )
+        raise ValueError(f"reference tempi={tempi} must have one value greater than zero")
 
 
 def validate(reference_tempi, reference_weight, estimated_tempi):
@@ -110,11 +107,9 @@ def detection(reference_tempi, reference_weight, estimated_tempi, tol=0.08):
     validate(reference_tempi, reference_weight, estimated_tempi)
 
     if tol < 0 or tol > 1:
-        raise ValueError(
-            "invalid tolerance {}: must lie in the range " "[0, 1]".format(tol)
-        )
+        raise ValueError(f"invalid tolerance {tol}: must lie in the range [0, 1]")
     if tol == 0.0:
-        warnings.warn("A tolerance of 0.0 may not " "lead to the results you expect.")
+        warnings.warn("A tolerance of 0.0 may not lead to the results you expect.")
 
     hits = [False, False]
 
@@ -158,14 +153,12 @@ def evaluate(reference_tempi, reference_weight, estimated_tempi, **kwargs):
         the value is the (float) score achieved.
     """
     # Compute all metrics
-    scores = collections.OrderedDict()
+    scores = {}
 
     (
         scores["P-score"],
         scores["One-correct"],
         scores["Both-correct"],
-    ) = util.filter_kwargs(
-        detection, reference_tempi, reference_weight, estimated_tempi, **kwargs
-    )
+    ) = util.filter_kwargs(detection, reference_tempi, reference_weight, estimated_tempi, **kwargs)
 
     return scores

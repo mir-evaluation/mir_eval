@@ -22,10 +22,10 @@ segmentation contains the most.
 Metrics
 -------
 * :func:`mir_eval.hierarchy.tmeasure`: Precision, recall, and F-measure of
-  triplet-based frame accuracy for boundary detection.
+  triplet-based frame accuracy for boundary detection [#mcfee2015]_, [#mcfee2017]_.
 
 * :func:`mir_eval.hierarchy.lmeasure`: Precision, recall, and F-measure of
-  triplet-based frame accuracy for segment labeling.
+  triplet-based frame accuracy for segment labeling [#mcfee2017]_.
 
 References
 ----------
@@ -40,7 +40,7 @@ References
     Frontiers in Psychology, 2017.
 """
 
-import collections
+from collections import defaultdict
 import itertools
 import warnings
 
@@ -123,9 +123,7 @@ def _align_intervals(int_hier, lab_hier, t_min=0.0, t_max=None):
         list(_)
         for _ in zip(
             *[
-                util.adjust_intervals(
-                    np.asarray(ival), labels=lab, t_min=t_min, t_max=t_max
-                )
+                util.adjust_intervals(np.asarray(ival), labels=lab, t_min=t_min, t_max=t_max)
                 for ival, lab in zip(int_hier, lab_hier)
             ]
         )
@@ -166,9 +164,7 @@ def _lca(intervals_hier, frame_size):
     lca_matrix = scipy.sparse.lil_matrix((n, n), dtype=np.uint8)
 
     for level, intervals in enumerate(intervals_hier, 1):
-        for ival in (_round(np.asarray(intervals), frame_size) / frame_size).astype(
-            int
-        ):
+        for ival in (_round(np.asarray(intervals), frame_size) / frame_size).astype(int):
             idx = slice(ival[0], ival[1])
             lca_matrix[idx, idx] = level
 
@@ -297,9 +293,7 @@ def _gauc(ref_lca, est_lca, transitive, window):
     # Make sure we have the right number of frames
 
     if ref_lca.shape != est_lca.shape:
-        raise ValueError(
-            "Estimated and reference hierarchies " "must have the same shape."
-        )
+        raise ValueError("Estimated and reference hierarchies must have the same shape.")
 
     # How many frames?
     n = ref_lca.shape[0]
@@ -334,9 +328,7 @@ def _gauc(ref_lca, est_lca, transitive, window):
         ref_score = np.concatenate((ref_score[:idx], ref_score[idx + 1 :]))
         est_score = np.concatenate((est_score[:idx], est_score[idx + 1 :]))
 
-        inversions, normalizer = _compare_frame_rankings(
-            ref_score, est_score, transitive=transitive
-        )
+        inversions, normalizer = _compare_frame_rankings(ref_score, est_score, transitive=transitive)
 
         if normalizer:
             score += 1.0 - inversions / float(normalizer)
@@ -483,15 +475,13 @@ def _compare_frame_rankings(ref, est, transitive=False, index_weights=None):
         index_weights = index_weights[idx]
 
     # Find the break-points in ref_sorted
-    levels, positions, counts = np.unique(
-        ref_sorted, return_index=True, return_counts=True
-    )
+    levels, positions, counts = np.unique(ref_sorted, return_index=True, return_counts=True)
 
     positions = list(positions)
     positions.append(len(ref_sorted))
 
-    index = collections.defaultdict(lambda: slice(0))
-    ref_map = collections.defaultdict(lambda: 0)
+    index = defaultdict(lambda: slice(0))
+    ref_map = defaultdict(lambda: 0)
 
     for level, cnt, start, end in zip(levels, counts, positions[:-1], positions[1:]):
         index[level] = slice(start, end)
@@ -561,9 +551,7 @@ def validate_hier_intervals(intervals_hier):
         new_bounds = set(util.intervals_to_boundaries(intervals))
 
         if boundaries - new_bounds:
-            warnings.warn(
-                "Segment hierarchy is inconsistent " "at level {:d}".format(level)
-            )
+            warnings.warn(f"Segment hierarchy is inconsistent at level {level:d}")
         boundaries |= new_bounds
 
 
@@ -617,18 +605,13 @@ def tmeasure(
     """
     # Compute the number of frames in the window
     if frame_size <= 0:
-        raise ValueError(
-            "frame_size ({:.2f}) must be a positive " "number.".format(frame_size)
-        )
+        raise ValueError(f"frame_size ({frame_size:.2f}) must be a positive number.")
 
     if window is None:
         window_frames = None
     else:
         if frame_size > window:
-            raise ValueError(
-                "frame_size ({:.2f}) cannot exceed "
-                "window ({:.2f})".format(frame_size, window)
-            )
+            raise ValueError(f"frame_size ({frame_size:.2f}) cannot exceed window ({window:.2f})")
 
         window_frames = int(_round(window, frame_size) / frame_size)
 
@@ -744,9 +727,7 @@ def lmeasure(
     return l_precision, l_recall, l_measure
 
 
-def evaluate(
-    ref_intervals_hier, ref_labels_hier, est_intervals_hier, est_labels_hier, **kwargs
-):
+def evaluate(ref_intervals_hier, ref_labels_hier, est_intervals_hier, est_labels_hier, **kwargs):
     r"""Compute all hierarchical structure metrics for the given reference and
     estimated annotations.
 
@@ -809,7 +790,7 @@ def evaluate(
 
     Returns
     -------
-    scores : OrderedDict
+    scores : dict
         Dictionary of scores, where the key is the metric name (str) and
         the value is the (float) score achieved.
 
@@ -826,15 +807,11 @@ def evaluate(
 
     # Pre-process the intervals to match the range of the reference,
     # and start at 0
-    ref_intervals_hier, ref_labels_hier = _align_intervals(
-        ref_intervals_hier, ref_labels_hier, t_min=0.0, t_max=None
-    )
+    ref_intervals_hier, ref_labels_hier = _align_intervals(ref_intervals_hier, ref_labels_hier, t_min=0.0, t_max=None)
 
-    est_intervals_hier, est_labels_hier = _align_intervals(
-        est_intervals_hier, est_labels_hier, t_min=0.0, t_max=t_end
-    )
+    est_intervals_hier, est_labels_hier = _align_intervals(est_intervals_hier, est_labels_hier, t_min=0.0, t_max=t_end)
 
-    scores = collections.OrderedDict()
+    scores = {}
 
     # Force the transitivity setting
     kwargs["transitive"] = False
@@ -856,11 +833,6 @@ def evaluate(
         scores["L-Recall"],
         scores["L-Measure"],
     ) = util.filter_kwargs(
-        lmeasure,
-        ref_intervals_hier,
-        ref_labels_hier,
-        est_intervals_hier,
-        est_labels_hier,
-        **kwargs
+        lmeasure, ref_intervals_hier, ref_labels_hier, est_intervals_hier, est_labels_hier, **kwargs
     )
     return scores

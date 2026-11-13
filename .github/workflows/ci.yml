@@ -1,0 +1,154 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: True
+
+jobs:
+  test:
+    name: >-
+      Python ${{ matrix.python-version }} on ${{ matrix.os }}
+      ${{ matrix.variant && format(' - {0}', matrix.variant) || '' }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: "3.13"
+            variant: "minimal"
+
+          - os: ubuntu-latest
+            python-version: "3.13"
+
+          - os: ubuntu-latest
+            python-version: "3.14"
+
+          - os: ubuntu-24.04-arm
+            python-version: "3.15"
+
+          - os: ubuntu-latest
+            python-version: "3.15"
+
+          - os: macos-latest
+            python-version: "3.15"
+
+          - os: windows-latest
+            python-version: "3.15"
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Create short temp directory (Windows only)
+        if: runner.os == 'Windows'
+        run: mkdir C:\tmp
+        shell: cmd
+
+      - name: Set environment variables (Windows only)
+        if: runner.os == 'Windows'
+        run: |
+          echo "TMP=C:\tmp" >> $env:GITHUB_ENV
+          echo "TEMP=C:\tmp" >> $env:GITHUB_ENV
+        shell: pwsh
+
+      - name: Setup Micromamba
+        uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39 # v3
+        with:
+          environment-name: test
+          condarc: |
+            channels:
+              - conda-forge
+          create-args: >-
+            python=${{ matrix.python-version }}
+          cache-downloads: true
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Install mir_eval and test dependencies
+        run: |
+          if [ "${{ matrix.variant }}" == "minimal" ]; then
+            uv pip install --prefix "$CONDA_PREFIX" --resolution=lowest-direct -e ".[tests]"
+          else
+            uv pip install --prefix "$CONDA_PREFIX" -e ".[tests]"
+          fi
+
+      - name: Environment info
+        run: |
+          micromamba info
+          uv pip list --prefix "$CONDA_PREFIX"
+          python -c "import numpy; numpy.show_config()"
+          python -c "import scipy; scipy.show_config()"
+
+      - name: Run unit tests
+        run: |
+          if [ "${{ matrix.python-version }}" == "3.15" ]; then
+            pytest --mpl --mpl-results-path=mpl_image_results/
+          else
+            pytest
+          fi
+
+      - name: Upload image comparison failures if any
+        if: failure() && hashFiles('mpl_image_results/**') != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: mpl-test-results-${{ runner.os }}--${{ runner.arch }}--${{ matrix.python-version }}
+          path: mpl_image_results/
+          retention-days: 7
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7
+        with:
+          use_oidc: ${{ !github.event.pull_request.head.repo.fork }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: mir-evaluation/mir_eval
+          files: ./tests/coverage.xml,./coverage.xml
+          flags: unittests
+          fail_ci_if_error: false
+          verbose: true
+          name: codecov-umbrella
+
+  sdist:
+    name: "Build and verify sdist"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Build sdist
+        run: uv build --sdist
+
+      - name: Twine check
+        run: uvx twine check dist/*
+
+      - name: Test sdist install
+        run: |
+          uv venv .test_venv
+          uv pip install --python .test_venv dist/*.tar.gz
+          uv run --python .test_venv python -c "import mir_eval; print(mir_eval.__version__)"
